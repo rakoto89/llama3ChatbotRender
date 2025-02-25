@@ -1,73 +1,62 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const chatBox = document.getElementById("chat-box");
-    const questionInput = document.getElementById("question-input");
-    const sendButton = document.getElementById("send-button");
-    const listenButton = document.getElementById("listen-button");
+// Function to send the user's typed message
+function sendMessage() {
+    let userText = document.getElementById("userInput").value.trim();
+    if (userText === "") return;
 
-    // Function to append a message to the chatbox
-    function appendMessage(message, sender) {
-        const messageDiv = document.createElement("div");
-        messageDiv.classList.add("chat-message", sender === "user" ? "user-message" : "bot-message");
-        messageDiv.textContent = message;
-        chatBox.appendChild(messageDiv);
-        chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll to bottom
-    }
+    let chatbox = document.getElementById("chatbox");
 
-    // Function to send a question to the server
-    function sendMessage() {
-        const question = questionInput.value.trim();
-        if (!question) {
-            alert("Please enter a question.");
-            return;
-        }
-        appendMessage(question, "user");
-        questionInput.value = ""; // Clear input field
+    // Display user message
+    let userMessage = document.createElement("p");
+    userMessage.className = "user-text";
+    userMessage.innerHTML = `<strong>You:</strong> ${userText}`;
+    chatbox.appendChild(userMessage);
 
-        fetch("/ask", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: "question=" + encodeURIComponent(question)
-        })
-        .then(response => response.json())
-        .then(data => {
-            const answer = data.answer;
-            appendMessage(answer, "bot");
-            speak(answer); // Read the response aloud
-        })
-        .catch(error => console.error("Error communicating with server:", error));
-    }
+    // Clear input field
+    document.getElementById("userInput").value = "";
 
-    // Function to speak text using SpeechSynthesis API
-    function speak(text) {
-        if ('speechSynthesis' in window) {
-            const utterance = new SpeechSynthesisUtterance(text);
-            speechSynthesis.speak(utterance);
-        }
-    }
+    // Send request to Flask server
+    fetch("/ask", {
+        method: "POST",
+        body: new URLSearchParams({ "question": userText }),
+        headers: { "Content-Type": "application/x-www-form-urlencoded" }
+    })
+    .then(response => response.json())
+    .then(data => {
+        let botMessage = document.createElement("p");
+        botMessage.className = "bot-text";
+        botMessage.innerHTML = `<strong>Bot:</strong> ${data.answer}`;
+        chatbox.appendChild(botMessage);
 
-    // Function to start voice recognition using Annyang
-    function startListening() {
-        if (annyang) {
-            annyang.start();
-            annyang.addCallback("result", function (phrases) {
-                const question = phrases[0];
-                questionInput.value = question;
-                sendMessage();
-            });
-        } else {
-            alert("Speech recognition is not supported in your browser.");
-        }
-    }
+        // Scroll to the bottom of the chatbox
+        chatbox.scrollTop = chatbox.scrollHeight;
 
-    // Event listeners for send and listen buttons
-    sendButton.addEventListener("click", sendMessage);
-    listenButton.addEventListener("click", startListening);
+        // Speak the bot's response
+        speakText(data.answer);
+    })
+    .catch(error => console.error("Error:", error));
+}
 
-    // Allow Enter key to send messages
-    questionInput.addEventListener("keypress", function (event) {
-        if (event.key === "Enter") {
-            event.preventDefault();
-            sendMessage();
-        }
-    });
-});
+// Function to start speech recognition
+function startVoiceRecognition() {
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+
+    recognition.lang = 'en-US';
+    recognition.start();
+
+    recognition.onresult = (event) => {
+        let userText = event.results[0][0].transcript;
+        document.getElementById("userInput").value = userText;
+        sendMessage();
+    };
+
+    recognition.onerror = (event) => {
+        console.error("Speech recognition error: ", event.error);
+    };
+}
+
+// Function to speak the text (bot's answer)
+function speakText(text) {
+    const speechSynthesis = window.speechSynthesis;
+    const speech = new SpeechSynthesisUtterance(text);
+    speechSynthesis.speak(speech);
+}
