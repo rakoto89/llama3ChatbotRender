@@ -1,0 +1,52 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/annyang/2.6.1/annyang.min.js"></script>
+<script>
+    // Function to ask a question and send it to the server
+    function askQuestion() {
+        const question = document.getElementById("question-input").value.trim();
+        if (question === "") {
+            alert("Please enter a question.");
+            return;
+        }
+        sendMessage(question);
+    }
+
+    // Function to send a message to the server and receive the response
+    function sendMessage(question) {
+        const chatBox = document.getElementById("chat-box");
+        chatBox.innerHTML += `<div class="chat-message user-message">${question}</div>`;
+        document.getElementById("question-input").value = ""; // Clear the input box
+
+        fetch("/ask", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: "question=" + encodeURIComponent(question)
+        })
+        .then(response => response.json())
+        .then(data => {
+            const answer = data.answer;
+            chatBox.innerHTML += `<div class="chat-message bot-message">${answer}</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom
+            speak(answer); // Speak the answer aloud
+        });
+    }
+
+    // Function to start listening to speech using annyang (speech recognition library)
+    function startListening() {
+        if (annyang) {
+            annyang.start();
+            annyang.addCallback('result', function(phrases) {
+                const question = phrases[0];
+                document.getElementById("question-input").value = question;
+                sendMessage(question);
+            });
+        } else {
+            alert("Speech recognition is not supported in your browser.");
+        }
+    }
+
+    // Function to speak the chatbot's response
+    function speak(text) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.voice = speechSynthesis.getVoices().find(voice => voice.name === "
