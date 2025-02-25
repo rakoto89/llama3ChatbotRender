@@ -5,7 +5,7 @@ import requests
 from flask_cors import CORS  # Import CORS for cross-origin requests
 
 # Initialize Flask app
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 CORS(app)  # Enable CORS
 
 # Set the path to the PDF containing opioid information
