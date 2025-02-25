@@ -9,7 +9,7 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS
 
 # Set the path to the PDF containing opioid information
-PDF_PATH = os.path.join(os.path.dirname(__file__), "SAMHSA")
+PDF_PATH = os.path.join(os.path.dirname(__file__), "SAMHSA", "SAMHSA.pdf")
 
 # Function to extract text from PDF
 def extract_text_from_pdf(pdf_path):
