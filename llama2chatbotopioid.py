@@ -7,7 +7,7 @@ import requests
 app = Flask(__name__)
 
 # Set the path to the PDF containing opioid information
-PDF_PATH = os.path.join(os.path.dirname(__file__), "PDFs", "SAMHSA.pdf")
+PDF_PATH = os.path.join(os.path.dirname(__file__), "pdfs", "SAMHSA.pdf")
 
 # Function to extract text from PDF
 def extract_text_from_pdf(pdf_path):
