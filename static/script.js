@@ -3,7 +3,7 @@ function sendMessage() {
     let userText = document.getElementById("userInput").value.trim();
     if (userText === "") return;
 
-    let chatbox = document.getElementById("chatbox");
+    let chatbox = document.getElementById("chat-box"); // Updated element id
 
     // Display user message
     let userMessage = document.createElement("p");
@@ -60,3 +60,7 @@ function speakText(text) {
     const speech = new SpeechSynthesisUtterance(text);
     speechSynthesis.speak(speech);
 }
+
+// Attach event listeners to buttons
+document.getElementById("submit-question").addEventListener("click", sendMessage);
+document.getElementById("start-recording").addEventListener("click", startVoiceRecognition);
