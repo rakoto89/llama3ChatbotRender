@@ -1,82 +1,54 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const chatBox = document.getElementById("chat-box");
-    const userInput = document.getElementById("user-input");
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.continuous = false;
-    recognition.lang = "en-US";
-
-    function addMessage(sender, text) {
-        const messageDiv = document.createElement("div");
-        messageDiv.classList.add("chat-message", sender);
-        messageDiv.textContent = text;
-        chatBox.appendChild(messageDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    function showTypingIndicator() {
-        const typingDiv = document.createElement("div");
-        typingDiv.classList.add("typing-indicator");
-        typingDiv.textContent = "AI is typing...";
-        typingDiv.id = "typing";
-        chatBox.appendChild(typingDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    function removeTypingIndicator() {
-        const typingDiv = document.getElementById("typing");
-        if (typingDiv) {
-            typingDiv.remove();
-        }
-    }
-
-    // Function to simulate bot processing and returning a response (this will be replaced with actual logic to get a response)
-    function getBotResponse(inputText) {
-        // Replace this with the actual logic for generating bot responses (e.g., calling OpenAI, fetching from a PDF, etc.)
-        // For now, just a placeholder logic for demonstration:
-        if (inputText.toLowerCase().includes("opioid")) {
-            return "Here is some information about opioids...";
-        } else {
-            return "I'm sorry, I don't have information on that topic.";
-        }
-    }
-
-    function sendMessage() {
-        const text = userInput.value.trim();
-        if (text === "") return;
-        addMessage("user", text);
-        userInput.value = "";
-        showTypingIndicator();
-
-        // Simulate bot response after a delay
-        setTimeout(() => {
-            removeTypingIndicator();
-            const botResponse = getBotResponse(text); // Get the response based on the user input
-            addMessage("bot", botResponse);
-        }, 1000);
-    }
-
-    userInput.addEventListener("keypress", function (event) {
-        if (event.key === "Enter") {
-            sendMessage();
-        }
-    });
-
-    document.querySelector("button").addEventListener("click", sendMessage);
-    
-    // Create and add voice input button
-    const voiceButton = document.createElement("button");
-    voiceButton.id = "voice-button";
-    voiceButton.textContent = "🎤 Speak";
-    voiceButton.style.marginLeft = "10px";
-    document.querySelector(".chat-input-container").appendChild(voiceButton);
-    
-    // Voice-to-text feature
-    document.getElementById("voice-button").addEventListener("click", function () {
-        recognition.start();
-    });
-
-    recognition.onresult = function (event) {
-        userInput.value = event.results[0][0].transcript;
-        sendMessage();
-    };
+// Initial greeting
+$(document).ready(function() {
+    $('#chatMessages').append('<div class="message bot">Welcome to the AI Opioid Education Chatbot! Ask me anything about opioids.</div>');
 });
+
+// Function to send a message to the server and get the response
+function sendMessage() {
+    let userQuestion = $('#userQuestion').val().trim();
+
+    if (userQuestion) {
+        // Display the user's question in the chat window
+        $('#chatMessages').append('<div class="message user">' + userQuestion + '</div>');
+        $('#userQuestion').val(""); // Clear the input field
+
+        // Send the user's question to the backend
+        $.post("/ask", { question: userQuestion }, function(data) {
+            $('#chatMessages').append('<div class="message bot">' + data.answer + '</div>');
+            // Scroll to the bottom of the chat
+            $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
+            speakResponse(data.answer); // Speak the answer after receiving it
+        });
+    }
+}
+
+// Function to handle speech recognition (listening to the user)
+function startListening() {
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = 'en-US';
+
+    recognition.start();
+
+    recognition.onresult = function(event) {
+        const userQuestion = event.results[0][0].transcript;
+        $('#chatMessages').append('<div class="message user">' + userQuestion + '</div>');
+        recognition.stop();
+
+        // Send the speech to the Flask backend for a response
+        $.post("/ask", { question: userQuestion }, function(data) {
+            $('#chatMessages').append('<div class="message bot">' + data.answer + '</div>');
+            $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
+            speakResponse(data.answer); // Speak the response
+        });
+    };
+
+    recognition.onerror = function(event) {
+        console.error('Speech recognition error:', event.error);
+    };
+}
+
+// Function to make the chatbot speak the answer using SpeechSynthesis API
+function speakResponse(response) {
+    const speech = new SpeechSynthesisUtterance(response);
+    window.speechSynthesis.speak(speech);
+}
