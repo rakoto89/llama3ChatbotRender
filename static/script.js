@@ -4,8 +4,8 @@ const sendBtn = document.getElementById('send-btn');
 const voiceBtn = document.getElementById('voice-btn');
 const stopBtn = document.getElementById('stop-btn');
 const typingIndicator = document.getElementById('typing-indicator');
-let isVoiceEnabled = false; // Only speak if voice button is clicked
-let currentUtterance = null; // Track speech synthesis
+let isVoiceEnabled = false; 
+let currentUtterance = null;
 
 // Append messages to chat
 function appendMessage(text, sender) {
@@ -16,7 +16,7 @@ function appendMessage(text, sender) {
   chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
-// Show typing indicator while AI is thinking
+// Show AI thinking
 function showTypingIndicator() {
   typingIndicator.classList.add('active');
 }
@@ -25,14 +25,14 @@ function hideTypingIndicator() {
   typingIndicator.classList.remove('active');
 }
 
-// Send message to the backend
+// Send user message
 async function sendMessage(text) {
   const message = text.trim();
   if (!message) return;
   appendMessage(message, 'user');
   userInput.value = '';
   
-  showTypingIndicator(); // Show AI thinking
+  showTypingIndicator();
 
   try {
     const response = await fetch('/ask', {
@@ -46,27 +46,25 @@ async function sendMessage(text) {
     const data = await response.json();
     const botReply = data.answer || "(No response)";
 
-    hideTypingIndicator(); // Hide AI thinking
+    hideTypingIndicator();
     appendMessage(botReply, 'bot');
 
-    // Speak response only if voice was enabled
     if (isVoiceEnabled) {
       speakMessage(botReply);
-      isVoiceEnabled = false; // Reset after speaking
+      isVoiceEnabled = false;
     }
   } catch (error) {
     hideTypingIndicator();
-    console.error('Error:', error);
-    appendMessage("Error: Unable to reach the server. Please try again.", 'error');
+    appendMessage("Error: Unable to reach the server.", 'error');
   }
 }
 
-// Handle click on send button
+// Send button click
 sendBtn.addEventListener('click', () => {
   sendMessage(userInput.value);
 });
 
-// Handle pressing Enter key
+// Enter key send message
 userInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
     e.preventDefault();
@@ -74,42 +72,26 @@ userInput.addEventListener('keydown', (e) => {
   }
 });
 
-// Handle speech recognition
+// Speech recognition
 let recognition;
 if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   recognition = new SpeechRecognition();
   recognition.lang = 'en-US';
-  recognition.continuous = false;
-  recognition.interimResults = false;
 
   recognition.onresult = (event) => {
-    const transcript = event.results[0][0].transcript;
-    userInput.value = transcript;
-    isVoiceEnabled = true; // Enable speaking response
-    sendMessage(transcript);
-  };
-
-  recognition.onend = () => voiceBtn.classList.remove('listening');
-
-  recognition.onerror = (event) => {
-    voiceBtn.classList.remove('listening');
-    console.error("Speech recognition error:", event.error);
-    if (event.error === 'not-allowed') alert('Microphone access denied.');
+    userInput.value = event.results[0][0].transcript;
+    isVoiceEnabled = true;
+    sendMessage(userInput.value);
   };
 
   voiceBtn.addEventListener('click', () => {
-    if (recognition) {
-      voiceBtn.classList.add('listening');
-      recognition.start();
-    }
+    voiceBtn.classList.add('listening');
+    recognition.start();
   });
-} else {
-  voiceBtn.disabled = true;
-  voiceBtn.title = "Voice input not supported in this browser";
 }
 
-// Stop AI response button
+// Stop AI response
 stopBtn.addEventListener('click', () => {
   if (currentUtterance) {
     window.speechSynthesis.cancel();
@@ -118,20 +100,15 @@ stopBtn.addEventListener('click', () => {
   hideTypingIndicator();
 });
 
-// Speak message function
+// Speak message
 function speakMessage(text) {
-  if (!'speechSynthesis' in window) return;
-  if (currentUtterance) window.speechSynthesis.cancel();
-
   currentUtterance = new SpeechSynthesisUtterance(text);
-  currentUtterance.lang = 'en-US';
   window.speechSynthesis.speak(currentUtterance);
 }
 
-// Speak welcome message on page load
+// Welcome message on load
 window.onload = () => {
   speakMessage("Welcome to the AI Opioid Education Chatbot, Champ! Here you will learn all about opioids.");
 };
-
 
 
