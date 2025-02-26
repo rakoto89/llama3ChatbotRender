@@ -8,7 +8,7 @@ app = Flask(__name__, static_url_path='/static')
 CORS(app)
 
 # Load Llama 2 API endpoint from environment variables
-LLAMA2_ENDPOINT = os.environ.get("LLAMA2_ENDPOINT", "http://localhost:11434/api/generate")
+LLAMA2_ENDPOINT = os.environ.get("LLAMA2_ENDPOINT", "https://llama2chatbotrender.onrender.com")
 
 # Path to the PDF document
 PDF_PATH = os.path.join(os.path.dirname(__file__), "pdfs", "SAMHSA.pdf")
