@@ -7,8 +7,9 @@ from flask_cors import CORS  # Enable CORS for frontend compatibility
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
 
-# Load Llama 2 API endpoint from environment variables
-LLAMA2_ENDPOINT = os.environ.get("LLAMA2_ENDPOINT", "https://llama2chatbotrender.onrender.com")
+# Load Llama 2 API endpoint and API key from environment variables
+LLAMA2_ENDPOINT = os.environ.get("LLAMA2_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions")
+LLAMA2_API_KEY = os.environ.get("LLAMA2_API_KEY", "")  # Secure API key handling
 
 # Path to the PDF document
 PDF_PATH = os.path.join(os.path.dirname(__file__), "pdfs", "SAMHSA.pdf")
@@ -37,7 +38,8 @@ def is_question_relevant(question):
     return any(topic.lower() in question.lower() for topic in relevant_topics)
 
 def get_llama2_response(question, context):
-    """ Sends a request to the Llama 2 API and handles errors """
+    """ Sends a request to the OpenRouter Llama 2 API with API key authentication """
+
     opioid_context = (
         "Assume the user is always asking about opioids or related topics like overdose, "
         "addiction, withdrawal, painkillers, fentanyl, heroin, and narcotics."
@@ -45,21 +47,26 @@ def get_llama2_response(question, context):
 
     prompt = f"{opioid_context}\n\nHere is the document content:\n{context}\n\nQuestion: {question}"
 
+    # Set up headers with API key
+    headers = {
+        "Authorization": f"Bearer {LLAMA2_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
     try:
         response = requests.post(
             LLAMA2_ENDPOINT,
             json={
-                "model": "llama2",
-                "prompt": prompt,
-                "max_tokens": 2048,
-                "temperature": 0.7
+                "model": "llama2opioidchatbot",  # Use the model name you set in OpenRouter
+                "messages": [{"role": "user", "content": prompt}]
             },
-            timeout=10  # Timeout for faster failure detection
+            headers=headers,  # Pass API key
+            timeout=10
         )
         response.raise_for_status()  # Raise an error for HTTP errors
 
         data = response.json()
-        return data.get("response", "Sorry, I couldn't generate a valid response.")
+        return data.get("choices", [{}])[0].get("message", {}).get("content", "No response")
 
     except requests.exceptions.RequestException as e:
         app.logger.error(f"Llama 2 API error: {str(e)}")  # Logs error in Render logs
@@ -89,3 +96,4 @@ def ask():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))  # Use the port assigned by Render
     app.run(host="0.0.0.0", port=port)
+
