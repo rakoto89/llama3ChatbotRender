@@ -1,54 +1,62 @@
-// Initial greeting
-$(document).ready(function() {
-    $('#chatMessages').append('<div class="message bot">Welcome to the AI Opioid Education Chatbot! Ask me anything about opioids.</div>');
-});
-
-// Function to send a message to the server and get the response
+// Function to send the user's typed message
 function sendMessage() {
-    let userQuestion = $('#userQuestion').val().trim();
+    let userText = document.getElementById("userInput").value.trim();
+    if (userText === "") return;
 
-    if (userQuestion) {
-        // Display the user's question in the chat window
-        $('#chatMessages').append('<div class="message user">' + userQuestion + '</div>');
-        $('#userQuestion').val(""); // Clear the input field
+    let chatbox = document.getElementById("chatbox");
 
-        // Send the user's question to the backend
-        $.post("/ask", { question: userQuestion }, function(data) {
-            $('#chatMessages').append('<div class="message bot">' + data.answer + '</div>');
-            // Scroll to the bottom of the chat
-            $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
-            speakResponse(data.answer); // Speak the answer after receiving it
-        });
-    }
+    // Display user message
+    let userMessage = document.createElement("p");
+    userMessage.className = "user-text";
+    userMessage.innerHTML = `<strong>You:</strong> ${userText}`;
+    chatbox.appendChild(userMessage);
+
+    // Clear input field
+    document.getElementById("userInput").value = "";
+
+    // Send request to Flask server
+    fetch("/ask", {
+        method: "POST",
+        body: new URLSearchParams({ "question": userText }),
+        headers: { "Content-Type": "application/x-www-form-urlencoded" }
+    })
+    .then(response => response.json())
+    .then(data => {
+        let botMessage = document.createElement("p");
+        botMessage.className = "bot-text";
+        botMessage.innerHTML = `<strong>Bot:</strong> ${data.answer}`;
+        chatbox.appendChild(botMessage);
+
+        // Scroll to the bottom of the chatbox
+        chatbox.scrollTop = chatbox.scrollHeight;
+
+        // Speak the bot's response
+        speakText(data.answer);
+    })
+    .catch(error => console.error("Error:", error));
 }
 
-// Function to handle speech recognition (listening to the user)
-function startListening() {
+// Function to start speech recognition
+function startVoiceRecognition() {
     const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.lang = 'en-US';
 
+    recognition.lang = 'en-US';
     recognition.start();
 
-    recognition.onresult = function(event) {
-        const userQuestion = event.results[0][0].transcript;
-        $('#chatMessages').append('<div class="message user">' + userQuestion + '</div>');
-        recognition.stop();
-
-        // Send the speech to the Flask backend for a response
-        $.post("/ask", { question: userQuestion }, function(data) {
-            $('#chatMessages').append('<div class="message bot">' + data.answer + '</div>');
-            $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
-            speakResponse(data.answer); // Speak the response
-        });
+    recognition.onresult = (event) => {
+        let userText = event.results[0][0].transcript;
+        document.getElementById("userInput").value = userText;
+        sendMessage();
     };
 
-    recognition.onerror = function(event) {
-        console.error('Speech recognition error:', event.error);
+    recognition.onerror = (event) => {
+        console.error("Speech recognition error: ", event.error);
     };
 }
 
-// Function to make the chatbot speak the answer using SpeechSynthesis API
-function speakResponse(response) {
-    const speech = new SpeechSynthesisUtterance(response);
-    window.speechSynthesis.speak(speech);
+// Function to speak the text (bot's answer)
+function speakText(text) {
+    const speechSynthesis = window.speechSynthesis;
+    const speech = new SpeechSynthesisUtterance(text);
+    speechSynthesis.speak(speech);
 }
