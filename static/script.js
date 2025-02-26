@@ -18,13 +18,6 @@ document.addEventListener("DOMContentLoaded", function () {
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    function removePreviousUserMessage(text) {
-        const lastUserMessageElement = document.querySelector(".user-message:last-child");
-        if (lastUserMessageElement && lastUserMessageElement.textContent === text) {
-            lastUserMessageElement.remove();
-        }
-    }
-
     function removePreviousThinkingMessage() {
         const thinkingMessages = document.querySelectorAll(".bot-message.thinking");
         thinkingMessages.forEach(msg => msg.remove());
@@ -35,11 +28,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
         lastUserMessage = text; // Store last message to prevent repetition
 
-        removePreviousUserMessage(text); // Ensure only one instance of the user's question
+        // Append user message and ensure only one "Thinking..."
         appendMessage("user", text);
         userInput.value = "";
 
-        removePreviousThinkingMessage(); // Ensure only one "Thinking..." bubble
+        removePreviousThinkingMessage();
         const thinkingMsg = document.createElement("div");
         thinkingMsg.classList.add("bot-message", "thinking");
         thinkingMsg.textContent = "Thinking...";
@@ -96,27 +89,33 @@ document.addEventListener("DOMContentLoaded", function () {
             recognition.interimResults = false;
             recognition.lang = "en-US";
 
-            recognition.onstart = () => appendMessage("bot", "Listening...");
+            recognition.onstart = () => {
+                removePreviousThinkingMessage(); // Remove any old "Thinking..." bubbles
+                appendMessage("bot", "Listening...");
+            };
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 if (transcript === lastUserMessage) return; // Prevent duplicate messages
 
                 lastUserMessage = transcript; // Store last message
-                removePreviousUserMessage(transcript); // Ensure only one user message
+                removePreviousThinkingMessage(); // Remove old "Thinking..."
                 appendMessage("user", transcript);
 
-                removePreviousThinkingMessage(); // Ensure only one "Thinking..." bubble
-                const thinkingMsg = document.createElement("div");
-                thinkingMsg.classList.add("bot-message", "thinking");
-                thinkingMsg.textContent = "Thinking...";
-                chatBox.appendChild(thinkingMsg);
-                chatBox.scrollTop = chatBox.scrollHeight;
+                // Replace "Listening..." with "Thinking..."
+                setTimeout(() => {
+                    removePreviousThinkingMessage();
+                    const thinkingMsg = document.createElement("div");
+                    thinkingMsg.classList.add("bot-message", "thinking");
+                    thinkingMsg.textContent = "Thinking...";
+                    chatBox.appendChild(thinkingMsg);
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }, 500);
 
-                // **Fix: Ensure that sendMessage properly updates the UI and processes the question**
+                // Call sendMessage AFTER UI updates
                 setTimeout(() => {
                     sendMessage(transcript, true);
-                }, 500);
+                }, 1000);
             };
 
             recognition.onerror = () => {
