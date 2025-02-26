@@ -1,63 +1,66 @@
-// Function to send the user's typed message
-function sendMessage() {
-    let userText = document.getElementById("userInput").value.trim();
-    if (userText === "") return;
+document.addEventListener("DOMContentLoaded", function () {
+    const chatBox = document.getElementById("chat-box");
+    const userInput = document.getElementById("user-input");
+    const voiceButton = document.getElementById("voice-button");
 
-    let chatbox = document.getElementById("chatbox");
+    function appendMessage(sender, message) {
+        const msgDiv = document.createElement("div");
+        msgDiv.classList.add("chat-message", sender);
+        msgDiv.textContent = message;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
 
-    // Display user message
-    let userMessage = document.createElement("p");
-    userMessage.className = "user-text";
-    userMessage.innerHTML = `<strong>You:</strong> ${userText}`;
-    chatbox.appendChild(userMessage);
+        // Text-to-Speech for bot responses
+        if (sender === "bot") {
+            const speech = new SpeechSynthesisUtterance(message);
+            speechSynthesis.speak(speech);
+        }
+    }
 
-    // Clear input field
-    document.getElementById("userInput").value = "";
+    function sendMessage() {
+        const message = userInput.value.trim();
+        if (message === "") return;
 
-    // Send request to Flask server
-    fetch("/ask", {
-        method: "POST",
-        body: new URLSearchParams({ "question": userText }),
-        headers: { "Content-Type": "application/x-www-form-urlencoded" }
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Display bot's response
-        let botMessage = document.createElement("p");
-        botMessage.className = "bot-text";
-        botMessage.innerHTML = `<strong>Bot:</strong> ${data.answer}`;
-        chatbox.appendChild(botMessage);
+        appendMessage("user", message);
+        userInput.value = "";
 
-        // Scroll to the bottom of the chatbox
-        chatbox.scrollTop = chatbox.scrollHeight;
+        fetch("/ask", {
+            method: "POST",
+            body: JSON.stringify({ question: message }),
+            headers: { "Content-Type": "application/json" }
+        })
+        .then(response => response.json())
+        .then(data => {
+            appendMessage("bot", data.answer);
+        })
+        .catch(error => {
+            appendMessage("bot", "Error: Unable to connect to the server.");
+            console.error("Error:", error);
+        });
+    }
 
-        // Speak the bot's response
-        speakText(data.answer);
-    })
-    .catch(error => console.error("Error:", error));
-}
+    // Handle Voice Input
+    voiceButton.addEventListener("click", function () {
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = "en-US";
+        recognition.start();
 
-// Function to start speech recognition
-function startVoiceRecognition() {
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.onresult = function (event) {
+            const voiceInput = event.results[0][0].transcript;
+            userInput.value = voiceInput;
+            sendMessage();
+        };
 
-    recognition.lang = 'en-US';
-    recognition.start();
+        recognition.onerror = function () {
+            appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
+        };
+    });
 
-    recognition.onresult = (event) => {
-        let userText = event.results[0][0].transcript;
-        document.getElementById("userInput").value = userText;
-        sendMessage();  // Automatically sends the recognized text to the backend
-    };
+    // Enter key sends message
+    userInput.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+            sendMessage();
+        }
+    });
+});
 
-    recognition.onerror = (event) => {
-        console.error("Speech recognition error: ", event.error);
-    };
-}
-
-// Function to speak the text (bot's answer)
-function speakText(text) {
-    const speechSynthesis = window.speechSynthesis;
-    const speech = new SpeechSynthesisUtterance(text);
-    speechSynthesis.speak(speech);
-}
