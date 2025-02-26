@@ -7,7 +7,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let recognition;
     let isSpeaking = false;
-    let lastUserMessage = ""; // Stores last message to prevent repetition
     const synth = window.speechSynthesis;
 
     function appendMessage(sender, message) {
@@ -18,23 +17,30 @@ document.addEventListener("DOMContentLoaded", function () {
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
+    function removeLastUserMessage(text) {
+        const lastUserMessage = document.querySelector(".user-message:last-child");
+        if (lastUserMessage && lastUserMessage.textContent === text) {
+            lastUserMessage.remove();
+        }
+    }
+
     function removePreviousThinkingMessage() {
-        const thinkingMessages = document.querySelectorAll(".bot-message.thinking");
-        thinkingMessages.forEach(msg => msg.remove());
+        const lastThinkingMessage = document.querySelector(".bot-message:last-child");
+        if (lastThinkingMessage && lastThinkingMessage.textContent === "Thinking...") {
+            lastThinkingMessage.remove();
+        }
     }
 
     function sendMessage(text, useVoice = false) {
-        if (!text.trim() || text === lastUserMessage) return; // Prevent duplicate messages
+        if (!text.trim()) return;
 
-        lastUserMessage = text; // Store last message to prevent repetition
-
-        // Append user message and ensure only one "Thinking..."
+        removeLastUserMessage(text);  // Ensure no duplicate user message
         appendMessage("user", text);
         userInput.value = "";
 
-        removePreviousThinkingMessage();
+        removePreviousThinkingMessage(); // Remove old "Thinking..." before adding a new one
         const thinkingMsg = document.createElement("div");
-        thinkingMsg.classList.add("bot-message", "thinking");
+        thinkingMsg.classList.add("bot-message");
         thinkingMsg.textContent = "Thinking...";
         chatBox.appendChild(thinkingMsg);
         chatBox.scrollTop = chatBox.scrollHeight;
@@ -46,15 +52,11 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .then(response => response.json())
         .then(data => {
-            removePreviousThinkingMessage(); // Remove "Thinking..." after response
-            if (data.answer) {
-                appendMessage("bot", data.answer);
-                if (useVoice) speakResponse(data.answer);
-            } else {
-                appendMessage("bot", "Sorry, I couldn't find an answer.");
-            }
+            removePreviousThinkingMessage(); // Remove "Thinking..." once response is received
+            appendMessage("bot", data.answer);
+            if (useVoice) speakResponse(data.answer);
         })
-        .catch(() => {
+        .catch(error => {
             removePreviousThinkingMessage();
             appendMessage("bot", "Error: Could not get a response.");
         });
@@ -89,40 +91,24 @@ document.addEventListener("DOMContentLoaded", function () {
             recognition.interimResults = false;
             recognition.lang = "en-US";
 
-            recognition.onstart = () => {
-                removePreviousThinkingMessage(); // Remove any old "Thinking..." bubbles
-                appendMessage("bot", "Listening...");
-            };
+            recognition.onstart = () => appendMessage("bot", "Listening...");
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
-                if (transcript === lastUserMessage) return; // Prevent duplicate messages
-
-                lastUserMessage = transcript; // Store last message
-                removePreviousThinkingMessage(); // Remove old "Thinking..."
+                removeLastUserMessage(transcript);  // Prevent duplicate question
                 appendMessage("user", transcript);
+                
+                removePreviousThinkingMessage(); // Ensure "Thinking..." is added only once
+                const thinkingMsg = document.createElement("div");
+                thinkingMsg.classList.add("bot-message");
+                thinkingMsg.textContent = "Thinking...";
+                chatBox.appendChild(thinkingMsg);
+                chatBox.scrollTop = chatBox.scrollHeight;
 
-                // Replace "Listening..." with "Thinking..."
-                setTimeout(() => {
-                    removePreviousThinkingMessage();
-                    const thinkingMsg = document.createElement("div");
-                    thinkingMsg.classList.add("bot-message", "thinking");
-                    thinkingMsg.textContent = "Thinking...";
-                    chatBox.appendChild(thinkingMsg);
-                    chatBox.scrollTop = chatBox.scrollHeight;
-                }, 500);
-
-                // Call sendMessage AFTER UI updates
-                setTimeout(() => {
-                    sendMessage(transcript, true);
-                }, 1000);
+                sendMessage(transcript, true);
             };
 
-            recognition.onerror = () => {
-                removePreviousThinkingMessage(); // Ensure "Listening..." is removed
-                appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
-            };
-
+            recognition.onerror = () => appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
             recognition.start();
         } else {
             alert("Voice recognition is not supported in this browser.");
