@@ -8,7 +8,7 @@ app = Flask(__name__, static_url_path='/static')
 CORS(app)
 
 # Load Llama 2 API endpoint and API key from environment variables
-LLAMA2_ENDPOINT = os.environ.get("LLAMA2_ENDPOINT", "LLAMA2_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions")
+LLAMA2_ENDPOINT = os.environ.get("LLAMA2_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions").strip()
 LLAMA2_API_KEY = os.environ.get("LLAMA2_API_KEY", "").strip()  # Secure API key handling
 
 # Path to the PDF document
