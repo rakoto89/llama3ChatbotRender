@@ -13,10 +13,11 @@
             <div class="chat-message bot">Welcome to the AI Opioid Education Chatbot! Here you will learn all about opioids!</div>
         </div>
         <div class="chat-input-container">
-            <input type="text" id="user-input" placeholder="Ask me anything about opioids...">
+            <input type="text" id="user-input" placeholder="Ask me anything about opioids..." aria-label="Chat input">
             <button onclick="sendMessage()">Send</button>
         </div>
     </div>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
+
