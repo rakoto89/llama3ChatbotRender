@@ -4,6 +4,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const voiceButton = document.getElementById("voice-button");
     const sendButton = document.getElementById("send-button");
 
+    // Debugging to ensure buttons are found
+    console.log(voiceButton, sendButton);
+
     // Function to append messages to the chatbox
     function appendMessage(sender, text) {
         const messageDiv = document.createElement("div");
@@ -48,8 +51,12 @@ document.addEventListener("DOMContentLoaded", function () {
         }, 1500);
     }
 
-    // Event listener for the send button
-    sendButton.addEventListener("click", sendMessage);
+    // Check if send button exists and add event listener
+    if (sendButton) {
+        sendButton.addEventListener("click", sendMessage);
+    } else {
+        console.error("Send button not found.");
+    }
 
     // Event listener for pressing Enter key
     userInput.addEventListener("keypress", function (event) {
@@ -75,9 +82,14 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error("Speech recognition error:", event);
         };
 
-        voiceButton.addEventListener("click", function () {
-            recognition.start();
-        });
+        // Check if voiceButton exists and add event listener
+        if (voiceButton) {
+            voiceButton.addEventListener("click", function () {
+                recognition.start();
+            });
+        } else {
+            console.error("Voice button not found.");
+        }
     } else {
         voiceButton.style.display = "none"; // Hide button if speech recognition is unsupported
     }
