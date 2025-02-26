@@ -3,23 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Opioid Education Chatbot</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Chatbot</title>
+    <style>
+        /* Basic styling for the chatbot */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #chat-box {
+            width: 400px;
+            height: 500px;
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .chat-message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .user {
+            background-color: #d1e7ff;
+            align-self: flex-start;
+        }
+
+        .bot {
+            background-color: #e2f7d1;
+            align-self: flex-end;
+        }
+
+        .typing-indicator {
+            font-style: italic;
+            color: #999;
+        }
+
+        #user-input {
+            width: 300px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+    </style>
 </head>
 <body>
-    <div class="chat-container">
-        <div class="chat-header">Opioid Education Chatbot</div>
-        <div class="chat-box" id="chat-box">
-            <div class="chat-message bot">Welcome to the AI Opioid Education Chatbot! Here you will learn all about opioids!</div>
-        </div>
-        <div class="chat-input-container">
-            <input type="text" id="user-input" placeholder="Ask me anything about opioids..." aria-label="Chat input">
-            <button onclick="sendMessage()">Send</button>
-            <button id="voice-button">Speak</button>
-        </div>
+
+    <div id="chat-box">
+        <!-- Messages will appear here -->
     </div>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+    <div class="button-container">
+        <!-- Input field for the user -->
+        <input type="text" id="user-input" placeholder="Ask a question..." />
+        <!-- Send button -->
+        <button id="send-button">Send</button>
+        <!-- Speak button -->
+        <button id="voice-button">Speak</button>
+    </div>
+
+    <script src="chatbot.js"></script>
 </body>
 </html>
-
-
