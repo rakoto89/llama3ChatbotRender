@@ -1,45 +1,107 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const chatWindow = document.getElementById('chat-window');
-  const userInput = document.getElementById('user-input');
-  const sendBtn = document.getElementById('send-btn');
-  const voiceBtn = document.getElementById('voice-btn');
-  const stopBtn = document.getElementById('stop-btn');
-  const typingIndicator = document.getElementById('typing-indicator');
-  let isVoiceEnabled = false;
-  let currentUtterance = null;
+document.addEventListener("DOMContentLoaded", function () {
+    const chatBox = document.getElementById("chat-box");
+    const userInput = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-btn");
+    const voiceBtn = document.getElementById("voice-btn");
+    const stopBtn = document.getElementById("stop-btn");
+    
+    let recognition;
+    let isSpeaking = false;
+    const synth = window.speechSynthesis;
 
-  // Append messages to chat
-  function appendMessage(text, sender) {
-    const msgDiv = document.createElement('div');
-    msgDiv.classList.add('message', sender);
-    msgDiv.textContent = text;
-    chatWindow.appendChild(msgDiv);
-    chatWindow.scrollTop = chatWindow.scrollHeight;
-  }
+    function appendMessage(sender, message) {
+        const msgDiv = document.createElement("div");
+        msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
+        msgDiv.textContent = message;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
 
-  // Show AI thinking
-  function showTypingIndicator() {
-    typingIndicator.classList.add('active');
-  }
+    function sendMessage(text) {
+        if (!text.trim()) return;
+        
+        appendMessage("user", text);
+        userInput.value = "";
 
-  function hideTypingIndicator() {
-    typingIndicator.classList.remove('active');
-  }
+        // Show "Thinking..." message
+        const thinkingMsg = document.createElement("div");
+        thinkingMsg.classList.add("bot-message");
+        thinkingMsg.textContent = "Thinking...";
+        chatBox.appendChild(thinkingMsg);
+        chatBox.scrollTop = chatBox.scrollHeight;
 
-  // Send user message
-  async function sendMessage(text) {
-    const message = text.trim();
-    if (!message) return;
-    appendMessage(message, 'user');
-    userInput.value = '';
+        // Send request to Flask backend
+        fetch("/ask", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ question: text }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            chatBox.removeChild(thinkingMsg);
+            appendMessage("bot", data.answer);
+            speakResponse(data.answer);
+        })
+        .catch(error => {
+            chatBox.removeChild(thinkingMsg);
+            appendMessage("bot", "Error: Could not get a response.");
+        });
+    }
 
-    showTypingIndicator();
+    function speakResponse(text) {
+        if ("speechSynthesis" in window) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            synth.speak(utterance);
+            isSpeaking = true;
+            utterance.onend = () => { isSpeaking = false; };
+        }
+    }
 
-    try {
-      const response = await fetch('/ask', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: message })
-      });
+    function stopSpeaking() {
+        if (isSpeaking) {
+            synth.cancel();
+            isSpeaking = false;
+        }
+    }
 
-      
+    sendBtn.addEventListener("click", () => {
+        sendMessage(userInput.value);
+    });
+
+    userInput.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+            sendMessage(userInput.value);
+        }
+    });
+
+    voiceBtn.addEventListener("click", () => {
+        if ("webkitSpeechRecognition" in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = "en-US";
+            
+            recognition.onstart = () => {
+                appendMessage("bot", "Listening...");
+            };
+            
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                appendMessage("user", transcript);
+                sendMessage(transcript);
+            };
+            
+            recognition.onerror = () => {
+                appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
+            };
+            
+            recognition.start();
+        } else {
+            alert("Voice recognition is not supported in this browser.");
+        }
+    });
+
+    stopBtn.addEventListener("click", stopSpeaking);
+});
