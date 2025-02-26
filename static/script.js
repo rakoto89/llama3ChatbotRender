@@ -22,6 +22,7 @@ function sendMessage() {
     })
     .then(response => response.json())
     .then(data => {
+        // Display bot's response
         let botMessage = document.createElement("p");
         botMessage.className = "bot-text";
         botMessage.innerHTML = `<strong>Bot:</strong> ${data.answer}`;
@@ -46,7 +47,7 @@ function startVoiceRecognition() {
     recognition.onresult = (event) => {
         let userText = event.results[0][0].transcript;
         document.getElementById("userInput").value = userText;
-        sendMessage();
+        sendMessage();  // Automatically sends the recognized text to the backend
     };
 
     recognition.onerror = (event) => {
