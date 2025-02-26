@@ -17,13 +17,6 @@ document.addEventListener("DOMContentLoaded", function () {
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    function removeLastUserMessage(text) {
-        const lastUserMessage = document.querySelector(".user-message:last-child");
-        if (lastUserMessage && lastUserMessage.textContent === text) {
-            lastUserMessage.remove();
-        }
-    }
-
     function removePreviousThinkingMessage() {
         const lastThinkingMessage = document.querySelector(".bot-message:last-child");
         if (lastThinkingMessage && lastThinkingMessage.textContent === "Thinking...") {
@@ -34,11 +27,10 @@ document.addEventListener("DOMContentLoaded", function () {
     function sendMessage(text, useVoice = false) {
         if (!text.trim()) return;
 
-        removeLastUserMessage(text);  // Ensure no duplicate user message
         appendMessage("user", text);
         userInput.value = "";
 
-        removePreviousThinkingMessage(); // Remove old "Thinking..." before adding a new one
+        removePreviousThinkingMessage();
         const thinkingMsg = document.createElement("div");
         thinkingMsg.classList.add("bot-message");
         thinkingMsg.textContent = "Thinking...";
@@ -52,11 +44,11 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .then(response => response.json())
         .then(data => {
-            removePreviousThinkingMessage(); // Remove "Thinking..." once response is received
+            removePreviousThinkingMessage();
             appendMessage("bot", data.answer);
             if (useVoice) speakResponse(data.answer);
         })
-        .catch(error => {
+        .catch(() => {
             removePreviousThinkingMessage();
             appendMessage("bot", "Error: Could not get a response.");
         });
@@ -78,10 +70,17 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    sendBtn.addEventListener("click", () => sendMessage(userInput.value, false));
+    sendBtn.addEventListener("click", () => {
+        sendBtn.disabled = true;
+        sendMessage(userInput.value, false);
+        setTimeout(() => sendBtn.disabled = false, 500);
+    });
 
     userInput.addEventListener("keypress", function (event) {
-        if (event.key === "Enter") sendMessage(userInput.value, false);
+        if (event.key === "Enter") {
+            event.preventDefault();
+            sendBtn.click();
+        }
     });
 
     voiceBtn.addEventListener("click", () => {
@@ -95,16 +94,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
-                removeLastUserMessage(transcript);  // Prevent duplicate question
-                appendMessage("user", transcript);
-                
-                removePreviousThinkingMessage(); // Ensure "Thinking..." is added only once
-                const thinkingMsg = document.createElement("div");
-                thinkingMsg.classList.add("bot-message");
-                thinkingMsg.textContent = "Thinking...";
-                chatBox.appendChild(thinkingMsg);
-                chatBox.scrollTop = chatBox.scrollHeight;
-
                 sendMessage(transcript, true);
             };
 
