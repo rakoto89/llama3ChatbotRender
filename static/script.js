@@ -95,11 +95,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
-                
+
                 // Prevent duplicate user messages
                 if (document.querySelector(".user-message:last-child")?.textContent === transcript) return;
 
                 appendMessage("user", transcript);
+
+                // Ensure "Thinking..." message appears before response
+                const thinkingMsg = document.createElement("div");
+                thinkingMsg.classList.add("bot-message");
+                thinkingMsg.textContent = "Thinking...";
+                chatBox.appendChild(thinkingMsg);
+                chatBox.scrollTop = chatBox.scrollHeight;
+
                 sendMessage(transcript, true); // Voice response when using Voice button
             };
 
