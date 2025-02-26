@@ -1,59 +1,66 @@
-document.getElementById("user-input").addEventListener("keypress", function(event) {
-    if (event.key === "Enter") {
-        sendMessage();
+document.addEventListener("DOMContentLoaded", function () {
+    const chatBox = document.getElementById("chat-box");
+    const userInput = document.getElementById("user-input");
+    const voiceButton = document.getElementById("voice-button");
+
+    function appendMessage(sender, text) {
+        const messageDiv = document.createElement("div");
+        messageDiv.classList.add("chat-message", sender);
+        messageDiv.textContent = text;
+        chatBox.appendChild(messageDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+        const typingIndicator = document.createElement("div");
+        typingIndicator.classList.add("chat-message", "typing-indicator");
+        typingIndicator.textContent = "Chatbot is typing...";
+        chatBox.appendChild(typingIndicator);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        return typingIndicator;
+    }
+
+    function sendMessage() {
+        const message = userInput.value.trim();
+        if (message === "") return;
+
+        appendMessage("user", message);
+        userInput.value = "";
+
+        const typingIndicator = showTypingIndicator();
+
+        setTimeout(() => {
+            chatBox.removeChild(typingIndicator);
+            appendMessage("bot", "This is a sample chatbot response about opioids.");
+        }, 1500);
+    }
+
+    userInput.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+            sendMessage();
+        }
+    });
+
+    if ("webkitSpeechRecognition" in window) {
+        const recognition = new webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = "en-US";
+
+        recognition.onresult = function (event) {
+            const speechText = event.results[0][0].transcript;
+            userInput.value = speechText;
+            sendMessage();
+        };
+
+        recognition.onerror = function (event) {
+            console.error("Speech recognition error:", event);
+        };
+
+        voiceButton.addEventListener("click", function () {
+            recognition.start();
+        });
+    } else {
+        voiceButton.style.display = "none"; // Hide button if speech recognition is unsupported
     }
 });
-
-function sendMessage() {
-    let userInput = document.getElementById("user-input").value.trim();
-    if (userInput === "") return;
-
-    let chatBox = document.getElementById("chat-box");
-
-    // Add user message to chat
-    let userMessage = document.createElement("div");
-    userMessage.classList.add("chat-message", "user");
-    userMessage.textContent = userInput;
-    chatBox.appendChild(userMessage);
-
-    document.getElementById("user-input").value = ""; // Clear input
-    chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll
-
-    // Show loading animation
-    let loadingMessage = document.createElement("div");
-    loadingMessage.classList.add("chat-message", "bot", "loading");
-    loadingMessage.textContent = "Thinking...";
-    chatBox.appendChild(loadingMessage);
-    chatBox.scrollTop = chatBox.scrollHeight;
-
-    // Define backend API URL (adjust if necessary)
-    let apiUrl = window.location.origin + "/ask";  // Ensures compatibility on Render
-
-    // Send request to Flask backend
-    fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: userInput })
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Remove loading message
-        chatBox.removeChild(loadingMessage);
-
-        // Add bot response
-        let botMessage = document.createElement("div");
-        botMessage.classList.add("chat-message", "bot");
-        botMessage.textContent = data.answer || "Sorry, I couldn't get a response.";
-        chatBox.appendChild(botMessage);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    })
-    .catch(error => {
-        console.error("Error:", error);
-        chatBox.removeChild(loadingMessage);
-
-        let errorMessage = document.createElement("div");
-        errorMessage.classList.add("chat-message", "bot", "error");
-        errorMessage.textContent = "An error occurred. Please try again later.";
-        chatBox.appendChild(errorMessage);
-    });
-}
