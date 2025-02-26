@@ -13,14 +13,14 @@ html, body {
   flex-direction: column;
   height: 100vh;
   max-width: 600px;
-  margin: 0 auto; /* Centers it on larger screens */
+  margin: 0 auto;
   background: #fff;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
   border-radius: 10px;
   overflow: hidden;
 }
 
-/* Chat Window (Displays Messages) */
+/* Chat Window */
 #chat-window {
   flex: 1;
   overflow-y: auto;
@@ -40,21 +40,18 @@ html, body {
   word-break: break-word;
 }
 
-/* User Message Bubble */
 .message.user {
   align-self: flex-end;
   background: #FFF9C4;
   color: #000;
 }
 
-/* Bot Message Bubble */
 .message.bot {
   align-self: flex-start;
   background: #FFF176;
   color: #000;
 }
 
-/* Error Message (For Network Issues) */
 .message.error {
   align-self: center;
   background: #f8d7da;
@@ -63,7 +60,7 @@ html, body {
   border-radius: 5px;
 }
 
-/* Typing Indicator (AI is Thinking) */
+/* Typing Indicator */
 #typing-indicator {
   display: none;
   font-style: italic;
@@ -72,12 +69,11 @@ html, body {
   padding: 5px;
 }
 
-/* Show Typing Indicator When AI is Processing */
 #typing-indicator.active {
   display: block;
 }
 
-/* Input Area (For User Input) */
+/* Input Area */
 .input-area {
   display: flex;
   align-items: center;
@@ -86,7 +82,6 @@ html, body {
   background: #FFFDE7;
 }
 
-/* Input Field (Where Users Type) */
 #user-input {
   flex: 1;
   padding: 10px;
@@ -95,7 +90,7 @@ html, body {
   border-radius: 4px;
 }
 
-/* General Button Styling */
+/* Button Styling */
 button {
   background-color: #FFC107;
   color: #000;
@@ -112,34 +107,25 @@ button:hover {
   background-color: #FFB300;
 }
 
-/* Voice Button (Microphone) */
 #voice-btn {
   font-size: 20px;
   padding: 10px;
 }
 
-/* Change Mic Button Color When Listening */
 #voice-btn.listening {
   background-color: #ffa000;
 }
 
-/* Stop Button (To Cancel AI Response) */
 #stop-btn {
   background-color: #FF5733;
   color: white;
-  border: none;
-  padding: 10px 15px;
-  margin-left: 5px;
-  font-size: 16px;
-  border-radius: 4px;
-  cursor: pointer;
 }
 
 #stop-btn:hover {
   background-color: #E74C3C;
 }
 
-/* Responsive Design (For Mobile Devices) */
+/* Responsive Design */
 @media (max-width: 600px) {
   .chat-container {
     width: 100%;
@@ -157,3 +143,4 @@ button:hover {
     padding: 8px 12px;
   }
 }
+
