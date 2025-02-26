@@ -1,3 +1,5 @@
+Java 
+
 document.addEventListener("DOMContentLoaded", function () {
     const chatBox = document.getElementById("chat-box");
     const userInput = document.getElementById("user-input");
@@ -20,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function sendMessage(text, useVoice = false) {
         if (!text.trim()) return;
 
-        appendMessage("user", text);
+        appendMessage("user", text); // Only appends once
         userInput.value = "";
 
         // Show "Thinking..." message
@@ -92,7 +94,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
-                appendMessage("user", transcript);
+                appendMessage("user", transcript); // Only appends once
                 sendMessage(transcript, true); // Voice response when using Voice button
             };
 
