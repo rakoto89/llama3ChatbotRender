@@ -81,7 +81,8 @@ def index():
 @app.route("/ask", methods=["POST"])
 def ask():
     """Handles user questions and returns responses from Llama 2"""
-    user_question = request.form.get("question", "").strip()
+    data = request.json  # Accept JSON input
+    user_question = data.get("question", "").strip()
 
     if not user_question:
         return jsonify({"answer": "Please ask a valid question."})
@@ -96,4 +97,3 @@ def ask():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))  # Use the port assigned by Render
     app.run(host="0.0.0.0", port=port)
-
