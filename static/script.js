@@ -7,12 +7,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let recognition;
     let isSpeaking = false;
-    let lastUserMessage = ""; // Stores last message to prevent repetition
+    let lastUserMessage = "";
     const synth = window.speechSynthesis;
 
-    function appendMessage(sender, message) {
+    function appendMessage(sender, message, isThinking = false) {
         const msgDiv = document.createElement("div");
         msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
+        if (isThinking) msgDiv.classList.add("thinking");
         msgDiv.textContent = message;
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
@@ -24,18 +25,14 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function sendMessage(text, useVoice = false) {
-        if (!text.trim() || text === lastUserMessage) return; // Prevent duplicate messages
+        if (!text.trim() || text === lastUserMessage) return;
 
-        lastUserMessage = text; // Store last message to prevent repetition
+        lastUserMessage = text;
         appendMessage("user", text);
         userInput.value = "";
 
-        removePreviousThinkingMessage(); // Ensure only one "Thinking..." bubble
-        const thinkingMsg = document.createElement("div");
-        thinkingMsg.classList.add("bot-message", "thinking");
-        thinkingMsg.textContent = "Thinking...";
-        chatBox.appendChild(thinkingMsg);
-        chatBox.scrollTop = chatBox.scrollHeight;
+        removePreviousThinkingMessage();
+        appendMessage("bot", "Thinking...", true);
 
         fetch("/ask", {
             method: "POST",
@@ -44,7 +41,7 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .then(response => response.json())
         .then(data => {
-            removePreviousThinkingMessage(); // Remove "Thinking..." after response
+            removePreviousThinkingMessage();
             if (data.answer) {
                 appendMessage("bot", data.answer);
                 if (useVoice) speakResponse(data.answer);
@@ -91,18 +88,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
-                if (transcript === lastUserMessage) return; // Prevent duplicate messages
+                if (transcript === lastUserMessage) return;
 
-                lastUserMessage = transcript; // Store last message
-                appendMessage("user", transcript);
-
-                removePreviousThinkingMessage(); // Ensure only one "Thinking..." bubble
-                const thinkingMsg = document.createElement("div");
-                thinkingMsg.classList.add("bot-message", "thinking");
-                thinkingMsg.textContent = "Thinking...";
-                chatBox.appendChild(thinkingMsg);
-                chatBox.scrollTop = chatBox.scrollHeight;
-
+                lastUserMessage = transcript;
                 sendMessage(transcript, true);
             };
 
