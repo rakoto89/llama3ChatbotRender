@@ -29,6 +29,17 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // Function to simulate bot processing and returning a response (this will be replaced with actual logic to get a response)
+    function getBotResponse(inputText) {
+        // Replace this with the actual logic for generating bot responses (e.g., calling OpenAI, fetching from a PDF, etc.)
+        // For now, just a placeholder logic for demonstration:
+        if (inputText.toLowerCase().includes("opioid")) {
+            return "Here is some information about opioids...";
+        } else {
+            return "I'm sorry, I don't have information on that topic.";
+        }
+    }
+
     function sendMessage() {
         const text = userInput.value.trim();
         if (text === "") return;
@@ -36,9 +47,11 @@ document.addEventListener("DOMContentLoaded", function () {
         userInput.value = "";
         showTypingIndicator();
 
+        // Simulate bot response after a delay
         setTimeout(() => {
             removeTypingIndicator();
-            addMessage("bot", "Here is some information about opioids..."); // Replace with actual bot response
+            const botResponse = getBotResponse(text); // Get the response based on the user input
+            addMessage("bot", botResponse);
         }, 1000);
     }
 
