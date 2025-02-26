@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
     const stopBtn = document.getElementById("stop-btn");
-    
+
     let recognition;
     let isSpeaking = false;
     const synth = window.speechSynthesis;
@@ -17,9 +17,9 @@ document.addEventListener("DOMContentLoaded", function () {
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    function sendMessage(text) {
+    function sendMessage(text, useVoice = false) {
         if (!text.trim()) return;
-        
+
         appendMessage("user", text);
         userInput.value = "";
 
@@ -42,7 +42,10 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(data => {
             chatBox.removeChild(thinkingMsg);
             appendMessage("bot", data.answer);
-            speakResponse(data.answer);
+            
+            if (useVoice) {
+                speakResponse(data.answer);
+            }
         })
         .catch(error => {
             chatBox.removeChild(thinkingMsg);
@@ -67,12 +70,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     sendBtn.addEventListener("click", () => {
-        sendMessage(userInput.value);
+        sendMessage(userInput.value, false); // No voice when clicking Send
     });
 
     userInput.addEventListener("keypress", function (event) {
         if (event.key === "Enter") {
-            sendMessage(userInput.value);
+            sendMessage(userInput.value, false); // No voice when pressing Enter
         }
     });
 
@@ -82,21 +85,21 @@ document.addEventListener("DOMContentLoaded", function () {
             recognition.continuous = false;
             recognition.interimResults = false;
             recognition.lang = "en-US";
-            
+
             recognition.onstart = () => {
                 appendMessage("bot", "Listening...");
             };
-            
+
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 appendMessage("user", transcript);
-                sendMessage(transcript);
+                sendMessage(transcript, true); // Voice response when using Voice button
             };
-            
+
             recognition.onerror = () => {
                 appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
             };
-            
+
             recognition.start();
         } else {
             alert("Voice recognition is not supported in this browser.");
