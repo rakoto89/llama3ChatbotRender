@@ -17,44 +17,47 @@ document.addEventListener("DOMContentLoaded", function () {
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    function sendMessage(text, useVoice = false) {
-        if (!text.trim()) return;
-
-        // Remove duplicate user message before adding a new one
+    function removeLastUserMessage(text) {
         const lastUserMessage = document.querySelector(".user-message:last-child");
         if (lastUserMessage && lastUserMessage.textContent === text) {
             lastUserMessage.remove();
         }
+    }
 
+    function removePreviousThinkingMessage() {
+        const lastThinkingMessage = document.querySelector(".bot-message:last-child");
+        if (lastThinkingMessage && lastThinkingMessage.textContent === "Thinking...") {
+            lastThinkingMessage.remove();
+        }
+    }
+
+    function sendMessage(text, useVoice = false) {
+        if (!text.trim()) return;
+
+        removeLastUserMessage(text);  // Ensure no duplicate user message
         appendMessage("user", text);
         userInput.value = "";
 
-        // Show "Thinking..." message
+        removePreviousThinkingMessage(); // Remove old "Thinking..." before adding a new one
         const thinkingMsg = document.createElement("div");
         thinkingMsg.classList.add("bot-message");
         thinkingMsg.textContent = "Thinking...";
         chatBox.appendChild(thinkingMsg);
         chatBox.scrollTop = chatBox.scrollHeight;
 
-        // Send request to Flask backend
         fetch("/ask", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ question: text }),
         })
         .then(response => response.json())
         .then(data => {
-            chatBox.removeChild(thinkingMsg);
+            removePreviousThinkingMessage(); // Remove "Thinking..." once response is received
             appendMessage("bot", data.answer);
-            
-            if (useVoice) {
-                speakResponse(data.answer);
-            }
+            if (useVoice) speakResponse(data.answer);
         })
         .catch(error => {
-            chatBox.removeChild(thinkingMsg);
+            removePreviousThinkingMessage();
             appendMessage("bot", "Error: Could not get a response.");
         });
     }
@@ -75,14 +78,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    sendBtn.addEventListener("click", () => {
-        sendMessage(userInput.value, false); // No voice when clicking Send
-    });
+    sendBtn.addEventListener("click", () => sendMessage(userInput.value, false));
 
     userInput.addEventListener("keypress", function (event) {
-        if (event.key === "Enter") {
-            sendMessage(userInput.value, false); // No voice when pressing Enter
-        }
+        if (event.key === "Enter") sendMessage(userInput.value, false);
     });
 
     voiceBtn.addEventListener("click", () => {
@@ -92,35 +91,24 @@ document.addEventListener("DOMContentLoaded", function () {
             recognition.interimResults = false;
             recognition.lang = "en-US";
 
-            recognition.onstart = () => {
-                appendMessage("bot", "Listening...");
-            };
+            recognition.onstart = () => appendMessage("bot", "Listening...");
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
-
-                // Remove duplicate user message before adding a new one
-                const lastUserMessage = document.querySelector(".user-message:last-child");
-                if (lastUserMessage && lastUserMessage.textContent === transcript) {
-                    lastUserMessage.remove();
-                }
-
+                removeLastUserMessage(transcript);  // Prevent duplicate question
                 appendMessage("user", transcript);
-
-                // Ensure "Thinking..." message appears before response
+                
+                removePreviousThinkingMessage(); // Ensure "Thinking..." is added only once
                 const thinkingMsg = document.createElement("div");
                 thinkingMsg.classList.add("bot-message");
                 thinkingMsg.textContent = "Thinking...";
                 chatBox.appendChild(thinkingMsg);
                 chatBox.scrollTop = chatBox.scrollHeight;
 
-                sendMessage(transcript, true); // Voice response when using Voice button
+                sendMessage(transcript, true);
             };
 
-            recognition.onerror = () => {
-                appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
-            };
-
+            recognition.onerror = () => appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
             recognition.start();
         } else {
             alert("Voice recognition is not supported in this browser.");
