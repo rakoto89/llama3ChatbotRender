@@ -13,8 +13,8 @@ LLAMA2_API_KEY = os.environ.get("LLAMA2_API_KEY", "").strip()  # Secure API key 
 
 # Paths to the PDF documents
 PDF_PATH_1 = os.path.join(os.path.dirname(__file__), "pdfs", "SAMHSA.pdf")
-PDF_PATH_2 = os.path.join(os.path.dirname(__file__), "pdfs", "Opioid_Education.pdf")
-PDF_PATH_3 = os.path.join(os.path.dirname(__file__), "pdfs", "Addiction_Research.pdf")
+PDF_PATH_2 = os.path.join(os.path.dirname(__file__), "pdfs", "OpioidQ&A.pdf")
+PDF_PATH_3 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC_About_Prescription_Opioids.pdf")
 
 # Function to extract text from the PDF
 def extract_text_from_pdf(pdf_paths):
