@@ -3,24 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Opioid Education Chatbot</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Opioid Education Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-
     <div class="chat-container">
-        <div class="chat-header">AI Opioid Education Chatbot</div>
+        <div class="chat-header">Opioid Education Chatbot</div>
         <div class="chat-box" id="chat-box">
-            <div class="message bot-message">Welcome to the AI Opioid Education Chatbot! Here you will learn all about opioids!</div>
+            <div class="chat-message bot">Welcome to the AI Opioid Education Chatbot! Here you will learn all about opioids!</div>
         </div>
-        <div class="chat-input">
-            <input type="text" id="userInput" placeholder="Enter a message...">
-            <button id="submit-question">Send</button>
-            <button id="start-recording">Voice</button>
+        <div class="chat-input-container">
+            <input type="text" id="user-input" placeholder="Ask me anything about opioids...">
+            <button onclick="sendMessage()">Send</button>
         </div>
     </div>
-
     <script src="{{ url_for('static', filename='script.js') }}"></script>
-
 </body>
 </html>
