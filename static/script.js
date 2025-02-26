@@ -20,8 +20,11 @@ document.addEventListener("DOMContentLoaded", function () {
     function sendMessage(text, useVoice = false) {
         if (!text.trim()) return;
 
-        // Prevent duplicate user messages
-        if (document.querySelector(".user-message:last-child")?.textContent === text) return;
+        // Remove duplicate user message before adding a new one
+        const lastUserMessage = document.querySelector(".user-message:last-child");
+        if (lastUserMessage && lastUserMessage.textContent === text) {
+            lastUserMessage.remove();
+        }
 
         appendMessage("user", text);
         userInput.value = "";
@@ -96,8 +99,11 @@ document.addEventListener("DOMContentLoaded", function () {
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
 
-                // Prevent duplicate user messages
-                if (document.querySelector(".user-message:last-child")?.textContent === transcript) return;
+                // Remove duplicate user message before adding a new one
+                const lastUserMessage = document.querySelector(".user-message:last-child");
+                if (lastUserMessage && lastUserMessage.textContent === transcript) {
+                    lastUserMessage.remove();
+                }
 
                 appendMessage("user", transcript);
 
