@@ -48,7 +48,7 @@ def get_llama2_response(question, context):
 
     # Set up headers with API key
     headers = {
-        "Authorization": f"Bearer {LLAMA2_API_KEY}",
+        "Authorization": f"Bearer {LLAMA2_API_KEY.strip()}",
         "Content-Type": "application/json"
     }
 
