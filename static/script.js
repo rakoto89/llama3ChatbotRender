@@ -113,10 +113,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 chatBox.appendChild(thinkingMsg);
                 chatBox.scrollTop = chatBox.scrollHeight;
 
-                sendMessage(transcript, true);
+                // **Fix: Ensure that sendMessage properly updates the UI and processes the question**
+                setTimeout(() => {
+                    sendMessage(transcript, true);
+                }, 500);
             };
 
-            recognition.onerror = () => appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
+            recognition.onerror = () => {
+                removePreviousThinkingMessage(); // Ensure "Listening..." is removed
+                appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
+            };
+
             recognition.start();
         } else {
             alert("Voice recognition is not supported in this browser.");
