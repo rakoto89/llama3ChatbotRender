@@ -26,10 +26,34 @@ function sendMessage() {
     chatBox.appendChild(loadingMessage);
     chatBox.scrollTop = chatBox.scrollHeight;
 
+    // Define backend API URL (adjust if necessary)
+    let apiUrl = window.location.origin + "/ask";  // Ensures compatibility on Render
+
     // Send request to Flask backend
-    fetch("/ask", {
+    fetch(apiUrl, {
         method: "POST",
-        body: new URLSearchParams({ question: userInput }),
-        headers: { "Content-Type": "application/x-www-form-urlencoded" }
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: userInput })
     })
-    .t
+    .then(response => response.json())
+    .then(data => {
+        // Remove loading message
+        chatBox.removeChild(loadingMessage);
+
+        // Add bot response
+        let botMessage = document.createElement("div");
+        botMessage.classList.add("chat-message", "bot");
+        botMessage.textContent = data.answer || "Sorry, I couldn't get a response.";
+        chatBox.appendChild(botMessage);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        chatBox.removeChild(loadingMessage);
+
+        let errorMessage = document.createElement("div");
+        errorMessage.classList.add("chat-message", "bot", "error");
+        errorMessage.textContent = "An error occurred. Please try again later.";
+        chatBox.appendChild(errorMessage);
+    });
+}
