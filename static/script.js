@@ -32,25 +32,4 @@ function sendMessage() {
         body: new URLSearchParams({ question: userInput }),
         headers: { "Content-Type": "application/x-www-form-urlencoded" }
     })
-    .then(response => response.json())
-    .then(data => {
-        // Remove loading message
-        chatBox.removeChild(loadingMessage);
-
-        // Display bot response
-        let botMessage = document.createElement("div");
-        botMessage.classList.add("chat-message", "bot");
-        botMessage.textContent = data.answer;
-        chatBox.appendChild(botMessage);
-
-        chatBox.scrollTop = chatBox.scrollHeight;
-    })
-    .catch(error => {
-        chatBox.removeChild(loadingMessage);
-        let errorMessage = document.createElement("div");
-        errorMessage.classList.add("chat-message", "bot");
-        errorMessage.textContent = "Sorry, I couldn't connect to the chatbot.";
-        chatBox.appendChild(errorMessage);
-    });
-}
-
+    .t
