@@ -38,8 +38,7 @@ def is_question_relevant(question):
     return any(topic.lower() in question.lower() for topic in relevant_topics)
 
 def get_llama2_response(question, context):
-    """ Sends a request to the OpenRouter Llama 2 API with API key authentication """
-
+    """Sends a request to the OpenRouter Llama 2 API with API key authentication"""
     opioid_context = (
         "Assume the user is always asking about opioids or related topics like overdose, "
         "addiction, withdrawal, painkillers, fentanyl, heroin, and narcotics."
