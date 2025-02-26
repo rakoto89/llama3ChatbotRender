@@ -95,24 +95,3 @@ body {
 .chat-input-container button:hover {
     background: #0056b3;
 }
-
-/* Voice Button Styling */
-#voice-button {
-    background: #ff9800;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    padding: 10px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background 0.3s ease;
-    margin-left: 10px;
-}
-
-#voice-button:hover {
-    background: #e68900;
-}
-
-#voice-button:active {
-    background: #cc7700;
-}
