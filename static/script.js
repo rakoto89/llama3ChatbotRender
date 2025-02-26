@@ -1,14 +1,11 @@
-document.addEventListener("DOMContentLoaded", function () { 
+document.addEventListener("DOMContentLoaded", function () {
     const chatBox = document.getElementById("chat-box");
     const userInput = document.getElementById("user-input");
-    const voiceButton = document.getElementById("voice-button");
-    const sendButton = document.getElementById("send-button");
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.continuous = false;
+    recognition.lang = "en-US";
 
-    // Debugging to ensure buttons are found
-    console.log(voiceButton, sendButton);
-
-    // Function to append messages to the chatbox
-    function appendMessage(sender, text) {
+    function addMessage(sender, text) {
         const messageDiv = document.createElement("div");
         messageDiv.classList.add("chat-message", sender);
         messageDiv.textContent = text;
@@ -16,88 +13,57 @@ document.addEventListener("DOMContentLoaded", function () {
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // Show typing indicator
     function showTypingIndicator() {
-        const typingIndicator = document.createElement("div");
-        typingIndicator.classList.add("chat-message", "typing-indicator");
-        typingIndicator.textContent = "Chatbot is typing...";
-        chatBox.appendChild(typingIndicator);
+        const typingDiv = document.createElement("div");
+        typingDiv.classList.add("typing-indicator");
+        typingDiv.textContent = "AI is typing...";
+        typingDiv.id = "typing";
+        chatBox.appendChild(typingDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
-        return typingIndicator;
     }
 
-    // Function to simulate the chatbot's response (replace with actual response logic)
-    function getChatbotResponse(query) {
-        // Here you'd send the query to your backend or chatbot API to get a real response
-        return "This is a simulated response to: " + query;
+    function removeTypingIndicator() {
+        const typingDiv = document.getElementById("typing");
+        if (typingDiv) {
+            typingDiv.remove();
+        }
     }
 
-    // Function to handle sending a message
     function sendMessage() {
-        const message = userInput.value.trim();
-        if (message === "") return;
-
-        appendMessage("user", message);
+        const text = userInput.value.trim();
+        if (text === "") return;
+        addMessage("user", text);
         userInput.value = "";
+        showTypingIndicator();
 
-        const typingIndicator = showTypingIndicator();
-
-        // Simulating a delay for bot response
         setTimeout(() => {
-            chatBox.removeChild(typingIndicator);
-            const botResponse = getChatbotResponse(message); // Get the response based on the message
-            appendMessage("bot", botResponse);
-            speakMessage(botResponse); // Speak the bot's response
-        }, 1500);
+            removeTypingIndicator();
+            addMessage("bot", "Here is some information about opioids..."); // Replace with actual bot response
+        }, 1000);
     }
 
-    // Check if send button exists and add event listener
-    if (sendButton) {
-        sendButton.addEventListener("click", sendMessage);
-    } else {
-        console.error("Send button not found.");
-    }
-
-    // Event listener for pressing Enter key
     userInput.addEventListener("keypress", function (event) {
         if (event.key === "Enter") {
             sendMessage();
         }
     });
 
-    // Speech recognition for voice input
-    if ("webkitSpeechRecognition" in window) {
-        const recognition = new webkitSpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.lang = "en-US";
+    document.querySelector("button").addEventListener("click", sendMessage);
+    
+    // Create and add voice input button
+    const voiceButton = document.createElement("button");
+    voiceButton.id = "voice-button";
+    voiceButton.textContent = "🎤 Speak";
+    voiceButton.style.marginLeft = "10px";
+    document.querySelector(".chat-input-container").appendChild(voiceButton);
+    
+    // Voice-to-text feature
+    document.getElementById("voice-button").addEventListener("click", function () {
+        recognition.start();
+    });
 
-        recognition.onresult = function (event) {
-            const speechText = event.results[0][0].transcript;
-            userInput.value = speechText;
-            sendMessage();
-        };
-
-        recognition.onerror = function (event) {
-            console.error("Speech recognition error:", event);
-        };
-
-        // Check if voiceButton exists and add event listener
-        if (voiceButton) {
-            voiceButton.addEventListener("click", function () {
-                recognition.start();
-            });
-        } else {
-            console.error("Voice button not found.");
-        }
-    } else {
-        voiceButton.style.display = "none"; // Hide button if speech recognition is unsupported
-    }
-
-    // Function to speak the chatbot's response
-    function speakMessage(message) {
-        const speechSynthesis = window.speechSynthesis;
-        const utterance = new SpeechSynthesisUtterance(message);
-        speechSynthesis.speak(utterance);
-    }
+    recognition.onresult = function (event) {
+        userInput.value = event.results[0][0].transcript;
+        sendMessage();
+    };
 });
