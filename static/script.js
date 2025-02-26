@@ -58,8 +58,12 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(response => response.json())
         .then(data => {
             removePreviousThinkingMessage(); // Remove "Thinking..." after response
-            appendMessage("bot", data.answer);
-            if (useVoice) speakResponse(data.answer);
+            if (data.answer) {
+                appendMessage("bot", data.answer);
+                if (useVoice) speakResponse(data.answer);
+            } else {
+                appendMessage("bot", "Sorry, I couldn't find an answer.");
+            }
         })
         .catch(error => {
             removePreviousThinkingMessage();
