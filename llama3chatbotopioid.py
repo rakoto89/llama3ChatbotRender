@@ -43,8 +43,10 @@ def is_question_relevant(question):
 def get_llama3_response(question, context):
     """Sends a request to the OpenRouter Llama 3 API with API key authentication"""
     opioid_context = (
-        "Answer the question concisely and naturally without mentioning the document "
-        "or saying 'Based on the document'. Provide direct, clear responses."
+        "You are an expert in opioid education. Answer the user's question as clearly "
+        "as possible using the document as reference, but NEVER mention the document, "
+        "the source, or phrases like 'Based on the document' or 'According to the document'. "
+        "Just provide a direct answer, as if you already knew the information."
     )
 
     prompt = f"Answer the question concisely and naturally without mentioning the document or saying 'Based on the document', 'provided text'. \n\nHere is the document content:\n{context}\n\nQuestion: {question}"
@@ -69,7 +71,17 @@ def get_llama3_response(question, context):
         response.raise_for_status()  # Raise an error for HTTP errors
 
         data = response.json()
-        return data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
+        response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
+
+        # List of unwanted phrases to remove
+        unwanted_phrases = ["Based on the document", "According to the document", "From the document"]
+
+        # Remove unwanted phrases from the response
+        for phrase in unwanted_phrases:
+            response_text = response_text.replace(phrase, "").strip()
+
+        return response_text
+
 
     except requests.exceptions.RequestException as e:
         app.logger.error(f"Llama 3 API error: {str(e)}")  # Logs error in Render logs
