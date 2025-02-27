@@ -61,7 +61,7 @@ def get_llama3_response(question, context):
         response = requests.post(
             LLAMA3_ENDPOINT,
             json={
-                "model": "mistralai/mistral-small-24b-instruct-2501:free",  # Use the model name set in OpenRouter
+                "model": "meta-llama/llama-3.1-8b-instruct:free",  # Use the model name set in OpenRouter
                 "messages": [{"role": "user", "content": prompt}]
             },
             headers=headers,  # Pass API key
