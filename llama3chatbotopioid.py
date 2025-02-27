@@ -33,7 +33,7 @@ pdf_text = extract_text_from_pdf(pdf_paths)
 # List of relevant opioid-related keywords
 relevant_topics = [
     "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin",
-    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "brands", "opiates", "opium", "drugs"
+    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium", "substance abuse", "drugs"
 ]
 
 def is_question_relevant(question):
@@ -43,11 +43,11 @@ def is_question_relevant(question):
 def get_llama3_response(question, context):
     """Sends a request to the OpenRouter Llama 3 API with API key authentication"""
     opioid_context = (
-        "Assume the user is always asking about opioids or related topics like overdose, "
-        "addiction, withdrawal, painkillers, fentanyl, heroin, and narcotics."
+        "Answer the question concisely and naturally without mentioning the document "
+        "or saying 'Based on the document'. Provide direct, clear responses."
     )
 
-prompt = f"Answer the question concisely and naturally without mentioning the document or saying 'Based on the document'.\n\nHere is the document content:\n{context}\n\nQuestion: {question}"
+    prompt = f"Answer the question concisely and naturally without mentioning the document or saying 'Based on the dicument'. \n\nHere is the document content:\n{context}\n\nQuestion: {question}"
 
     # Set up headers with API key
     headers = {
@@ -59,12 +59,13 @@ prompt = f"Answer the question concisely and naturally without mentioning the do
         response = requests.post(
             LLAMA3_ENDPOINT,
             json={
-                "model": "nvidia/llama-3.1-nemotron-70b-instruct:free",  # Use the model name you set in OpenRouter
+                "model": "nvidia/llama-3.1-mistron-70b-instruct:free",  # Use the model name set in OpenRouter
                 "messages": [{"role": "user", "content": prompt}]
             },
             headers=headers,  # Pass API key
             timeout=10
         )
+
         response.raise_for_status()  # Raise an error for HTTP errors
 
         data = response.json()
@@ -98,4 +99,4 @@ def ask():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))  # Use the port assigned by Render
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="
