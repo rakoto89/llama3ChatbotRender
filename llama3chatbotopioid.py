@@ -33,7 +33,7 @@ pdf_text = extract_text_from_pdf(pdf_paths)
 # List of relevant opioid-related keywords
 relevant_topics = [
     "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin",
-    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab"
+    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "brands", "opiates", "opium", "drugs"
 ]
 
 def is_question_relevant(question):
@@ -68,7 +68,7 @@ def get_llama3_response(question, context):
         response.raise_for_status()  # Raise an error for HTTP errors
 
         data = response.json()
-        return data.get("choices", [{}])[0].get("message", {}).get("content", "No response")
+        return data.get(\"choices\", [{}])[0].get(\"message\", {}).get(\"content\", \"No response\").replace(\"*\", \"\")
 
     except requests.exceptions.RequestException as e:
         app.logger.error(f"Llama 3 API error: {str(e)}")  # Logs error in Render logs
