@@ -47,7 +47,7 @@ def get_llama3_response(question, context):
         "or saying 'Based on the document'. Provide direct, clear responses."
     )
 
-    prompt = f"Answer the question concisely and naturally without mentioning the document or saying 'Based on the dicument'. \n\nHere is the document content:\n{context}\n\nQuestion: {question}"
+    prompt = f"Answer the question concisely and naturally without mentioning the document or saying 'Based on the document', 'provided text'. \n\nHere is the document content:\n{context}\n\nQuestion: {question}"
 
     # Set up headers with API key
     headers = {
