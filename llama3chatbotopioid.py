@@ -59,7 +59,7 @@ def get_llama3_response(question, context):
         response = requests.post(
             LLAMA3_ENDPOINT,
             json={
-                "model": "nvidia/llama-3.1-mistron-70b-instruct:free",  # Use the model name set in OpenRouter
+                "model": "nvidia/llama-3.1-nemotron-70b-instruct:free",  # Use the model name set in OpenRouter
                 "messages": [{"role": "user", "content": prompt}]
             },
             headers=headers,  # Pass API key
