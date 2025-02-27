@@ -14,6 +14,8 @@ LLAMA3_API_KEY = os.environ.get("LLAMA3_API_KEY", "").strip()  # Secure API key 
 # Paths to the PDF documents
 PDF_PATH_1 = os.path.join(os.path.dirname(__file__), "pdfs", "SAMHSA.pdf")
 PDF_PATH_2 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC.pdf")
+PDF_PATH_3 = os.path.join(os.path.dirname(__file__), "pdfs", "DEA_Opium.pdf")
+PDF_PATH_4 = os.path.join(os.path.dirname(__file__), "pdfs", "LSUHSC_Opiates.pdf")
 
 # Function to extract text from the PDF
 def extract_text_from_pdf(pdf_paths):
@@ -27,13 +29,13 @@ def extract_text_from_pdf(pdf_paths):
     return text.strip()
 
 # Extract the PDF text at startup
-pdf_paths = [PDF_PATH_1, PDF_PATH_2]
+pdf_paths = [PDF_PATH_1, PDF_PATH_2, PDF_PATH_3, PDF_PATH_4]
 pdf_text = extract_text_from_pdf(pdf_paths)
 
 # List of relevant opioid-related keywords
 relevant_topics = [
     "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin",
-    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium", "substance abuse", "drugs"
+    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium", "substance abuse", "drugs", "opiates", "opium"
 ]
 
 def is_question_relevant(question):
