@@ -7,9 +7,9 @@ from flask_cors import CORS  # Enable CORS for frontend compatibility
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
 
-# Load Llama 2 API endpoint and API key from environment variables
-LLAMA2_ENDPOINT = os.environ.get("LLAMA2_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions").strip()
-LLAMA2_API_KEY = os.environ.get("LLAMA2_API_KEY", "").strip()  # Secure API key handling
+# Load Llama 3.1 API endpoint and API key from environment variables
+LLAMA3.1_ENDPOINT = os.environ.get("LLAMA3.1_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions").strip()
+LLAMA3.1_API_KEY = os.environ.get("LLAMA3.1_API_KEY", "").strip()  # Secure API key handling
 
 # Paths to the PDF documents
 PDF_PATH_1 = os.path.join(os.path.dirname(__file__), "pdfs", "SAMHSA.pdf")
@@ -41,7 +41,7 @@ def is_question_relevant(question):
     return any(topic.lower() in question.lower() for topic in relevant_topics)
 
 def get_llama2_response(question, context):
-    """Sends a request to the OpenRouter Llama 2 API with API key authentication"""
+    """Sends a request to the OpenRouter Llama 3.1 API with API key authentication"""
     opioid_context = (
         "Assume the user is always asking about opioids or related topics like overdose, "
         "addiction, withdrawal, painkillers, fentanyl, heroin, and narcotics."
@@ -51,7 +51,7 @@ def get_llama2_response(question, context):
 
     # Set up headers with API key
     headers = {
-        "Authorization": f"Bearer {LLAMA2_API_KEY.strip()}",
+        "Authorization": f"Bearer {LLAMA3.1_API_KEY.strip()}",
         "Content-Type": "application/json"
     }
 
@@ -71,7 +71,7 @@ def get_llama2_response(question, context):
         return data.get("choices", [{}])[0].get("message", {}).get("content", "No response")
 
     except requests.exceptions.RequestException as e:
-        app.logger.error(f"Llama 2 API error: {str(e)}")  # Logs error in Render logs
+        app.logger.error(f"Llama 3.1 API error: {str(e)}")  # Logs error in Render logs
         return f"ERROR: Failed to connect to Llama 2 instance. Details: {str(e)}"
 
 @app.route("/")
@@ -90,7 +90,7 @@ def ask():
         return jsonify({"answer": "Please ask a valid question."})
 
     if is_question_relevant(user_question):
-        answer = get_llama2_response(user_question, pdf_text)
+        answer = get_llama3.1_response(user_question, pdf_text)
     else:
         answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
