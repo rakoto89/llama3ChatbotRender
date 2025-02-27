@@ -68,7 +68,7 @@ def get_llama3_response(question, context):
         response.raise_for_status()  # Raise an error for HTTP errors
 
         data = response.json()
-        return data.get(\"choices\", [{}])[0].get(\"message\", {}).get(\"content\", \"No response\").replace(\"*\", \"\")
+        return data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
 
     except requests.exceptions.RequestException as e:
         app.logger.error(f"Llama 3 API error: {str(e)}")  # Logs error in Render logs
