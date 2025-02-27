@@ -12,9 +12,9 @@ LLAMA2_ENDPOINT = os.environ.get("LLAMA2_ENDPOINT", "https://openrouter.ai/api/v
 LLAMA2_API_KEY = os.environ.get("LLAMA2_API_KEY", "").strip()  # Secure API key handling
 
 # Paths to the PDF documents
-PDF_PATH_1 = os.path.join(os.path.dirname(__file__), "pdfs", "SAMHSA.pdf")
-PDF_PATH_2 = os.path.join(os.path.dirname(__file__), "pdfs", "OpioidQ&A.pdf")
-PDF_PATH_3 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC_About_Prescription_Opioids.pdf")
+PDF_PATH_1 = os.path.join(os.path.dirname(__file__), "pdfs", "ASAM.pdf")
+PDF_PATH_2 = os.path.join(os.path.dirname(__file__), "pdfs", "Opioid Fact Sheet _ Coast to Forest _ Oregon State University.pdf")
+PDF_PATH_3 = os.path.join(os.path.dirname(__file__), "pdfs", "SAMHSA.pdf")
 
 # Function to extract text from the PDF
 def extract_text_from_pdf(pdf_paths):
