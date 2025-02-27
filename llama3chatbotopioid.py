@@ -19,6 +19,7 @@ PDF_PATH_4 = os.path.join(os.path.dirname(__file__), "pdfs", "LSUHSC_Opiates.pdf
 PDF_PATH_5 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC_Preventing_Opioid_Overdose.pdf")
 PDF_PATH_5 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC_Preventing_Opioid_Use_Disorder.pdf")
 PDF_PATH_6 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC_Understanding_the_Opioid_Overdose_Epidemic.pdf")
+PDF_PATH_7 = os.path.join(os.path.dirname(__file__), "pdfs", "BSU_Opioid_Addiction_Resources.pdf")
 
 # Function to extract text from the PDF
 def extract_text_from_pdf(pdf_paths):
@@ -32,7 +33,7 @@ def extract_text_from_pdf(pdf_paths):
     return text.strip()
 
 # Extract the PDF text at startup
-pdf_paths = [PDF_PATH_1, PDF_PATH_2, PDF_PATH_3, PDF_PATH_4, PDF_PATH_5, PDF_PATH_6]
+pdf_paths = [PDF_PATH_1, PDF_PATH_2, PDF_PATH_3, PDF_PATH_4, PDF_PATH_5, PDF_PATH_6, PDF_PATH_7]
 pdf_text = extract_text_from_pdf(pdf_paths)
 
 # List of relevant opioid-related keywords
