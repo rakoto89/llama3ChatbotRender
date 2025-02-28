@@ -7,18 +7,11 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-
     <div class="chat-container">
         <div class="chat-header">AI Opioid Education Chatbot</div>
-
         <div class="chat-box" id="chat-box">
-            <!-- Initial Bot Message with Updated Image -->
-            <div class="bot-message">
-                <img src="{{ url_for('static', filename='robot.png') }}" width="24" height="24" alt="Bot">
-                Welcome to the AI Opioid Education Chatbot! Here you will learn all about opioids!
-            </div>
+            <div class="bot-message">Welcome to the AI Opioid Education Chatbot! Here you will learn all about opioids!</div>
         </div>
-
         <div class="input-container">
             <input type="text" id="user-input" placeholder="Enter your question...">
             <button id="send-btn">Send</button>
@@ -26,9 +19,7 @@
             <button id="stop-btn">Stop</button>
         </div>
     </div>
-
     <script src="{{ url_for('static', filename='script.js') }}"></script>
-
 </body>
 </html>
 
