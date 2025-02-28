@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
         msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
-        msgDiv.textContent = (sender === "bot" ? "🤖: " : "👤: ") + message;
+        msgDiv.innerHTML = message;
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
     }
