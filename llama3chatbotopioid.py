@@ -40,7 +40,7 @@ pdf_text = extract_text_from_pdf(pdf_paths)
 # List of relevant opioid-related keywords
 relevant_topics = [
     "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin", 
-    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium", "substance abuse", "drugs", "opiates", "help", "assistance", "support" "opium", "email", "campus", "phone number", "BSU", "Bowie State University"
+    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium", "substance abuse", "drugs", "opiates", "help", "assistance", "support" "opium", "email", "campus", "phone number", "BSU", "Bowie State University", "deaths"
 ]
 
 def is_question_relevant(question):
