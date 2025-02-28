@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Add bot image for bot messages
         if (sender === "bot") {
             const botImg = document.createElement("img");
-            botImg.src = "{{ url_for('static', filename='robot.png') }}";
+            botImg.src = "/static/robot.png";
             botImg.height = 24;
             botImg.alt = "Bot";
             botImg.style.marginRight = "8px"; // Adds spacing
