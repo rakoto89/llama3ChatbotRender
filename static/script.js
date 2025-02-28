@@ -37,6 +37,8 @@ document.addEventListener("DOMContentLoaded", function () {
         chatBox.appendChild(thinkingMsg);
         chatBox.scrollTop = chatBox.scrollHeight;
 
+        speakResponse("Thinking...");  // Speaking the "Thinking..." message
+
         fetch("/ask", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
