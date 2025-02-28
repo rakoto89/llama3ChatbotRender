@@ -4,10 +4,6 @@ import pdfplumber
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS  # Enable CORS for frontend compatibility
 
-# 🔹 Customize Emojis Here 🔹
-BOT_EMOJI = '<img src="/static/bot.png" width "24" height="24" alt="Bot">' # Change this if you want a different bot emoji
-USER_EMOJI = '<img src="/static/you.png" width "24" height="24" alt="You">'
-
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
 
@@ -21,9 +17,9 @@ PDF_PATH_2 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC_About_Prescrip
 PDF_PATH_3 = os.path.join(os.path.dirname(__file__), "pdfs", "DEA_Opium.pdf")
 PDF_PATH_4 = os.path.join(os.path.dirname(__file__), "pdfs", "LSUHSC_Opiates.pdf")
 PDF_PATH_5 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC_Preventing_Opioid_Overdose.pdf")
-PDF_PATH_6 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC_Preventing_Opioid_Use_Disorder.pdf")
-PDF_PATH_7 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC_Understanding_the_Opioid_Overdose_Epidemic.pdf")
-PDF_PATH_8 = os.path.join(os.path.dirname(__file__), "pdfs", "BSU_Opioid_Addiction_Resources.pdf")
+PDF_PATH_5 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC_Preventing_Opioid_Use_Disorder.pdf")
+PDF_PATH_6 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC_Understanding_the_Opioid_Overdose_Epidemic.pdf")
+PDF_PATH_7 = os.path.join(os.path.dirname(__file__), "pdfs", "BSU_Opioid_Addiction_Resources.pdf")
 
 # Function to extract text from the PDF
 def extract_text_from_pdf(pdf_paths):
@@ -37,14 +33,13 @@ def extract_text_from_pdf(pdf_paths):
     return text.strip()
 
 # Extract the PDF text at startup
-pdf_paths = [PDF_PATH_1, PDF_PATH_2, PDF_PATH_3, PDF_PATH_4, PDF_PATH_5, PDF_PATH_6, PDF_PATH_7, PDF_PATH_8]
+pdf_paths = [PDF_PATH_1, PDF_PATH_2, PDF_PATH_3, PDF_PATH_4, PDF_PATH_5, PDF_PATH_6, PDF_PATH_7]
 pdf_text = extract_text_from_pdf(pdf_paths)
 
 # List of relevant opioid-related keywords
 relevant_topics = [
-    "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin",
-    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium",
-    "substance abuse", "drugs", "help", "assistance", "support"
+    "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin", 
+    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium", "substance abuse", "drugs", "opiates", "help", "assistance", "support" "opium", "email", "campus", "phone number", "BSU", "Bowie State University"
 ]
 
 def is_question_relevant(question):
@@ -60,8 +55,9 @@ def get_llama3_response(question, context):
         "Just provide a direct answer, as if you already knew the information."
     )
 
-    prompt = f"Answer the question concisely and naturally without mentioning the document or saying 'Based on the document', 'provided text'.\n\nHere is the document content:\n{context}\n\nQuestion: {question}"
+    prompt = f"Answer the question concisely and naturally without mentioning the document or saying 'Based on the document', 'provided text'. \n\nHere is the document content:\n{context}\n\nQuestion: {question}"
 
+    # Set up headers with API key
     headers = {
         "Authorization": f"Bearer {LLAMA3_API_KEY.strip()}",
         "Content-Type": "application/json"
@@ -71,17 +67,17 @@ def get_llama3_response(question, context):
         response = requests.post(
             LLAMA3_ENDPOINT,
             json={
-                "model": "meta-llama/llama-3-8b-instruct:free",
+                "model": "meta-llama/llama-3.1-8b-instruct:free",  # Use the model name set in OpenRouter
                 "messages": [{"role": "user", "content": prompt}]
             },
-            headers=headers,
+            headers=headers,  # Pass API key
             timeout=10
         )
 
         response.raise_for_status()  # Raise an error for HTTP errors
 
         data = response.json()
-        response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("\n", " ")
+        response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
 
         # List of unwanted phrases to remove
         unwanted_phrases = ["Based on the document", "According to the document", "From the document"]
@@ -92,9 +88,10 @@ def get_llama3_response(question, context):
 
         return response_text
 
+
     except requests.exceptions.RequestException as e:
-        app.logger.error(f"Llama 3 API error: {str(e)}")  # Logs error in server logs
-        return "ERROR: Failed to connect to Llama 3 instance. Details: " + str(e)
+        app.logger.error(f"Llama 3 API error: {str(e)}")  # Logs error in Render logs
+        return f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"
 
 @app.route("/")
 def index():
@@ -109,36 +106,14 @@ def ask():
     user_question = data.get("question", "").strip()
 
     if not user_question:
-        return jsonify({"bot": f"{BOT_EMOJI} Please ask a valid question."})
-
-    # Label user input
-    user_input = {"you": f"{USER_EMOJI} {user_question}"}
+        return jsonify({"answer": "Please ask a valid question."})
 
     if is_question_relevant(user_question):
         answer = get_llama3_response(user_question, pdf_text)
     else:
         answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
-    return jsonify({"bot": f"{BOT_EMOJI} {answer}"})
-
-@app.route("/voice", methods=["POST"])
-def voice_command():
-    """Handles voice input and provides feedback"""
-    # Simulate voice activation message
-    listening_message = "Listening..."
-    error_message = "Sorry, I couldn't hear you. Please try again."
-
-    # Speak the listening message
-    os.system('say "Listening..."')  # This works on macOS; use pyttsx3 for Windows/Linux
-
-    # Simulating an issue where voice recognition might fail
-    voice_input = request.json.get("voice_input", "").strip()
-
-    if not voice_input:
-        os.system('say "Sorry, I couldn\'t hear you. Please try again."')  # Speak the error message
-        return jsonify({"bot": f"{BOT_EMOJI} {error_message}"})
-
-    return jsonify({"you": f"{USER_EMOJI} {voice_input}"})
+    return jsonify({"answer": answer})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))  # Use the port assigned by Render
