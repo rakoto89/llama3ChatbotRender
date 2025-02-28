@@ -39,8 +39,8 @@ pdf_text = extract_text_from_pdf(pdf_paths)
 
 # List of relevant opioid-related keywords
 relevant_topics = [
-    "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin", 
-    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium", "substance abuse", "drugs", "opiates", "help", "assistance", "support" "opium", "email", "campus", "phone number", "BSU", "Bowie State University", "deaths"
+    "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin", "tolerance" 
+    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium", "substance abuse", "drugs", "opiates", "help", "assistance", "support" "opium", "email", "campus", "phone number", "BSU", "Bowie State University", "deaths", "use", "disorder", "opioid use", "opioid disorder", "opioid usage", "usage", "taking opioids", "recreational use", "opioid dependence", "opioid self-medication", "opioid self medication", "opioid self medication"
 ]
 
 def is_question_relevant(question):
@@ -96,7 +96,7 @@ def get_llama3_response(question, context):
 @app.route("/")
 def index():
     """Serves the chatbot HTML page with an introductory message"""
-    intro_message = "🤖 Welcome to the AI Opioid Education Chatbot! Here you will learn all about opioids!"
+    intro_message = "🤖 Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!"
     return render_template("index.html", intro_message=intro_message)
 
 @app.route("/ask", methods=["POST"])
