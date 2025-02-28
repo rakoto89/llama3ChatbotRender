@@ -12,21 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
         msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
-
-        // Add bot image for bot messages
-        if (sender === "bot") {
-            const botImg = document.createElement("img");
-            botImg.src = "/static/robot.png";
-            botImg.height = 24;
-            botImg.alt = "Bot";
-            botImg.style.marginRight = "8px"; // Adds spacing
-
-            msgDiv.appendChild(botImg);
-        }
-
-        const textNode = document.createTextNode(message);
-        msgDiv.appendChild(textNode);
-
+        msgDiv.textContent = message;
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
     }
@@ -59,8 +45,8 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(response => response.json())
         .then(data => {
             removePreviousThinkingMessage();
-            appendMessage("bot", data.bot);
-            if (useVoice) speakResponse(data.bot);
+            appendMessage("bot", data.answer);
+            if (useVoice) speakResponse(data.answer);
         })
         .catch(() => {
             removePreviousThinkingMessage();
@@ -112,7 +98,6 @@ document.addEventListener("DOMContentLoaded", function () {
             };
 
             recognition.onerror = () => appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
-            
             recognition.start();
         } else {
             alert("Voice recognition is not supported in this browser.");
