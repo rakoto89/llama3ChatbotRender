@@ -76,11 +76,15 @@ document.addEventListener("DOMContentLoaded", function () {
             nextElement.focus();
 
             // Speak the element's label
-            if ('speechSynthesis' in window) {
-                let text = nextElement.getAttribute("aria-label");
-                let utterance = new SpeechSynthesisUtterance(text);
-                synth.speak(utterance);
-            }
+            setTimeout(() => {
+                if ('speechSynthesis' in window) {
+                    let text = nextElement.getAttribute("aria-label") || nextElement.placeholder;
+                    if (text) {
+                        let utterance = new SpeechSynthesisUtterance(text);
+                        synth.speak(utterance);
+                    }
+                }
+            }, 100); // Adding a slight delay to ensure focus
         }
     }
 
