@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function () {
         removePreviousThinkingMessage();
         const thinkingMsg = document.createElement("div");
         thinkingMsg.classList.add("bot-message");
-        thinkingMsg.textContent = "🤖: Thinking...";
+        thinkingMsg.textContent = "Thinking...";
         chatBox.appendChild(thinkingMsg);
         chatBox.scrollTop = chatBox.scrollHeight;
 
