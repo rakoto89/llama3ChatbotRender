@@ -37,7 +37,9 @@ document.addEventListener("DOMContentLoaded", function () {
         chatBox.appendChild(thinkingMsg);
         chatBox.scrollTop = chatBox.scrollHeight;
 
-        speakResponse("Thinking...");  // Speaking the "Thinking..." message
+        if (useVoice) {
+            speakResponse("Thinking...");  // Speak "Thinking..." only when using voice input
+        }
 
         fetch("/ask", {
             method: "POST",
@@ -74,7 +76,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     sendBtn.addEventListener("click", () => {
         sendBtn.disabled = true;
-        sendMessage(userInput.value, false);
+        sendMessage(userInput.value, false);  // Don't speak "Thinking..." for text input
         setTimeout(() => sendBtn.disabled = false, 500);
     });
 
@@ -94,17 +96,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
             recognition.onstart = () => {
                 appendMessage("bot", "Listening...");
-                speakResponse("Listening...");  // Speaking the 'Listening...' message
+                speakResponse("Listening...");  // Speak "Listening..." when using voice input
             };
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
-                sendMessage(transcript, true);
+                sendMessage(transcript, true);  // Pass true to trigger "Thinking..." and voice output
             };
 
             recognition.onerror = () => {
                 appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
-                speakResponse("Sorry, I couldn't hear you. Please try again.");  // Speaking the error message
+                speakResponse("Sorry, I couldn't hear you. Please try again.");  // Speak the error message
             };
 
             recognition.start();
