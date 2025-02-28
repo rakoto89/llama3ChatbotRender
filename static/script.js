@@ -90,14 +90,21 @@ document.addEventListener("DOMContentLoaded", function () {
             recognition.interimResults = false;
             recognition.lang = "en-US";
 
-            recognition.onstart = () => appendMessage("bot", "Listening...");
+            recognition.onstart = () => {
+                appendMessage("bot", "Listening...");
+                speakResponse("Listening...");
+            };
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 sendMessage(transcript, true);
             };
 
-            recognition.onerror = () => appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
+            recognition.onerror = () => {
+                appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
+                speakResponse("Sorry, I couldn't hear you. Please try again.");
+            };
+
             recognition.start();
         } else {
             alert("Voice recognition is not supported in this browser.");
