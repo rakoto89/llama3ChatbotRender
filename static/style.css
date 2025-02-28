@@ -48,7 +48,7 @@ body {
 }
 
 .user-message {
-    background: gray;
+    background: #d3d3d3; /* Lighter gray */
     color: black;
     padding: 10px;
     border-radius: 10px;
