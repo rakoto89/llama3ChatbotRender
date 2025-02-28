@@ -94,3 +94,11 @@ button {
     color: white;
 }
 
+/* Add emoji support */
+.bot-message::before {
+    content: "🤖 "; /* Robot emoji */
+}
+
+.user-message::before {
+    content: "👤 "; /* User emoji */
+}
