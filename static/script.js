@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
         msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
-        msgDiv.textContent = message;
+        msgDiv.textContent = (sender === "bot" ? "🤖: " : "👤: ") + message;
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
     }
@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function () {
         removePreviousThinkingMessage();
         const thinkingMsg = document.createElement("div");
         thinkingMsg.classList.add("bot-message");
-        thinkingMsg.textContent = "Thinking...";
+        thinkingMsg.textContent = "🤖: Thinking...";
         chatBox.appendChild(thinkingMsg);
         chatBox.scrollTop = chatBox.scrollHeight;
 
@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .catch(() => {
             removePreviousThinkingMessage();
-            appendMessage("bot", "Error: Could not get a response.");
+            appendMessage("bot", "🤖: Error: Could not get a response.");
         });
     }
 
@@ -90,14 +90,14 @@ document.addEventListener("DOMContentLoaded", function () {
             recognition.interimResults = false;
             recognition.lang = "en-US";
 
-            recognition.onstart = () => appendMessage("bot", "Listening...");
+            recognition.onstart = () => appendMessage("bot", "🤖: Listening...");
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 sendMessage(transcript, true);
             };
 
-            recognition.onerror = () => appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
+            recognition.onerror = () => appendMessage("bot", "🤖: Sorry, I couldn't hear you. Please try again.");
             recognition.start();
         } else {
             alert("Voice recognition is not supported in this browser.");
