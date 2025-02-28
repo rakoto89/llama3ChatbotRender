@@ -5,8 +5,8 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS  # Enable CORS for frontend compatibility
 
 # 🔹 Customize Emojis Here 🔹
-BOT_EMOJI = "<img src='/static/bot.png' width '24' height='24'>"  # Change this if you want a different bot emoji
-USER_EMOJI = "<img src='/static/you.png' width '24' height='24'>"
+BOT_EMOJI = '<img src="/static/bot.png" width "24" height="24" alt="Bot">' # Change this if you want a different bot emoji
+USER_EMOJI = '<img src="/static/you.png" width "24" height="24" alt="You">'
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
