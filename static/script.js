@@ -37,10 +37,6 @@ document.addEventListener("DOMContentLoaded", function () {
         chatBox.appendChild(thinkingMsg);
         chatBox.scrollTop = chatBox.scrollHeight;
 
-        if (useVoice) {
-            speakResponse("Thinking...");  // Speak "Thinking..." only when using voice input
-        }
-
         fetch("/ask", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -74,9 +70,28 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // Handle Tab key focus cycling
+    function handleTabKey(event) {
+        if (event.key === 'Tab') {
+            event.preventDefault();  // Prevent default tab behavior
+
+            const elements = ['#user-input', '#send-btn', '#voice-btn', '#stop-btn'];
+            let currentElement = document.activeElement;
+            let index = elements.indexOf(`#${currentElement.id}`);
+            
+            // Move to next element in the array
+            index = (index + 1) % elements.length;
+            document.querySelector(elements[index]).focus();
+        }
+    }
+
+    // Add tab key event listener to the input field
+    userInput.addEventListener('keydown', handleTabKey);
+
+    // Event Listeners for buttons and input
     sendBtn.addEventListener("click", () => {
         sendBtn.disabled = true;
-        sendMessage(userInput.value, false);  // Don't speak "Thinking..." for text input
+        sendMessage(userInput.value, false);
         setTimeout(() => sendBtn.disabled = false, 500);
     });
 
@@ -94,21 +109,14 @@ document.addEventListener("DOMContentLoaded", function () {
             recognition.interimResults = false;
             recognition.lang = "en-US";
 
-            recognition.onstart = () => {
-                appendMessage("bot", "Listening...");
-                speakResponse("Listening...");  // Speak "Listening..." when using voice input
-            };
+            recognition.onstart = () => appendMessage("bot", "Listening...");
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
-                sendMessage(transcript, true);  // Pass true to trigger "Thinking..." and voice output
+                sendMessage(transcript, true);
             };
 
-            recognition.onerror = () => {
-                appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
-                speakResponse("Sorry, I couldn't hear you. Please try again.");  // Speak the error message
-            };
-
+            recognition.onerror = () => appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
             recognition.start();
         } else {
             alert("Voice recognition is not supported in this browser.");
