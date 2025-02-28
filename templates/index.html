@@ -13,28 +13,12 @@
             <div class="bot-message">Welcome to the AI Opioid Education Chatbot! Here you will learn all about opioids!</div>
         </div>
         <div class="input-container">
-            <input type="text" id="user-input" placeholder="Enter your question..." onkeydown="handleTabKey(event)">
-            <button id="send-btn">Send</button>
-            <button id="voice-btn">Voice</button>
-            <button id="stop-btn">Stop</button>
+            <input type="text" id="user-input" placeholder="Enter your question..." aria-label="Enter your question">
+            <button id="send-btn" aria-label="Send">Send</button>
+            <button id="voice-btn" aria-label="Voice">Voice</button>
+            <button id="stop-btn" aria-label="Stop">Stop</button>
         </div>
     </div>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
-
-    <script>
-        function handleTabKey(event) {
-            if (event.key === 'Tab') {
-                event.preventDefault();  // Prevent default tab behavior
-
-                const elements = ['#user-input', '#send-btn', '#voice-btn', '#stop-btn'];
-                let currentElement = document.activeElement;
-                let index = elements.indexOf(`#${currentElement.id}`);
-                
-                // Move to next element in the array
-                index = (index + 1) % elements.length;
-                document.querySelector(elements[index]).focus();
-            }
-        }
-    </script>
 </body>
 </html>
