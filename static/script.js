@@ -62,6 +62,28 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function speakElementText(element) {
+        if ('speechSynthesis' in window) {
+            let text = "";
+
+            // Assign custom spoken text based on element
+            if (element.id === "user-input") {
+                text = "Enter your question";
+            } else if (element.id === "send-btn") {
+                text = "Send";
+            } else if (element.id === "voice-btn") {
+                text = "Voice";
+            } else if (element.id === "stop-btn") {
+                text = "Stop";
+            }
+
+            if (text) {
+                let utterance = new SpeechSynthesisUtterance(text);
+                synth.speak(utterance);
+            }
+        }
+    }
+
     function handleTabKey(event) {
         if (event.key === "Tab") {
             event.preventDefault(); // Prevent default tab behavior
@@ -75,27 +97,9 @@ document.addEventListener("DOMContentLoaded", function () {
             let nextElement = document.getElementById(elements[index]);
             nextElement.focus();
 
-            // Speak the label for all elements
+            // Speak the label when an element is focused
             setTimeout(() => {
-                if ('speechSynthesis' in window) {
-                    let text = "";
-                    
-                    // Set custom text for each element
-                    if (nextElement.id === "user-input") {
-                        text = "Enter your question";
-                    } else if (nextElement.id === "send-btn") {
-                        text = "Send";
-                    } else if (nextElement.id === "voice-btn") {
-                        text = "Voice";
-                    } else if (nextElement.id === "stop-btn") {
-                        text = "Stop";
-                    }
-
-                    if (text) {
-                        let utterance = new SpeechSynthesisUtterance(text);
-                        synth.speak(utterance);
-                    }
-                }
+                speakElementText(nextElement);
             }, 100); // Small delay to ensure focus is set
         }
     }
@@ -130,4 +134,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     stopBtn.addEventListener("click", stopSpeaking);
     userInput.addEventListener("keydown", handleTabKey);
+
+    // Ensure elements speak when manually focused
+    userInput.addEventListener("focus", () => speakElementText(userInput));
+    sendBtn.addEventListener("focus", () => speakElementText(sendBtn));
+    voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));
+    stopBtn.addEventListener("focus", () => speakElementText(stopBtn));
 });
