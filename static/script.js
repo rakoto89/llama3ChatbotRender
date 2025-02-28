@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let recognition;
     let isSpeaking = false;
-    const synth = window.speechSynthesis;
+    let synth = window.speechSynthesis;
 
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
@@ -17,49 +17,41 @@ document.addEventListener("DOMContentLoaded", function () {
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    function removePreviousThinkingMessage() {
-        const lastThinkingMessage = document.querySelector(".bot-message:last-child");
-        if (lastThinkingMessage && lastThinkingMessage.textContent === "Thinking...") {
-            lastThinkingMessage.remove();
-        }
-    }
-
     function sendMessage(text, useVoice = false) {
         if (!text.trim()) return;
 
         appendMessage("user", text);
         userInput.value = "";
 
-        removePreviousThinkingMessage();
         const thinkingMsg = document.createElement("div");
         thinkingMsg.classList.add("bot-message");
         thinkingMsg.textContent = "Thinking...";
         chatBox.appendChild(thinkingMsg);
         chatBox.scrollTop = chatBox.scrollHeight;
 
-        fetch("/ask", {
+        fetch('/ask', {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ question: text }),
+            body: JSON.stringify({ question: text })
         })
         .then(response => response.json())
         .then(data => {
-            removePreviousThinkingMessage();
+            thinkingMsg.remove();
             appendMessage("bot", data.answer);
             if (useVoice) speakResponse(data.answer);
         })
         .catch(() => {
-            removePreviousThinkingMessage();
+            thinkingMsg.remove();
             appendMessage("bot", "Error: Could not get a response.");
         });
     }
 
     function speakResponse(text) {
-        if ("speechSynthesis" in window) {
+        if ('speechSynthesis' in window) {
             const utterance = new SpeechSynthesisUtterance(text);
             synth.speak(utterance);
             isSpeaking = true;
-            utterance.onend = () => { isSpeaking = false; };
+            utterance.onend = () => isSpeaking = false;
         }
     }
 
@@ -70,32 +62,31 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Handle Tab key focus cycling
     function handleTabKey(event) {
-        if (event.key === 'Tab') {
-            event.preventDefault();  // Prevent default tab behavior
+        if (event.key === "Tab") {
+            event.preventDefault(); // Prevent default tab behavior
 
-            const elements = ['#user-input', '#send-btn', '#voice-btn', '#stop-btn'];
+            const elements = ["user-input", "send-btn", "voice-btn", "stop-btn"];
             let currentElement = document.activeElement;
-            let index = elements.indexOf(`#${currentElement.id}`);
-            
-            // Move to next element in the array
+            let index = elements.indexOf(currentElement.id);
+
+            // Move to the next element in the array
             index = (index + 1) % elements.length;
-            document.querySelector(elements[index]).focus();
+            let nextElement = document.getElementById(elements[index]);
+            nextElement.focus();
+
+            // Speak the element's label
+            if ('speechSynthesis' in window) {
+                let text = nextElement.getAttribute("aria-label");
+                let utterance = new SpeechSynthesisUtterance(text);
+                synth.speak(utterance);
+            }
         }
     }
 
-    // Add tab key event listener to the input field
-    userInput.addEventListener('keydown', handleTabKey);
-
-    // Event Listeners for buttons and input
-    sendBtn.addEventListener("click", () => {
-        sendBtn.disabled = true;
-        sendMessage(userInput.value, false);
-        setTimeout(() => sendBtn.disabled = false, 500);
-    });
-
-    userInput.addEventListener("keypress", function (event) {
+    // Event Listeners
+    sendBtn.addEventListener("click", () => sendMessage(userInput.value, false));
+    userInput.addEventListener("keypress", (event) => {
         if (event.key === "Enter") {
             event.preventDefault();
             sendBtn.click();
@@ -110,13 +101,11 @@ document.addEventListener("DOMContentLoaded", function () {
             recognition.lang = "en-US";
 
             recognition.onstart = () => appendMessage("bot", "Listening...");
-
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 sendMessage(transcript, true);
             };
-
-            recognition.onerror = () => appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
+            recognition.onerror = () => appendMessage("bot", "Sorry, I couldn't hear you.");
             recognition.start();
         } else {
             alert("Voice recognition is not supported in this browser.");
@@ -124,4 +113,5 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     stopBtn.addEventListener("click", stopSpeaking);
+    userInput.addEventListener("keydown", handleTabKey);
 });
