@@ -36,7 +36,6 @@ body {
     flex-direction: column;
 }
 
-/* Bot Message Styling */
 .bot-message {
     background: black;
     color: white;
@@ -46,19 +45,8 @@ body {
     max-width: 80%;
     align-self: flex-start;
     word-wrap: break-word;
-    display: flex;
-    align-items: center;
 }
 
-/* Bot Image Styling */
-.bot-message img {
-    width: 24px;
-    height: 24px;
-    margin-right: 8px;
-    border-radius: 50%; /* Makes the bot image round */
-}
-
-/* User Message Styling */
 .user-message {
     background: gray;
     color: black;
@@ -68,11 +56,8 @@ body {
     max-width: 80%;
     align-self: flex-end;
     word-wrap: break-word;
-    display: flex;
-    align-items: center;
 }
 
-/* Input Box Styling */
 .input-container {
     display: flex;
     padding: 10px;
@@ -86,7 +71,6 @@ input {
     border-radius: 5px;
 }
 
-/* Button Styling */
 button {
     margin-left: 5px;
     padding: 5px 10px;
