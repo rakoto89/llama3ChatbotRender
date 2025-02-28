@@ -49,6 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function speakResponse(text) {
         if ('speechSynthesis' in window) {
             const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9; // Slower rate to improve clarity
             synth.speak(utterance);
             isSpeaking = true;
             utterance.onend = () => isSpeaking = false;
@@ -66,19 +67,20 @@ document.addEventListener("DOMContentLoaded", function () {
         if ('speechSynthesis' in window) {
             let text = "";
 
-            // Assign custom spoken text based on element
+            // Assign explicit text to prevent misinterpretation
             if (element.id === "user-input") {
-                text = "Enter your question";
+                text = "Enter your question.";
             } else if (element.id === "send-btn") {
-                text = "Send";
+                text = "Send button.";
             } else if (element.id === "voice-btn") {
-                text = "Voice";
+                text = "Voice button.";
             } else if (element.id === "stop-btn") {
-                text = "Stop";
+                text = "Stop button.";
             }
 
             if (text) {
                 let utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9; // Slightly slower to improve clarity
                 synth.speak(utterance);
             }
         }
