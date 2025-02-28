@@ -88,7 +88,6 @@ def get_llama3_response(question, context):
 
         return response_text
 
-
     except requests.exceptions.RequestException as e:
         app.logger.error(f"Llama 3 API error: {str(e)}")  # Logs error in Render logs
         return f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"
@@ -96,7 +95,7 @@ def get_llama3_response(question, context):
 @app.route("/")
 def index():
     """Serves the chatbot HTML page with an introductory message"""
-    intro_message = "Welcome to the AI Opioid Education Chatbot! Here you will learn all about opioids!"
+    intro_message = "🤖 Welcome to the AI Opioid Education Chatbot! Here you will learn all about opioids!"
     return render_template("index.html", intro_message=intro_message)
 
 @app.route("/ask", methods=["POST"])
