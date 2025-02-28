@@ -92,7 +92,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             recognition.onstart = () => {
                 appendMessage("bot", "Listening...");
-                speakResponse("Listening...");
+                speakResponse("Listening...");  // Speaking the 'Listening...' message
             };
 
             recognition.onresult = (event) => {
@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             recognition.onerror = () => {
                 appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
-                speakResponse("Sorry, I couldn't hear you. Please try again.");
+                speakResponse("Sorry, I couldn't hear you. Please try again.");  // Speaking the error message
             };
 
             recognition.start();
