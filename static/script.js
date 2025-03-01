@@ -97,6 +97,7 @@ document.addEventListener("DOMContentLoaded", function () {
             let nextElement = document.getElementById(elements[index]);
             nextElement.focus();
 
+            // Speak the element label when Tab is used to navigate
             setTimeout(() => {
                 speakElementText(nextElement);
             }, 100); // Small delay to ensure focus is set
@@ -134,9 +135,5 @@ document.addEventListener("DOMContentLoaded", function () {
     stopBtn.addEventListener("click", stopSpeaking);
     userInput.addEventListener("keydown", handleTabKey);
 
-    // Ensure elements speak only once when manually focused
-    userInput.addEventListener("focus", () => speakElementText(userInput));
-    voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));
-    stopBtn.addEventListener("focus", () => speakElementText(stopBtn));
-
+    // ✅ Removed speech trigger when clicking inside "Enter your question" field
 });
