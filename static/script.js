@@ -102,9 +102,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Ensure the event listeners are added only once
-    sendBtn.addEventListener("click", function () {
-        sendMessage(userInput.value, false);
     });
 
     userInput.addEventListener("keypress", function (event) {
