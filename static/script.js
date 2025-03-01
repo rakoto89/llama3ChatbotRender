@@ -107,7 +107,7 @@ document.addEventListener("DOMContentLoaded", function () {
             let nextElement = elements[nextIndex];
             nextElement.focus();
             
-            setTimeout(() => speakElementText(nextElement), 100); // Trigger speech when tabbing
+            setTimeout(() => speakElementText(nextElement), 200); // Trigger speech when tabbing
         }
     }
 
@@ -153,4 +153,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     userInput.addEventListener("keydown", handleTabKey);
+    voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn)); // Add event listener for focus on voice button
+    stopBtn.addEventListener("focus", () => speakElementText(stopBtn)); // Add event listener for focus on stop button
 });
