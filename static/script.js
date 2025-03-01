@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let recognition;
     let isSpeaking = false;
     let synth = window.speechSynthesis;
+    let lastKeyWasTab = false; // ✅ Tracks if Tab was used last
 
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
@@ -49,6 +50,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function speakResponse(text) {
         if ('speechSynthesis' in window) {
             const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9; // Slower speech for clarity
             synth.speak(utterance);
             isSpeaking = true;
             utterance.onend = () => isSpeaking = false;
@@ -62,30 +64,53 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function speakElementText(element) {
+        if ('speechSynthesis' in window) {
+            let text = "";
+
+            if (element.id === "user-input") {
+                text = "Enter your question.";
+            } else if (element.id === "send-btn") {
+                text = "Send button."; 
+            } else if (element.id === "voice-btn") {
+                text = "Voice button.";
+            } else if (element.id === "stop-btn") {
+                text = "Stop button.";
+            }
+
+            if (text) {
+                let utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9;
+                synth.speak(utterance);
+            }
+        }
+    }
+
     function handleTabKey(event) {
         if (event.key === "Tab") {
+            lastKeyWasTab = true; // ✅ Mark that Tab was used
             event.preventDefault(); // Prevent default tab behavior
 
             const elements = ["user-input", "send-btn", "voice-btn", "stop-btn"];
             let currentElement = document.activeElement;
             let index = elements.indexOf(currentElement.id);
 
-            // Move to the next element in the array
             index = (index + 1) % elements.length;
             let nextElement = document.getElementById(elements[index]);
             nextElement.focus();
 
-            // Speak the element's label
+            // Speak the element label when Tab is used to navigate
             setTimeout(() => {
-                if ('speechSynthesis' in window) {
-                    let text = nextElement.getAttribute("aria-label") || nextElement.placeholder;
-                    if (text) {
-                        let utterance = new SpeechSynthesisUtterance(text);
-                        synth.speak(utterance);
-                    }
-                }
-            }, 100); // Adding a slight delay to ensure focus
+                speakElementText(nextElement);
+            }, 100); // Small delay to ensure focus is set
         }
+    }
+
+    function handleFocus(event) {
+        if (lastKeyWasTab) { // ✅ Only speak if Tab was the last key pressed
+            speakElementText(event.target);
+        }
+        lastKeyWasTab = false; // ✅ Reset after focus
     }
 
     // Event Listeners
@@ -118,4 +143,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     stopBtn.addEventListener("click", stopSpeaking);
     userInput.addEventListener("keydown", handleTabKey);
+
+    // ✅ Now speech ONLY happens if Tab was used before focusing
+    userInput.addEventListener("focus", handleFocus);
+    sendBtn.addEventListener("focus", handleFocus);
+    voiceBtn.addEventListener("focus", handleFocus);
+    stopBtn.addEventListener("focus", handleFocus);
 });
