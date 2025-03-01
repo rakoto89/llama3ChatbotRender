@@ -110,9 +110,16 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // Disable speech synthesis completely on button clicks
+    function muteSpeech() {
+        if (isSpeaking) {
+            synth.cancel();  // Cancel any ongoing speech
+            isSpeaking = false;
+        }
+    }
+
     sendBtn.addEventListener("click", () => {
-        // Stop any speech immediately when clicking the button (ensure nothing is spoken)
-        synth.cancel();
+        muteSpeech(); // Mute speech synthesis on button click
         sendBtn.disabled = true;
         sendMessage(userInput.value, false);
         setTimeout(() => sendBtn.disabled = false, 500);
@@ -126,8 +133,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     voiceBtn.addEventListener("click", () => {
-        // Stop any speech immediately when clicking the button (ensure nothing is spoken)
-        synth.cancel();
+        muteSpeech(); // Mute speech synthesis on button click
         if ("webkitSpeechRecognition" in window) {
             recognition = new webkitSpeechRecognition();
             recognition.continuous = false;
@@ -149,8 +155,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     stopBtn.addEventListener("click", () => {
-        // Stop any speech immediately when clicking the button (ensure nothing is spoken)
-        synth.cancel();
+        muteSpeech(); // Mute speech synthesis on button click
         stopSpeaking();
     });
 
