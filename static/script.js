@@ -49,6 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function speakResponse(text) {
         if ('speechSynthesis' in window) {
             const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9; // Slower speech for clarity
             synth.speak(utterance);
             isSpeaking = true;
             utterance.onend = () => isSpeaking = false;
@@ -62,6 +63,29 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function speakElementText(element) {
+        if ('speechSynthesis' in window) {
+            let text = "";
+
+            // ✅ This is where it makes the chatbot say "Enter your question."
+            if (element.id === "user-input") {
+                text = "Enter your question.";
+            } else if (element.id === "send-btn") {
+                text = "Send button."; 
+            } else if (element.id === "voice-btn") {
+                text = "Voice button.";
+            } else if (element.id === "stop-btn") {
+                text = "Stop button.";
+            }
+
+            if (text) {
+                let utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9;
+                synth.speak(utterance);
+            }
+        }
+    }
+
     function handleTabKey(event) {
         if (event.key === "Tab") {
             event.preventDefault(); // Prevent default tab behavior
@@ -70,32 +94,15 @@ document.addEventListener("DOMContentLoaded", function () {
             let currentElement = document.activeElement;
             let index = elements.indexOf(currentElement.id);
 
-            // Move to the next element in the array
             index = (index + 1) % elements.length;
             let nextElement = document.getElementById(elements[index]);
             nextElement.focus();
 
-            // Speak the element's label
             setTimeout(() => {
-                if ('speechSynthesis' in window) {
-                    let text = nextElement.getAttribute("aria-label") || nextElement.placeholder;
-                    if (text) {
-                        let utterance = new SpeechSynthesisUtterance(text);
-                        synth.speak(utterance);
-                    }
-                }
-            }, 100); // Adding a slight delay to ensure focus
+                speakElementText(nextElement); // 🔹 Calls the function to speak
+            }, 100); // Small delay to ensure focus is set
         }
     }
-
-    // Event Listeners
-    sendBtn.addEventListener("click", () => sendMessage(userInput.value, false));
-    userInput.addEventListener("keypress", (event) => {
-        if (event.key === "Enter") {
-            event.preventDefault();
-            sendBtn.click();
-        }
-    });
 
     voiceBtn.addEventListener("click", () => {
         if ("webkitSpeechRecognition" in window) {
@@ -118,4 +125,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     stopBtn.addEventListener("click", stopSpeaking);
     userInput.addEventListener("keydown", handleTabKey);
+
+    // ✅ These make other buttons speak when focused
+    voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));
+    stopBtn.addEventListener("focus", () => speakElementText(stopBtn));
+
+    // ✅ Removed redundant focus event for sendBtn
 });
