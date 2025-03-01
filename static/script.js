@@ -154,4 +154,3 @@ document.addEventListener("DOMContentLoaded", function () {
 
     userInput.addEventListener("keydown", handleTabKey);
 });
-
