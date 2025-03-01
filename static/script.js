@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let recognition;
     let isSpeaking = false;
     let synth = window.speechSynthesis;
+    let lastKeyWasTab = false; // ✅ Tracks if Tab was used last
 
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
@@ -87,6 +88,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function handleTabKey(event) {
         if (event.key === "Tab") {
+            lastKeyWasTab = true; // ✅ Mark that Tab was used
             event.preventDefault(); // Prevent default tab behavior
 
             const elements = ["user-input", "send-btn", "voice-btn", "stop-btn"];
@@ -102,6 +104,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 speakElementText(nextElement);
             }, 100); // Small delay to ensure focus is set
         }
+    }
+
+    function handleFocus(event) {
+        if (lastKeyWasTab) { // ✅ Only speak if Tab was the last key pressed
+            speakElementText(event.target);
+        }
+        lastKeyWasTab = false; // ✅ Reset after focus
     }
 
     // Event Listeners
@@ -135,5 +144,9 @@ document.addEventListener("DOMContentLoaded", function () {
     stopBtn.addEventListener("click", stopSpeaking);
     userInput.addEventListener("keydown", handleTabKey);
 
-    // ✅ Removed speech trigger when clicking inside "Enter your question" field
+    // ✅ Now speech ONLY happens if Tab was used before focusing
+    userInput.addEventListener("focus", handleFocus);
+    sendBtn.addEventListener("focus", handleFocus);
+    voiceBtn.addEventListener("focus", handleFocus);
+    stopBtn.addEventListener("focus", handleFocus);
 });
