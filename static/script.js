@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function speakResponse(text) {
         if ('speechSynthesis' in window) {
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 0.9; // Slower rate to improve clarity
+            utterance.rate = 0.9;
             synth.speak(utterance);
             isSpeaking = true;
             utterance.onend = () => isSpeaking = false;
@@ -67,7 +67,6 @@ document.addEventListener("DOMContentLoaded", function () {
         if ('speechSynthesis' in window) {
             let text = "";
 
-            // Assign explicit text to prevent misinterpretation
             if (element.id === "user-input") {
                 text = "Enter your question.";
             } else if (element.id === "send-btn") {
@@ -80,7 +79,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (text) {
                 let utterance = new SpeechSynthesisUtterance(text);
-                utterance.rate = 0.9; // Slightly slower to improve clarity
+                utterance.rate = 0.9;
                 synth.speak(utterance);
             }
         }
@@ -88,25 +87,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function handleTabKey(event) {
         if (event.key === "Tab") {
-            event.preventDefault(); // Prevent default tab behavior
+            event.preventDefault();
 
-            const elements = ["user-input", "send-btn", "voice-btn", "stop-btn"];
-            let currentElement = document.activeElement;
-            let index = elements.indexOf(currentElement.id);
+            const elements = [userInput, sendBtn, voiceBtn, stopBtn];
+            let currentIndex = elements.indexOf(document.activeElement);
 
-            // Move to the next element in the array
-            index = (index + 1) % elements.length;
-            let nextElement = document.getElementById(elements[index]);
+            let nextIndex = (currentIndex + 1) % elements.length;
+            let nextElement = elements[nextIndex];
             nextElement.focus();
 
-            // Speak the label when an element is focused
             setTimeout(() => {
                 speakElementText(nextElement);
-            }, 100); // Small delay to ensure focus is set
+            }, 100);
         }
     }
 
-    // Event Listeners
     sendBtn.addEventListener("click", () => sendMessage(userInput.value, false));
     userInput.addEventListener("keypress", (event) => {
         if (event.key === "Enter") {
@@ -136,8 +131,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     stopBtn.addEventListener("click", stopSpeaking);
     userInput.addEventListener("keydown", handleTabKey);
-
-    // Ensure elements speak when manually focused
     userInput.addEventListener("focus", () => speakElementText(userInput));
     sendBtn.addEventListener("focus", () => speakElementText(sendBtn));
     voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));
