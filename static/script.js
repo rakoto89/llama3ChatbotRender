@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () { 
     const chatBox = document.getElementById("chat-box");
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let recognition;
     let isSpeaking = false;
-    let synth = window.speechSynthesis;
+    const synth = window.speechSynthesis;
 
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
@@ -17,42 +17,49 @@ document.addEventListener("DOMContentLoaded", function () {
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
+    function removePreviousThinkingMessage() {
+        const lastThinkingMessage = document.querySelector(".bot-message:last-child");
+        if (lastThinkingMessage && lastThinkingMessage.textContent === "Thinking...") {
+            lastThinkingMessage.remove();
+        }
+    }
+
     function sendMessage(text, useVoice = false) {
         if (!text.trim()) return;
 
         appendMessage("user", text);
         userInput.value = "";
 
+        removePreviousThinkingMessage();
         const thinkingMsg = document.createElement("div");
         thinkingMsg.classList.add("bot-message");
         thinkingMsg.textContent = "Thinking...";
         chatBox.appendChild(thinkingMsg);
         chatBox.scrollTop = chatBox.scrollHeight;
 
-        fetch('/ask', {
+        fetch("/ask", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ question: text })
+            body: JSON.stringify({ question: text }),
         })
         .then(response => response.json())
         .then(data => {
-            thinkingMsg.remove();
+            removePreviousThinkingMessage();
             appendMessage("bot", data.answer);
             if (useVoice) speakResponse(data.answer);
         })
         .catch(() => {
-            thinkingMsg.remove();
+            removePreviousThinkingMessage();
             appendMessage("bot", "Error: Could not get a response.");
         });
     }
 
     function speakResponse(text) {
-        if ('speechSynthesis' in window) {
+        if ("speechSynthesis" in window) {
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 0.9;
             synth.speak(utterance);
             isSpeaking = true;
-            utterance.onend = () => isSpeaking = false;
+            utterance.onend = () => { isSpeaking = false; };
         }
     }
 
@@ -63,7 +70,27 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    
+    function speakElementText(element) {
+        if ('speechSynthesis' in window) {
+            let text = "";
+
+            if (element.id === "user-input") {
+                text = "Enter your question.";  // Speech for the input field
+            } else if (element.id === "send-btn") {
+                text = "Send button.";  // Speech for the send button
+            } else if (element.id === "voice-btn") {
+                text = "Voice button.";  // Speech for the voice button
+            } else if (element.id === "stop-btn") {
+                text = "Stop button.";  // Speech for the stop button
+            }
+
+            if (text) {
+                let utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9;
+                synth.speak(utterance);
+            }
+        }
+    }
 
     function handleTabKey(event) {
         if (event.key === "Tab") {
@@ -77,36 +104,39 @@ document.addEventListener("DOMContentLoaded", function () {
             nextElement.focus();
 
             setTimeout(() => {
-                speakElementText(nextElement);
+                speakElementText(nextElement); // Speak text of the newly focused element
             }, 100);
         }
     }
 
+    sendBtn.addEventListener("click", () => {
+        sendBtn.disabled = true;
+        sendMessage(userInput.value, false);
+        setTimeout(() => sendBtn.disabled = false, 500);
     });
 
     userInput.addEventListener("keypress", function (event) {
         if (event.key === "Enter") {
             event.preventDefault();
-            sendMessage(userInput.value, false); // Call sendMessage directly
+            sendBtn.click();
         }
     });
 
-    voiceBtn.addEventListener("click", function () {
+    voiceBtn.addEventListener("click", () => {
         if ("webkitSpeechRecognition" in window) {
-            if (recognition) {
-                recognition.stop();
-            }
             recognition = new webkitSpeechRecognition();
             recognition.continuous = false;
             recognition.interimResults = false;
             recognition.lang = "en-US";
 
             recognition.onstart = () => appendMessage("bot", "Listening...");
+
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 sendMessage(transcript, true);
             };
-            recognition.onerror = () => appendMessage("bot", "Sorry, I couldn't hear you.");
+
+            recognition.onerror = () => appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
             recognition.start();
         } else {
             alert("Voice recognition is not supported in this browser.");
@@ -114,9 +144,13 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     stopBtn.addEventListener("click", stopSpeaking);
+
+    // Event listeners to announce text for buttons and input fields
+    userInput.addEventListener("focus", () => speakElementText(userInput));  // Announce when input field is focused
+    sendBtn.addEventListener("focus", () => speakElementText(sendBtn));  // Announce when send button is focused
+    voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));  // Announce when voice button is focused
+    stopBtn.addEventListener("focus", () => speakElementText(stopBtn));  // Announce when stop button is focused
+
+    // Handle Tab key press to switch focus and announce each element
     userInput.addEventListener("keydown", handleTabKey);
-    userInput.addEventListener("focus", () => speakElementText(userInput));
-    sendBtn.addEventListener("focus", () => speakElementText(sendBtn));
-    voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));
-    stopBtn.addEventListener("focus", () => speakElementText(stopBtn));
 });
