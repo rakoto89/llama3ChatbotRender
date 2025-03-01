@@ -139,5 +139,4 @@ document.addEventListener("DOMContentLoaded", function () {
     voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));
     stopBtn.addEventListener("focus", () => speakElementText(stopBtn));
 
-    // Removed redundant focus event for sendBtn
 });
