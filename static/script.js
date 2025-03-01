@@ -103,11 +103,9 @@ document.addEventListener("DOMContentLoaded", function () {
             let nextElement = elements[nextIndex];
             nextElement.focus();
 
-            // Speak the name of the next focused element after tabbing, only if it wasn't already spoken
+            // Speak the name of the next focused element after tabbing
             setTimeout(() => {
-                if (nextElement !== document.activeElement) {
-                    speakElementText(nextElement);
-                }
+                speakElementText(nextElement);
             }, 100);
         }
     }
@@ -157,6 +155,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Event listeners to announce text for buttons and input fields
+    // These are NOT called on button clicks anymore
     userInput.addEventListener("focus", () => speakElementText(userInput));  // Announce when input field is focused
     sendBtn.addEventListener("focus", () => speakElementText(sendBtn));  // Announce when send button is focused
     voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));  // Announce when voice button is focused
@@ -165,4 +164,3 @@ document.addEventListener("DOMContentLoaded", function () {
     // Handle Tab key press to switch focus and announce each element
     userInput.addEventListener("keydown", handleTabKey);
 });
-
