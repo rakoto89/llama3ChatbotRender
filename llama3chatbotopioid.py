@@ -37,8 +37,12 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(response => response.json())
         .then(data => {
             thinkingMsg.remove();
-            appendMessage("bot", data.answer);
-            if (useVoice) speakResponse(data.answer);
+            if (data.answer) {
+                appendMessage("bot", data.answer);
+                if (useVoice) speakResponse(data.answer);
+            } else {
+                appendMessage("bot", "Error: No response from server.");
+            }
         })
         .catch(() => {
             thinkingMsg.remove();
@@ -64,43 +68,51 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function handleTabKey(event) {
         if (event.key === "Tab") {
-            event.preventDefault(); // Prevent default tab behavior
+            event.preventDefault();
 
             const elements = ["user-input", "send-btn", "voice-btn", "stop-btn"];
             let currentElement = document.activeElement;
-            let index = elements.indexOf(currentElement.id);
+            let index = elements.indexOf(currentElement?.id);
 
-            // Move to the next element in the array
+            if (index === -1) return; // Prevent error if active element is not in the list
+
             index = (index + 1) % elements.length;
             let nextElement = document.getElementById(elements[index]);
             nextElement.focus();
 
-            // Speak the label for all elements
             setTimeout(() => {
                 if ('speechSynthesis' in window) {
                     let text = "";
-                    
-                    // Set custom text for each element
-                    if (nextElement.id === "user-input") {
-                        text = "Enter your question";
-                    } else if (nextElement.id === "send-btn") {
-                        text = "Send";
-                    } else if (nextElement.id === "voice-btn") {
-                        text = "Voice";
-                    } else if (nextElement.id === "stop-btn") {
-                        text = "Stop";
-                    }
+                    if (nextElement.id === "user-input") text = "Enter your question";
+                    else if (nextElement.id === "send-btn") text = "Send";
+                    else if (nextElement.id === "voice-btn") text = "Voice";
+                    else if (nextElement.id === "stop-btn") text = "Stop";
 
                     if (text) {
                         let utterance = new SpeechSynthesisUtterance(text);
                         synth.speak(utterance);
                     }
                 }
-            }, 100); // Small delay to ensure focus is set
+            }, 100);
         }
     }
 
-    // Event Listeners
+    // Initialize Speech Recognition only once
+    if ("webkitSpeechRecognition" in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = "en-US";
+
+        recognition.onstart = () => appendMessage("bot", "Listening...");
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            sendMessage(transcript, true);
+        };
+        recognition.onerror = () => appendMessage("bot", "Sorry, I couldn't hear you.");
+        recognition.onend = () => appendMessage("bot", "Stopped listening.");
+    }
+
     sendBtn.addEventListener("click", () => sendMessage(userInput.value, false));
     userInput.addEventListener("keypress", (event) => {
         if (event.key === "Enter") {
@@ -110,21 +122,14 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     voiceBtn.addEventListener("click", () => {
-        if ("webkitSpeechRecognition" in window) {
-            recognition = new webkitSpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.lang = "en-US";
-
-            recognition.onstart = () => appendMessage("bot", "Listening...");
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                sendMessage(transcript, true);
-            };
-            recognition.onerror = () => appendMessage("bot", "Sorry, I couldn't hear you.");
-            recognition.start();
-        } else {
+        if (!recognition) {
             alert("Voice recognition is not supported in this browser.");
+            return;
+        }
+        if (recognition.running) {
+            recognition.stop();
+        } else {
+            recognition.start();
         }
     });
 
