@@ -103,23 +103,16 @@ document.addEventListener("DOMContentLoaded", function () {
             let nextElement = elements[nextIndex];
             nextElement.focus();
 
-            // Speak the name of the next focused element after tabbing
+            // Speak the name of the next focused element after tabbing, only if it wasn't already spoken
             setTimeout(() => {
-                speakElementText(nextElement);
+                if (nextElement !== document.activeElement) {
+                    speakElementText(nextElement);
+                }
             }, 100);
         }
     }
 
-    // Disable speech synthesis completely on button clicks
-    function muteSpeech() {
-        if (isSpeaking) {
-            synth.cancel();  // Cancel any ongoing speech
-            isSpeaking = false;
-        }
-    }
-
     sendBtn.addEventListener("click", () => {
-        muteSpeech(); // Mute speech synthesis on button click
         sendBtn.disabled = true;
         sendMessage(userInput.value, false);
         setTimeout(() => sendBtn.disabled = false, 500);
@@ -133,7 +126,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     voiceBtn.addEventListener("click", () => {
-        muteSpeech(); // Mute speech synthesis on button click
         if ("webkitSpeechRecognition" in window) {
             recognition = new webkitSpeechRecognition();
             recognition.continuous = false;
@@ -154,13 +146,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    stopBtn.addEventListener("click", () => {
-        muteSpeech(); // Mute speech synthesis on button click
-        stopSpeaking();
-    });
+    stopBtn.addEventListener("click", stopSpeaking);
 
     // Event listeners to announce text for buttons and input fields
-    // These are NOT called on button clicks anymore
     userInput.addEventListener("focus", () => speakElementText(userInput));  // Announce when input field is focused
     sendBtn.addEventListener("focus", () => speakElementText(sendBtn));  // Announce when send button is focused
     voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));  // Announce when voice button is focused
