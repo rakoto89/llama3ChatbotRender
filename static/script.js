@@ -15,6 +15,10 @@ document.addEventListener("DOMContentLoaded", function () {
         msgDiv.innerHTML = message;
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
+        
+        if (sender === "bot" && (message === "Listening..." || message === "Thinking...")) {
+            speakResponse(message);
+        }
     }
 
     function removePreviousThinkingMessage() {
@@ -36,6 +40,8 @@ document.addEventListener("DOMContentLoaded", function () {
         thinkingMsg.textContent = "Thinking...";
         chatBox.appendChild(thinkingMsg);
         chatBox.scrollTop = chatBox.scrollHeight;
+
+        speakResponse("Thinking...");
 
         fetch("/ask", {
             method: "POST",
@@ -157,3 +163,4 @@ document.addEventListener("DOMContentLoaded", function () {
     // Handle Tab key press to switch focus and announce each element
     userInput.addEventListener("keydown", handleTabKey);
 });
+
