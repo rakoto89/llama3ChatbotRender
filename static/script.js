@@ -73,6 +73,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 text = "Voice button.";
             } else if (element.id === "stop-btn") {
                 text = "Stop button.";
+            } else if (element.id === "user-input") {
+                text = "Enter your question.";
             }
 
             if (text) {
@@ -97,6 +99,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
             setTimeout(() => {
                 if (nextElement.id === "user-input") {
+                    speakElementText(nextElement);
+                } else if (nextElement.id === "send-btn") {
+                    speakElementText(nextElement);
+                } else if (nextElement.id === "voice-btn") {
+                    speakElementText(nextElement);
+                } else if (nextElement.id === "stop-btn") {
                     speakElementText(nextElement);
                 }
             }, 100); // Small delay to ensure focus is set
@@ -139,19 +147,9 @@ document.addEventListener("DOMContentLoaded", function () {
         event.stopPropagation(); // Prevents triggering speech when clicked
     });
 
-    // Ensure speaking only happens when navigating with Tab
-    userInput.addEventListener("keydown", (event) => {
-        if (event.key === "Tab") {
-            setTimeout(() => speakElementText(userInput), 100);
-        }
-    });
-
-    userInput.addEventListener("keydown", handleTabKey);
-
-    // Ensure elements speak only when navigated via "Tab"
-
+    // Ensure speech happens only when Tab is pressed
     userInput.addEventListener("keydown", handleTabKey);
     sendBtn.addEventListener("focus", () => speakElementText(sendBtn));
-   voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));
-    stopBtn.addEventListener("focus", () => speakElementText(stopBtn))
+    voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));
+    stopBtn.addEventListener("focus", () => speakElementText(stopBtn));
 });
