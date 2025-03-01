@@ -113,6 +113,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     sendBtn.addEventListener("click", () => {
+        // Temporarily mute speech when clicking the button
+        synth.cancel();
         sendBtn.disabled = true;
         sendMessage(userInput.value, false);
         setTimeout(() => sendBtn.disabled = false, 500);
@@ -126,6 +128,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     voiceBtn.addEventListener("click", () => {
+        // Temporarily mute speech when clicking the button
+        synth.cancel();
         if ("webkitSpeechRecognition" in window) {
             recognition = new webkitSpeechRecognition();
             recognition.continuous = false;
@@ -146,7 +150,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    stopBtn.addEventListener("click", stopSpeaking);
+    stopBtn.addEventListener("click", () => {
+        // Temporarily mute speech when clicking the button
+        synth.cancel();
+        stopSpeaking();
+    });
 
     // Event listeners to announce text for buttons and input fields
     userInput.addEventListener("focus", () => speakElementText(userInput));  // Announce when input field is focused
@@ -157,3 +165,4 @@ document.addEventListener("DOMContentLoaded", function () {
     // Handle Tab key press to switch focus and announce each element
     userInput.addEventListener("keydown", handleTabKey);
 });
+
