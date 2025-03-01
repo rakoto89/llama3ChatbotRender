@@ -149,6 +149,9 @@ document.addEventListener("DOMContentLoaded", function () {
     userInput.addEventListener("keydown", handleTabKey);
 
     // Ensure elements speak only when navigated via "Tab"
-    voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));
-    stopBtn.addEventListener("focus", () => speakElementText(stopBtn));
+
+    userInput.addEventListener("keydown", handleTabKey);
+    sendBtn.addEventListener("focus", () => speakElementText(sendBtn));
+   voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));
+    stopBtn.addEventListener("focus", () => speakElementText(stopBtn))
 });
