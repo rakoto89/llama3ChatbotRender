@@ -5,72 +5,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const voiceBtn = document.getElementById("voice-btn");
     const stopBtn = document.getElementById("stop-btn");
 
-    const tabList = document.querySelector('[role="tablist"]');
-    const tabs = document.querySelectorAll('[role="tab"]');
-    const panels = document.querySelectorAll('[role="tabpanel"]');
-
     let recognition;
     let isSpeaking = false;
-    const synth = window.speechSynthesis;
+    let synth = window.speechSynthesis;
 
-    /*** Accessibility: Tab Navigation with Speech ***/
-    tabs.forEach((tab, index) => {
-        tab.addEventListener("click", () => activateTab(tab, true));
-        tab.addEventListener("keydown", (event) => handleTabKeyboardNavigation(event, index));
-    });
-
-    function activateTab(selectedTab, speak = false) {
-        tabs.forEach((tab) => {
-            tab.setAttribute("aria-selected", "false");
-            tab.classList.remove("active-tab");
-        });
-
-        panels.forEach((panel) => {
-            panel.setAttribute("hidden", "true");
-        });
-
-        selectedTab.setAttribute("aria-selected", "true");
-        selectedTab.classList.add("active-tab");
-
-        const panelId = selectedTab.getAttribute("aria-controls");
-        const panelContent = document.getElementById(panelId);
-        panelContent.removeAttribute("hidden");
-
-        // Speak tab name and content
-        if (speak) {
-            const tabName = selectedTab.textContent;
-            const tabContent = panelContent.textContent.trim() || "No content available";
-            speakResponse(`Tab: ${tabName}. ${tabContent}`);
-        }
-    }
-
-    function handleTabKeyboardNavigation(event, index) {
-        let newIndex;
-        switch (event.key) {
-            case "ArrowRight":
-                newIndex = (index + 1) % tabs.length;
-                break;
-            case "ArrowLeft":
-                newIndex = (index - 1 + tabs.length) % tabs.length;
-                break;
-            case "Home":
-                newIndex = 0;
-                break;
-            case "End":
-                newIndex = tabs.length - 1;
-                break;
-            case "Enter":
-            case " ":
-                activateTab(tabs[index], true);
-                return;
-            default:
-                return;
-        }
-        tabs[newIndex].focus();
-        activateTab(tabs[newIndex], true);
-    }
-
-    /*** Chatbot Functionality ***/
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
         msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
@@ -79,50 +17,42 @@ document.addEventListener("DOMContentLoaded", function () {
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    function removePreviousThinkingMessage() {
-        const lastThinkingMessage = document.querySelector(".bot-message:last-child");
-        if (lastThinkingMessage && lastThinkingMessage.textContent === "Thinking...") {
-            lastThinkingMessage.remove();
-        }
-    }
-
     function sendMessage(text, useVoice = false) {
         if (!text.trim()) return;
 
         appendMessage("user", text);
         userInput.value = "";
 
-        removePreviousThinkingMessage();
         const thinkingMsg = document.createElement("div");
         thinkingMsg.classList.add("bot-message");
         thinkingMsg.textContent = "Thinking...";
         chatBox.appendChild(thinkingMsg);
         chatBox.scrollTop = chatBox.scrollHeight;
 
-        fetch("/ask", {
+        fetch(`/ask`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ question: text }),
+            body: JSON.stringify({ question: text })
         })
-        .then(response => response.json())
-        .then(data => {
-            removePreviousThinkingMessage();
-            appendMessage("bot", data.answer);
-            if (useVoice) speakResponse(data.answer);
-        })
-        .catch(() => {
-            removePreviousThinkingMessage();
-            appendMessage("bot", "Error: Could not get a response.");
-        });
+            .then(response => response.json())
+            .then(data => {
+                thinkingMsg.remove();
+                appendMessage("bot", data.answer);
+                if (useVoice) speakResponse(data.answer);
+            })
+            .catch(() => {
+                thinkingMsg.remove();
+                appendMessage("bot", "Error: Could not get a response.");
+            });
     }
 
     function speakResponse(text) {
         if ("speechSynthesis" in window) {
-            synth.cancel(); // Stop any ongoing speech
             const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9; // Slower speech for clarity
             synth.speak(utterance);
             isSpeaking = true;
-            utterance.onend = () => { isSpeaking = false; };
+            utterance.onend = () => isSpeaking = false;
         }
     }
 
@@ -133,13 +63,50 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    sendBtn.addEventListener("click", () => {
-        sendBtn.disabled = true;
-        sendMessage(userInput.value, false);
-        setTimeout(() => sendBtn.disabled = false, 500);
-    });
+    function speakElementText(element) {
+        if ("speechSynthesis" in window) {
+            let text = "";
 
-    userInput.addEventListener("keypress", function (event) {
+            if (element.id === "send-btn") {
+                text = "Send button.";
+            } else if (element.id === "voice-btn") {
+                text = "Voice button.";
+            } else if (element.id === "stop-btn") {
+                text = "Stop button.";
+            }
+
+            if (text) {
+                let utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9;
+                synth.speak(utterance);
+            }
+        }
+    }
+
+    function handleTabKey(event) {
+        if (event.key === "Tab") {
+            event.preventDefault(); // Prevent default tab behavior
+
+            const elements = ["user-input", "send-btn", "voice-btn", "stop-btn"];
+            let currentElement = document.activeElement;
+            let index = elements.indexOf(currentElement.id);
+
+            index = (index + 1) % elements.length;
+            let nextElement = document.getElementById(elements[index]);
+            nextElement.focus();
+
+            setTimeout(() => {
+                if (nextElement.id === "user-input") {
+                    speakElementText(nextElement);
+                }
+            }, 100); // Small delay to ensure focus is set
+        }
+    }
+
+    // Event Listeners
+    sendBtn.addEventListener("click", () => sendMessage(userInput.value, false));
+
+    userInput.addEventListener("keypress", (event) => {
         if (event.key === "Enter") {
             event.preventDefault();
             sendBtn.click();
@@ -154,13 +121,11 @@ document.addEventListener("DOMContentLoaded", function () {
             recognition.lang = "en-US";
 
             recognition.onstart = () => appendMessage("bot", "Listening...");
-
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 sendMessage(transcript, true);
             };
-
-            recognition.onerror = () => appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
+            recognition.onerror = () => appendMessage("bot", "Sorry, I couldn't hear you.");
             recognition.start();
         } else {
             alert("Voice recognition is not supported in this browser.");
@@ -168,4 +133,10 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     stopBtn.addEventListener("click", stopSpeaking);
+    userInput.addEventListener("keydown", handleTabKey);
+
+    // Ensure elements speak only when navigated via "Tab"
+    voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));
+    stopBtn.addEventListener("focus", () => speakElementText(stopBtn));
 });
+
