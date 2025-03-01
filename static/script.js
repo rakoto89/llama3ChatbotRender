@@ -142,9 +142,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
     stopBtn.addEventListener("click", stopSpeaking);
 
-    // Prevent speech when clicking inside the input field
+    // Prevent speech when clicking inside the input field or buttons
+    sendBtn.addEventListener("mousedown", (event) => {
+        event.stopPropagation(); // Prevent triggering speech when clicking the send button
+    });
+    voiceBtn.addEventListener("mousedown", (event) => {
+        event.stopPropagation(); // Prevent triggering speech when clicking the voice button
+    });
+    stopBtn.addEventListener("mousedown", (event) => {
+        event.stopPropagation(); // Prevent triggering speech when clicking the stop button
+    });
     userInput.addEventListener("mousedown", (event) => {
-        event.stopPropagation(); // Prevents triggering speech when clicked
+        event.stopPropagation(); // Prevent triggering speech when clicking the input field
     });
 
     // Ensure speech happens only when Tab is pressed
