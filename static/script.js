@@ -84,9 +84,9 @@ document.addEventListener("DOMContentLoaded", function () {
             if (element.id === "send-btn") {
                 text = "Send button."; // Speak "Send button" when tabbing to the send button
             } else if (element.id === "voice-btn") {
-                text = "Voice button.";
+                text = "Voice button."; // Speak "Voice button" when tabbing to the voice button
             } else if (element.id === "stop-btn") {
-                text = "Stop button.";
+                text = "Stop button."; // Speak "Stop button" when tabbing to the stop button
             }
 
             if (text) {
