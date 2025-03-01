@@ -133,6 +133,19 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     stopBtn.addEventListener("click", stopSpeaking);
+
+    // Prevent speech when clicking inside the input field
+    userInput.addEventListener("mousedown", (event) => {
+        event.stopPropagation(); // Prevents triggering speech when clicked
+    });
+
+    // Ensure speaking only happens when navigating with Tab
+    userInput.addEventListener("keydown", (event) => {
+        if (event.key === "Tab") {
+            setTimeout(() => speakElementText(userInput), 100);
+        }
+    });
+
     userInput.addEventListener("keydown", handleTabKey);
 
     // Ensure elements speak only when navigated via "Tab"
