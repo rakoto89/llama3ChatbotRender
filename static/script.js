@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
     const stopBtn = document.getElementById("stop-btn");
-    
+
     const tabList = document.querySelector('[role="tablist"]');
     const tabs = document.querySelectorAll('[role="tab"]');
     const panels = document.querySelectorAll('[role="tabpanel"]');
@@ -13,13 +13,13 @@ document.addEventListener("DOMContentLoaded", function () {
     let isSpeaking = false;
     const synth = window.speechSynthesis;
 
-    /*** Accessibility: Tab Navigation Support ***/
+    /*** Accessibility: Tab Navigation with Speech ***/
     tabs.forEach((tab, index) => {
-        tab.addEventListener("click", () => activateTab(tab));
+        tab.addEventListener("click", () => activateTab(tab, true));
         tab.addEventListener("keydown", (event) => handleTabKeyboardNavigation(event, index));
     });
 
-    function activateTab(selectedTab) {
+    function activateTab(selectedTab, speak = false) {
         tabs.forEach((tab) => {
             tab.setAttribute("aria-selected", "false");
             tab.classList.remove("active-tab");
@@ -33,7 +33,15 @@ document.addEventListener("DOMContentLoaded", function () {
         selectedTab.classList.add("active-tab");
 
         const panelId = selectedTab.getAttribute("aria-controls");
-        document.getElementById(panelId).removeAttribute("hidden");
+        const panelContent = document.getElementById(panelId);
+        panelContent.removeAttribute("hidden");
+
+        // Speak tab name and content
+        if (speak) {
+            const tabName = selectedTab.textContent;
+            const tabContent = panelContent.textContent.trim() || "No content available";
+            speakResponse(`Tab: ${tabName}. ${tabContent}`);
+        }
     }
 
     function handleTabKeyboardNavigation(event, index) {
@@ -53,12 +61,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 break;
             case "Enter":
             case " ":
-                activateTab(tabs[index]);
+                activateTab(tabs[index], true);
                 return;
             default:
                 return;
         }
         tabs[newIndex].focus();
+        activateTab(tabs[newIndex], true);
     }
 
     /*** Chatbot Functionality ***/
@@ -109,6 +118,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function speakResponse(text) {
         if ("speechSynthesis" in window) {
+            synth.cancel(); // Stop any ongoing speech
             const utterance = new SpeechSynthesisUtterance(text);
             synth.speak(utterance);
             isSpeaking = true;
