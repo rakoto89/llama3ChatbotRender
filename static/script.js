@@ -104,6 +104,17 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // ✅ This makes the chatbot say "Enter your question." when the input is clicked
+    userInput.addEventListener("focus", () => speakElementText(userInput));
+
+    sendBtn.addEventListener("click", () => sendMessage(userInput.value, false));
+    userInput.addEventListener("keypress", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            sendBtn.click();
+        }
+    });
+
     voiceBtn.addEventListener("click", () => {
         if ("webkitSpeechRecognition" in window) {
             recognition = new webkitSpeechRecognition();
@@ -126,9 +137,7 @@ document.addEventListener("DOMContentLoaded", function () {
     stopBtn.addEventListener("click", stopSpeaking);
     userInput.addEventListener("keydown", handleTabKey);
 
-    // ✅ These make other buttons speak when focused
-    voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));
-    stopBtn.addEventListener("focus", () => speakElementText(stopBtn));
 
     // ✅ Removed redundant focus event for sendBtn
 });
+
