@@ -63,27 +63,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    function speakElementText(element) {
-        if ('speechSynthesis' in window) {
-            let text = "";
-
-            if (element.id === "user-input") {
-                text = "Enter your question.";
-            } else if (element.id === "send-btn") {
-                text = "Send button.";
-            } else if (element.id === "voice-btn") {
-                text = "Voice button.";
-            } else if (element.id === "stop-btn") {
-                text = "Stop button.";
-            }
-
-            if (text) {
-                let utterance = new SpeechSynthesisUtterance(text);
-                utterance.rate = 0.9;
-                synth.speak(utterance);
-            }
-        }
-    }
+    
 
     function handleTabKey(event) {
         if (event.key === "Tab") {
