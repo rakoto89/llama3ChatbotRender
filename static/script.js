@@ -102,16 +102,23 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    sendBtn.addEventListener("click", () => sendMessage(userInput.value, false));
-    userInput.addEventListener("keypress", (event) => {
+    // Ensure the event listeners are added only once
+    sendBtn.addEventListener("click", function () {
+        sendMessage(userInput.value, false);
+    });
+
+    userInput.addEventListener("keypress", function (event) {
         if (event.key === "Enter") {
             event.preventDefault();
-            sendBtn.click();
+            sendMessage(userInput.value, false); // Call sendMessage directly
         }
     });
 
-    voiceBtn.addEventListener("click", () => {
+    voiceBtn.addEventListener("click", function () {
         if ("webkitSpeechRecognition" in window) {
+            if (recognition) {
+                recognition.stop();
+            }
             recognition = new webkitSpeechRecognition();
             recognition.continuous = false;
             recognition.interimResults = false;
