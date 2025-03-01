@@ -1,4 +1,4 @@
-.import os
+import os
 import requests
 import pdfplumber
 from flask import Flask, request, jsonify, render_template
