@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
         chatBox.scrollTop = chatBox.scrollHeight;
         
         if (sender === "bot" && usingVoice && (message === "Listening..." || message === "Thinking...")) {
-            speakResponse(message); // Speak "Listening..." or "Thinking..." only when using voice input
+            speakResponse(message);
         }
     }
 
@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", function () {
         chatBox.appendChild(thinkingMsg);
         chatBox.scrollTop = chatBox.scrollHeight;
 
-        if (useVoice) speakResponse("Thinking..."); // Speak "Thinking..." only when using voice input
+        if (useVoice) speakResponse("Thinking...");
 
         fetch("/ask", {
             method: "POST",
@@ -82,11 +82,11 @@ document.addEventListener("DOMContentLoaded", function () {
             let text = "";
 
             if (element.id === "send-btn") {
-                text = "Send button."; // Speak "Send button" when tabbing to the send button
+                text = "Send button.";
             } else if (element.id === "voice-btn") {
-                text = "Voice button."; // Speak "Voice button" when tabbing to the voice button
+                text = "Voice button.";
             } else if (element.id === "stop-btn") {
-                text = "Stop button."; // Speak "Stop button" when tabbing to the stop button
+                text = "Stop button.";
             }
 
             if (text) {
@@ -107,7 +107,7 @@ document.addEventListener("DOMContentLoaded", function () {
             let nextElement = elements[nextIndex];
             nextElement.focus();
             
-            setTimeout(() => speakElementText(nextElement), 200); // Trigger speech when tabbing
+            setTimeout(() => speakElementText(nextElement), 200);
         }
     }
 
@@ -124,6 +124,7 @@ document.addEventListener("DOMContentLoaded", function () {
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 sendMessage(transcript, true);
+                recognition.stop(); // Ensures it stops listening after capturing input
                 usingVoice = false;
             };
 
@@ -153,6 +154,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     userInput.addEventListener("keydown", handleTabKey);
-    voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn)); // Add event listener for focus on voice button
-    stopBtn.addEventListener("focus", () => speakElementText(stopBtn)); // Add event listener for focus on stop button
+    voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));
+    stopBtn.addEventListener("focus", () => speakElementText(stopBtn));
 });
