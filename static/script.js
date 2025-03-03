@@ -18,7 +18,9 @@ document.addEventListener("DOMContentLoaded", function () {
         chatBox.scrollTop = chatBox.scrollHeight;
         
         if (sender === "bot" && usingVoice && (message === "Listening..." || message === "Thinking...")) {
-            speakResponse(message);
+            speakResponse(message, () => {
+                if (message === "Listening...") startVoiceRecognition();
+            });
         }
     }
 
@@ -61,12 +63,15 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    function speakResponse(text) {
+    function speakResponse(text, callback) {
         if ("speechSynthesis" in window) {
             const utterance = new SpeechSynthesisUtterance(text);
+            utterance.onend = () => {
+                isSpeaking = false;
+                if (callback) callback();
+            };
             synth.speak(utterance);
             isSpeaking = true;
-            utterance.onend = () => { isSpeaking = false; };
         }
     }
 
@@ -77,54 +82,17 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    function speakElementText(element) {
-        if ('speechSynthesis' in window) {
-            let text = "";
-
-            if (element.id === "send-btn") {
-                text = "Send button.";
-            } else if (element.id === "voice-btn") {
-                text = "Voice button.";
-            } else if (element.id === "stop-btn") {
-                text = "Stop button.";
-            }
-
-            if (text) {
-                let utterance = new SpeechSynthesisUtterance(text);
-                utterance.rate = 0.9;
-                synth.speak(utterance);
-            }
-        }
-    }
-
-    function handleTabKey(event) {
-        if (event.key === "Tab") {
-            event.preventDefault();
-            
-            const elements = [userInput, sendBtn, voiceBtn, stopBtn];
-            let currentIndex = elements.indexOf(document.activeElement);
-            let nextIndex = (currentIndex + 1) % elements.length;
-            let nextElement = elements[nextIndex];
-            nextElement.focus();
-            
-            setTimeout(() => speakElementText(nextElement), 200);
-        }
-    }
-
-    voiceBtn.addEventListener("click", () => {
+    function startVoiceRecognition() {
         if ("webkitSpeechRecognition" in window) {
             recognition = new webkitSpeechRecognition();
             recognition.continuous = false;
             recognition.interimResults = false;
             recognition.lang = "en-US";
 
-            usingVoice = true;
-            recognition.onstart = () => appendMessage("bot", "Listening...");
-
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 sendMessage(transcript, true);
-                recognition.stop(); // Ensures it stops listening after capturing input
+                recognition.stop();
                 usingVoice = false;
             };
 
@@ -136,6 +104,11 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
             alert("Voice recognition is not supported in this browser.");
         }
+    }
+
+    voiceBtn.addEventListener("click", () => {
+        usingVoice = true;
+        appendMessage("bot", "Listening...");
     });
 
     stopBtn.addEventListener("click", stopSpeaking);
@@ -152,8 +125,4 @@ document.addEventListener("DOMContentLoaded", function () {
             sendBtn.click();
         }
     });
-
-    userInput.addEventListener("keydown", handleTabKey);
-    voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));
-    stopBtn.addEventListener("focus", () => speakElementText(stopBtn));
 });
