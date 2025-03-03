@@ -121,6 +121,12 @@ document.addEventListener("DOMContentLoaded", function () {
             usingVoice = true;
             recognition.onstart = () => appendMessage("bot", "Listening...");
 
+            /*** Small Delay Added Here ***/
+            setTimeout(() => {
+                recognition.start(); // Start speech recognition after a short delay
+            }, 500); // Delay of 500ms (half a second)
+            /*** End of Small Delay ***/
+
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 sendMessage(transcript, true);
@@ -131,7 +137,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
                 usingVoice = false;
             };
-            recognition.start();
         } else {
             alert("Voice recognition is not supported in this browser.");
         }
