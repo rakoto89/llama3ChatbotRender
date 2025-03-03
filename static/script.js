@@ -119,22 +119,10 @@ document.addEventListener("DOMContentLoaded", function () {
             recognition.lang = "en-US";
 
             usingVoice = true;
-            appendMessage("bot", "Listening...");
-
-            /*** DELAY STARTING SPEECH RECOGNITION BY 2 SECONDS ***/
-            setTimeout(() => {
-                recognition.start();
-            }, 2000); // 2-second delay
+            recognition.onstart = () => appendMessage("bot", "Listening...");
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
-                
-                // Ignore "Listening..."
-                if (transcript.toLowerCase().includes("listening")) {
-                    console.warn("Ignored 'Listening...' to prevent self-loop.");
-                    return;
-                }
-
                 sendMessage(transcript, true);
                 usingVoice = false;
             };
@@ -143,6 +131,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
                 usingVoice = false;
             };
+            recognition.start();
         } else {
             alert("Voice recognition is not supported in this browser.");
         }
@@ -153,7 +142,7 @@ document.addEventListener("DOMContentLoaded", function () {
     sendBtn.addEventListener("click", () => {
         sendBtn.disabled = true;
         sendMessage(userInput.value, false);
-        setTimeout(() => sendBtn.disabled = false, 500);
+        setTimeout(() => sendBtn.disabled = false, 700);
     });
 
     userInput.addEventListener("keypress", function (event) {
