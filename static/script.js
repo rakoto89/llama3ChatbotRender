@@ -119,10 +119,22 @@ document.addEventListener("DOMContentLoaded", function () {
             recognition.lang = "en-US";
 
             usingVoice = true;
-            recognition.onstart = () => appendMessage("bot", "Listening...");
+            appendMessage("bot", "Listening...");
+
+            /*** DELAY STARTING SPEECH RECOGNITION BY 2 SECONDS ***/
+            setTimeout(() => {
+                recognition.start();
+            }, 2000); // 2-second delay
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
+                
+                // Ignore "Listening..."
+                if (transcript.toLowerCase().includes("listening")) {
+                    console.warn("Ignored 'Listening...' to prevent self-loop.");
+                    return;
+                }
+
                 sendMessage(transcript, true);
                 usingVoice = false;
             };
@@ -131,7 +143,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
                 usingVoice = false;
             };
-            recognition.start();
         } else {
             alert("Voice recognition is not supported in this browser.");
         }
