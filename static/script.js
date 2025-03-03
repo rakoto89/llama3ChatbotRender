@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const synth = window.speechSynthesis;
 
     function appendMessage(sender, message, hideFromChat = false) {
-        if (hideFromChat) return; // Don't add "Listening..." to the chat UI
+        if (hideFromChat) return; // Prevent "Listening..." from appearing in chat
 
         const msgDiv = document.createElement("div");
         msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
@@ -90,13 +90,13 @@ document.addEventListener("DOMContentLoaded", function () {
         /*** Ensure bot does not hear itself ***/
         setTimeout(() => {
             recognition.start();
-        }, 1000); // Delay recognition to ensure "Listening..." is ignored
+        }, 1000); // Delay recognition slightly
 
         recognition.onresult = (event) => {
             const transcript = event.results[0][0].transcript.trim();
-            
-            // Ignore unwanted phrases
-            if (transcript.toLowerCase() === "listening") {
+
+            // Block the bot from hearing "Listening" or any similar phrase
+            if (transcript.toLowerCase().includes("listening")) {
                 console.warn("Ignored 'Listening...' to prevent self-loop.");
                 return;
             }
