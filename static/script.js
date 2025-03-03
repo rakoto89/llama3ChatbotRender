@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
         msgDiv.innerHTML = message;
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
-        
+
         if (sender === "bot" && usingVoice && (message === "Listening..." || message === "Thinking...")) {
             speakResponse(message);
         }
@@ -125,7 +125,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 recognition.onstart = () => console.log("Voice recognition started...");
 
                 recognition.onresult = (event) => {
-                    const transcript = event.results[0][0].transcript;
+                    let transcript = event.results[0][0].transcript.trim();
+
+                    // Ensure it doesn't pick up "Listening..."
+                    if (transcript.toLowerCase().includes("listening")) {
+                        console.warn("Filtered out unwanted input:", transcript);
+                        return;
+                    }
+
                     sendMessage(transcript, true);
                     usingVoice = false;
                 };
