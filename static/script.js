@@ -119,13 +119,19 @@ document.addEventListener("DOMContentLoaded", function () {
             recognition.lang = "en-US";
 
             usingVoice = true;
-            recognition.onstart = () => appendMessage("bot", "Listening...");
+            appendMessage("bot", "Listening..."); // Show "Listening..." first
 
-            /*** Small Delay Added Here ***/
-            setTimeout(() => {
-                recognition.start(); // Start speech recognition after a short delay
-            }, 500); // Delay of 500ms (half a second)
-            /*** End of Small Delay ***/
+            /*** Mute Fix ***/
+            let tempAudio = new Audio(); // Create a silent audio object
+            tempAudio.muted = true; // Mute the microphone temporarily
+            
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    tempAudio.play().catch(() => {}); // Attempt to play silent sound to force mic reset
+                    recognition.start(); // Start speech recognition after mute delay
+                }, 1000); // 1-second mute before starting recognition
+            });
+            /*** End of Mute Fix ***/
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
