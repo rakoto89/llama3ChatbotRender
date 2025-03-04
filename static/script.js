@@ -18,7 +18,10 @@ document.addEventListener("DOMContentLoaded", function () {
         chatBox.scrollTop = chatBox.scrollHeight;
         
         if (sender === "bot" && usingVoice && message === "Listening...") {
-            speakResponse(message, startVoiceRecognition);
+            speakResponse(message, () => {
+                playBeep(); // Play beep after saying "Listening..."
+                startVoiceRecognition();
+            });
         }
     }
 
@@ -102,6 +105,11 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
             alert("Voice recognition is not supported in this browser.");
         }
+    }
+
+    function playBeep() {
+        const beep = new Audio("https://www.soundjay.com/button/beep-07.wav");
+        beep.play();
     }
 
     function speakElementText(element) {
