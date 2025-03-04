@@ -108,7 +108,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function playBeep() {
-        const beep = new Audio("/static/beep.mp3"); // Path to beep file in static folder
+        const beep = new Audio("/static/beep2.mp3"); 
         beep.play();
     }
 
