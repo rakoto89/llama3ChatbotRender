@@ -108,7 +108,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function playBeep() {
-        const beep = new Audio("https://www.soundjay.com/button/beep-07.wav");
+        const beep = new Audio("/static/beep.mp3"); // Path to beep file in static folder
         beep.play();
     }
 
