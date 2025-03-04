@@ -1,4 +1,4 @@
-ocument.addEventListener("DOMContentLoaded", function () { 
+document.addEventListener("DOMContentLoaded", function () { 
     const chatBox = document.getElementById("chat-box");
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
@@ -17,8 +17,11 @@ ocument.addEventListener("DOMContentLoaded", function () {
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
         
-        if (sender === "bot" && usingVoice && (message === "Listening..." || message === "Thinking...")) {
-            speakResponse(message); // Speak "Listening..." or "Thinking..." only when using voice input
+        if (sender === "bot" && usingVoice && message === "Listening...") {
+            speakResponse(message, () => {
+                playBeep(); // Play beep after saying "Listening..."
+                startVoiceRecognition();
+            });
         }
     }
 
@@ -42,7 +45,7 @@ ocument.addEventListener("DOMContentLoaded", function () {
         chatBox.appendChild(thinkingMsg);
         chatBox.scrollTop = chatBox.scrollHeight;
 
-        if (useVoice) speakResponse("Thinking..."); // Speak "Thinking..." only when using voice input
+        if (useVoice) speakResponse("Thinking...");
 
         fetch("/ask", {
             method: "POST",
@@ -61,12 +64,15 @@ ocument.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    function speakResponse(text) {
+    function speakResponse(text, callback) {
         if ("speechSynthesis" in window) {
             const utterance = new SpeechSynthesisUtterance(text);
+            utterance.onend = () => {
+                isSpeaking = false;
+                if (callback) callback();
+            };
             synth.speak(utterance);
             isSpeaking = true;
-            utterance.onend = () => { isSpeaking = false; };
         }
     }
 
@@ -77,16 +83,45 @@ ocument.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function startVoiceRecognition() {
+        if ("webkitSpeechRecognition" in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = "en-US";
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                sendMessage(transcript, true);
+                recognition.stop();
+                usingVoice = false;
+            };
+
+            recognition.onerror = () => {
+                appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
+                usingVoice = false;
+            };
+            recognition.start();
+        } else {
+            alert("Voice recognition is not supported in this browser.");
+        }
+    }
+
+    function playBeep() {
+        const beep = new Audio("https://www.soundjay.com/button/beep-07.wav");
+        beep.play();
+    }
+
     function speakElementText(element) {
-        if ('speechSynthesis' in window) {
+        if ("speechSynthesis" in window) {
             let text = "";
 
             if (element.id === "send-btn") {
-                text = "Send button."; // Speak "Send button" when tabbing to the send button
+                text = "Send button.";
             } else if (element.id === "voice-btn") {
-                text = "Voice button."; // Speak "Voice button" when tabbing to the voice button
+                text = "Voice button.";
             } else if (element.id === "stop-btn") {
-                text = "Stop button."; // Speak "Stop button" when tabbing to the stop button
+                text = "Stop button.";
             }
 
             if (text) {
@@ -107,34 +142,13 @@ ocument.addEventListener("DOMContentLoaded", function () {
             let nextElement = elements[nextIndex];
             nextElement.focus();
             
-            setTimeout(() => speakElementText(nextElement), 200); // Trigger speech when tabbing
+            setTimeout(() => speakElementText(nextElement), 200);
         }
     }
 
     voiceBtn.addEventListener("click", () => {
-        if ("webkitSpeechRecognition" in window) {
-            recognition = new webkitSpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.lang = "en-US";
-
-            usingVoice = true;
-            recognition.onstart = () => appendMessage("bot", "Listening...");
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                sendMessage(transcript, true);
-                usingVoice = false;
-            };
-
-            recognition.onerror = () => {
-                appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
-                usingVoice = false;
-            };
-            recognition.start();
-        } else {
-            alert("Voice recognition is not supported in this browser.");
-        }
+        usingVoice = true;
+        appendMessage("bot", "Listening...");
     });
 
     stopBtn.addEventListener("click", stopSpeaking);
@@ -153,6 +167,6 @@ ocument.addEventListener("DOMContentLoaded", function () {
     });
 
     userInput.addEventListener("keydown", handleTabKey);
-    voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn)); // Add event listener for focus on voice button
-    stopBtn.addEventListener("focus", () => speakElementText(stopBtn)); // Add event listener for focus on stop button
+    voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));
+    stopBtn.addEventListener("focus", () => speakElementText(stopBtn));
 });
