@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (sender === "bot" && usingVoice && message === "Listening...") {
             speakResponse(message, () => {
                 playBeep(); // Play beep after saying "Listening..."
-                startVoiceRecognition();
+                startVoiceRecognition(); // Start voice recognition after the beep
             });
         }
     }
@@ -149,6 +149,8 @@ document.addEventListener("DOMContentLoaded", function () {
     voiceBtn.addEventListener("click", () => {
         usingVoice = true;
         appendMessage("bot", "Listening...");
+        playBeep();  // Play beep sound when voice recognition starts
+        startVoiceRecognition();  // Start voice recognition after beep
     });
 
     stopBtn.addEventListener("click", stopSpeaking);
