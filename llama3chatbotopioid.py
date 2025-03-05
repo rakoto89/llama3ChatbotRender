@@ -9,7 +9,7 @@ CORS(app)
 
 # Load Llama 3 API endpoint and API key from environment variables
 LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions").strip()
-LLAMA3_API_KEY = os.environ.get("LLAMA3_API_KEY", "").strip()  # Secure API key handling
+LLAMA3_API_KEY = os.environ.get("Renderllama3", "").strip()  # Secure API key handling
 
 # Paths to the PDF documents
 PDF_PATH_1 = os.path.join(os.path.dirname(__file__), "pdfs", "SAMHSA.pdf")
@@ -59,7 +59,7 @@ def get_llama3_response(question, context):
 
     # Set up headers with API key
     headers = {
-        "Authorization": f"Bearer {LLAMA3_API_KEY.strip()}",
+        "Authorization": f"Bearer {Renderllama3.strip()}",
         "Content-Type": "application/json"
     }
 
