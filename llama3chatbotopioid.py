@@ -9,7 +9,7 @@ CORS(app)
 
 # Load Llama 3 API endpoint and API key from environment variables
 LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions").strip()
-LLAMA3_API_KEY = os.environ.get("REN_API_KEY", "").strip()  # Secure API key handling
+REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()  # Secure API key handling
 
 # Paths to the PDF documents
 PDF_PATH_1 = os.path.join(os.path.dirname(__file__), "pdfs", "SAMHSA.pdf")
