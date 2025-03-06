@@ -11,30 +11,31 @@ CORS(app)
 LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions").strip()
 REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()  # Secure API key handling
 
-# Paths to the PDF documents
-PDF_PATH_1 = os.path.join(os.path.dirname(__file__), "pdfs", "SAMHSA.pdf")
-PDF_PATH_2 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC_About_Prescription_Opioids.pdf")
-PDF_PATH_3 = os.path.join(os.path.dirname(__file__), "pdfs", "DEA_Opium.pdf")
-PDF_PATH_4 = os.path.join(os.path.dirname(__file__), "pdfs", "LSUHSC_Opiates.pdf")
-PDF_PATH_5 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC_Preventing_Opioid_Overdose.pdf")
-PDF_PATH_5 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC_Preventing_Opioid_Use_Disorder.pdf")
-PDF_PATH_6 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC_Understanding_the_Opioid_Overdose_Epidemic.pdf")
-PDF_PATH_7 = os.path.join(os.path.dirname(__file__), "pdfs", "BSU_Opioid_Addiction_Resources.pdf")
-
-# Function to extract text from the PDF
 def extract_text_from_pdf(pdf_paths):
     text = ""
-    for pdf_path in pdf_paths:
-        with pdfplumber.open(pdf_path) as pdf:
-            for page in pdf.pages:
-                extracted_text = page.extract_text()
-                if extracted_text:
-                    text += extracted_text + "\n"
+    # for pdf_path in pdf_paths:
+    with pdfplumber.open(pdf_paths) as pdf:
+        for page in pdf.pages:
+            extracted_text = page.extract_text()
+            if extracted_text:
+                text += extracted_text + "\n"
     return text.strip()
-
-# Extract the PDF text at startup
-pdf_paths = [PDF_PATH_1, PDF_PATH_2, PDF_PATH_3, PDF_PATH_4, PDF_PATH_5, PDF_PATH_6, PDF_PATH_7]
-pdf_text = extract_text_from_pdf(pdf_paths)
+import PyPDF2
+pdf_text=''
+def read_pdfs_in_folder(folder_path):
+    # Navigate through the folder
+    concatenated_text = ''
+    for filename in os.listdir(folder_path):
+        print(filename)
+        if filename.endswith('.pdf'):
+            pdf_path = os.path.join(folder_path, filename)
+            print(pdf_path)
+            pdf_text=extract_text_from_pdf(pdf_path)
+            #print(pdf_text)
+            concatenated_text += pdf_text + '\n\n'
+    return concatenated_text
+pdf_text=read_pdfs_in_folder('pdfs')
+print(pdf_text)
 
 # List of relevant opioid-related keywords
 relevant_topics = [
