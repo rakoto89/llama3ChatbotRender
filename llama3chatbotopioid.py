@@ -72,7 +72,7 @@ def get_llama3_response(question, context):
                 "messages": [{"role": "user", "content": prompt}]
             },
             headers=headers,  # Pass API key
-            timeout=30
+            timeout=10
         )
 
         response.raise_for_status()  # Raise an error for HTTP errors
