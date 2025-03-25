@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const synth = window.speechSynthesis;
     let recognitionTimeout;
     const pauseTime = 10000; // 10 seconds delay after the user stops speaking
+    let beepAudio; // Store the beep audio element
 
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
@@ -88,8 +89,8 @@ document.addEventListener("DOMContentLoaded", function () {
     function startVoiceRecognition() {
         if ("webkitSpeechRecognition" in window) {
             recognition = new webkitSpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
+            recognition.continuous = true; // Keep recognizing while the user speaks
+            recognition.interimResults = true; // Capture interim results
             recognition.lang = "en-US";
 
             recognition.onresult = (event) => {
@@ -103,16 +104,32 @@ document.addEventListener("DOMContentLoaded", function () {
                     sendMessage(transcript, true); // Send the final transcript after the 10-second pause
                     recognition.stop(); // Stop recognition once the timeout is triggered
                     usingVoice = false;
+                    stopBeep(); // Stop the beep once the user is done speaking
                 }, pauseTime); // Wait 10 seconds after last detected input
             };
 
             recognition.onerror = () => {
                 appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
                 usingVoice = false;
+                stopBeep(); // Stop the beep in case of an error
             };
+
+            recognition.onstart = () => {
+                beepAudio = new Audio("/static/beep2.mp3");
+                beepAudio.loop = true; // Loop the beep sound
+                beepAudio.play(); // Play the beep continuously while speaking
+            };
+
             recognition.start();
         } else {
             alert("Voice recognition is not supported in this browser.");
+        }
+    }
+
+    function stopBeep() {
+        if (beepAudio) {
+            beepAudio.pause();
+            beepAudio.currentTime = 0; // Reset the beep to the beginning
         }
     }
 
