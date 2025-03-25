@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", function () {
             setTimeout(() => {
                 appendMessage("bot", data.answer);
                 if (useVoice) speakResponse(data.answer);
-            }, 1000); // Delay of 1 second (adjust as needed)
+            }, 5000); 
         })
         .catch(() => {
             removePreviousThinkingMessage();
