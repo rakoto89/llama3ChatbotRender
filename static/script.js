@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () { 
+document.addEventListener("DOMContentLoaded", function () {  
     const chatBox = document.getElementById("chat-box");
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let usingVoice = false;
     const synth = window.speechSynthesis;
     let recognitionTimeout;
-    const pauseTime = 1500; // Delay after the user stops speaking (1.5 seconds)
+    const pauseTime = 10000; // 10 seconds delay after the user stops speaking
 
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
         msgDiv.innerHTML = message;
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
-
+        
         if (sender === "bot" && usingVoice && message === "Listening...") {
             speakResponse(message, () => {
                 playBeep(); // Play beep after saying "Listening..."
@@ -28,11 +28,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function removePreviousThinkingMessage() {
-        // Keep the thinking message visible and do not remove it
-        // const lastThinkingMessage = document.querySelector(".bot-message:last-child");
-        // if (lastThinkingMessage && lastThinkingMessage.textContent === "Thinking...") {
-        //     lastThinkingMessage.remove();
-        // }
+        const lastThinkingMessage = document.querySelector(".bot-message:last-child");
+        if (lastThinkingMessage && lastThinkingMessage.textContent === "Thinking...") {
+            lastThinkingMessage.remove();
+        }
     }
 
     function sendMessage(text, useVoice = false) {
@@ -41,7 +40,7 @@ document.addEventListener("DOMContentLoaded", function () {
         appendMessage("user", text);
         userInput.value = "";
 
-        // Remove previous thinking message (we'll keep it)
+        removePreviousThinkingMessage();
         const thinkingMsg = document.createElement("div");
         thinkingMsg.classList.add("bot-message");
         thinkingMsg.textContent = "Thinking...";
@@ -57,13 +56,12 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .then(response => response.json())
         .then(data => {
-            // We will keep the "Thinking..." message visible and add the response after the pause time
-            setTimeout(() => {
-                appendMessage("bot", data.answer);
-                if (useVoice) speakResponse(data.answer);
-            }, 5000); 
+            removePreviousThinkingMessage();
+            appendMessage("bot", data.answer);
+            if (useVoice) speakResponse(data.answer);
         })
         .catch(() => {
+            removePreviousThinkingMessage();
             appendMessage("bot", "Error: Could not get a response.");
         });
     }
@@ -90,8 +88,8 @@ document.addEventListener("DOMContentLoaded", function () {
     function startVoiceRecognition() {
         if ("webkitSpeechRecognition" in window) {
             recognition = new webkitSpeechRecognition();
-            recognition.continuous = false; // Do not continuously listen
-            recognition.interimResults = false; // No interim results shown
+            recognition.continuous = false;
+            recognition.interimResults = false;
             recognition.lang = "en-US";
 
             recognition.onresult = (event) => {
@@ -102,17 +100,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 // Set a timeout to detect when the user has finished speaking
                 recognitionTimeout = setTimeout(() => {
-                    sendMessage(transcript, true); // Send the final transcript after the pause
+                    sendMessage(transcript, true); // Send the final transcript after the 10-second pause
                     recognition.stop(); // Stop recognition once the timeout is triggered
                     usingVoice = false;
-                }, pauseTime); // Time after last detected input (e.g., 1500ms = 1.5 seconds)
+                }, pauseTime); // Wait 10 seconds after last detected input
             };
 
             recognition.onerror = () => {
                 appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
                 usingVoice = false;
             };
-
             recognition.start();
         } else {
             alert("Voice recognition is not supported in this browser.");
