@@ -55,8 +55,11 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(response => response.json())
         .then(data => {
             removePreviousThinkingMessage();
-            appendMessage("bot", data.answer);
-            if (useVoice) speakResponse(data.answer);
+            // Adding a delay before appending the response
+            setTimeout(() => {
+                appendMessage("bot", data.answer);
+                if (useVoice) speakResponse(data.answer);
+            }, 1000); // Delay of 1 second (adjust as needed)
         })
         .catch(() => {
             removePreviousThinkingMessage();
