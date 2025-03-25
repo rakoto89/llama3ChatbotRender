@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
         msgDiv.innerHTML = message;
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
-        
+
         if (sender === "bot" && usingVoice && message === "Listening...") {
             speakResponse(message, () => {
                 playBeep(); // Play beep after saying "Listening..."
@@ -28,10 +28,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function removePreviousThinkingMessage() {
-        const lastThinkingMessage = document.querySelector(".bot-message:last-child");
-        if (lastThinkingMessage && lastThinkingMessage.textContent === "Thinking...") {
-            lastThinkingMessage.remove();
-        }
+        // Keep the thinking message visible and do not remove it
+        // const lastThinkingMessage = document.querySelector(".bot-message:last-child");
+        // if (lastThinkingMessage && lastThinkingMessage.textContent === "Thinking...") {
+        //     lastThinkingMessage.remove();
+        // }
     }
 
     function sendMessage(text, useVoice = false) {
@@ -40,7 +41,7 @@ document.addEventListener("DOMContentLoaded", function () {
         appendMessage("user", text);
         userInput.value = "";
 
-        removePreviousThinkingMessage();
+        // Remove previous thinking message (we'll keep it)
         const thinkingMsg = document.createElement("div");
         thinkingMsg.classList.add("bot-message");
         thinkingMsg.textContent = "Thinking...";
@@ -56,15 +57,13 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .then(response => response.json())
         .then(data => {
-            removePreviousThinkingMessage();
-            // Adding a delay before appending the response
+            // We will keep the "Thinking..." message visible and add the response after the pause time
             setTimeout(() => {
                 appendMessage("bot", data.answer);
                 if (useVoice) speakResponse(data.answer);
             }, 5000); 
         })
         .catch(() => {
-            removePreviousThinkingMessage();
             appendMessage("bot", "Error: Could not get a response.");
         });
     }
