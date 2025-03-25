@@ -9,6 +9,8 @@ document.addEventListener("DOMContentLoaded", function () {
     let isSpeaking = false;
     let usingVoice = false;
     const synth = window.speechSynthesis;
+    let recognitionTimeout;
+    const pauseTime = 1500; // Delay after the user stops speaking (1.5 seconds)
 
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
@@ -89,21 +91,29 @@ document.addEventListener("DOMContentLoaded", function () {
     function startVoiceRecognition() {
         if ("webkitSpeechRecognition" in window) {
             recognition = new webkitSpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
+            recognition.continuous = false; // Do not continuously listen
+            recognition.interimResults = false; // No interim results shown
             recognition.lang = "en-US";
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
-                sendMessage(transcript, true);
-                recognition.stop();
-                usingVoice = false;
+
+                // Clear any previous timeout
+                clearTimeout(recognitionTimeout);
+
+                // Set a timeout to detect when the user has finished speaking
+                recognitionTimeout = setTimeout(() => {
+                    sendMessage(transcript, true); // Send the final transcript after the pause
+                    recognition.stop(); // Stop recognition once the timeout is triggered
+                    usingVoice = false;
+                }, pauseTime); // Time after last detected input (e.g., 1500ms = 1.5 seconds)
             };
 
             recognition.onerror = () => {
                 appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
                 usingVoice = false;
             };
+
             recognition.start();
         } else {
             alert("Voice recognition is not supported in this browser.");
