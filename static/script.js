@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let recognitionTimeout;
     const pauseTime = 10000; // 10 seconds delay after the user stops speaking
     let beepAudio; // Store the beep audio element
+    let isBeeping = false; // Flag to check if the beep is currently playing
 
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
@@ -115,9 +116,17 @@ document.addEventListener("DOMContentLoaded", function () {
             };
 
             recognition.onstart = () => {
+                isBeeping = true;
                 beepAudio = new Audio("/static/beep2.mp3");
                 beepAudio.loop = true; // Loop the beep sound
                 beepAudio.play(); // Play the beep continuously while speaking
+            };
+
+            recognition.onend = () => {
+                // If recognition ends, stop the beep
+                if (isBeeping) {
+                    stopBeep();
+                }
             };
 
             recognition.start();
@@ -130,6 +139,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (beepAudio) {
             beepAudio.pause();
             beepAudio.currentTime = 0; // Reset the beep to the beginning
+            isBeeping = false;
         }
     }
 
