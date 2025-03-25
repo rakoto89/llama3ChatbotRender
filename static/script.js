@@ -82,8 +82,6 @@ document.addEventListener("DOMContentLoaded", function () {
             isSpeaking = false;
         }
     }
-
-    // ✅ Updated startVoiceRecognition() with 10-second delay
     function startVoiceRecognition() {
         if ("webkitSpeechRecognition" in window) {
             recognition = new webkitSpeechRecognition();
@@ -91,18 +89,12 @@ document.addEventListener("DOMContentLoaded", function () {
             recognition.interimResults = false;
             recognition.lang = "en-US";
 
+            let transcript = "";  // Store transcript temporarily
             let pauseTimeout;
-            const pauseTime = 10000; // ⏳ 10-second delay before sending the transcript
+            const pauseTime = 10000; // ⏳ 10-second delay
 
             recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-
-                // Add a 10-second delay before sending the transcript
-                pauseTimeout = setTimeout(() => {
-                    sendMessage(transcript, true);
-                    recognition.stop();
-                    usingVoice = false;
-                }, pauseTime);
+                transcript = event.results[0][0].transcript; // Save the transcript
             };
 
             recognition.onerror = () => {
@@ -111,7 +103,16 @@ document.addEventListener("DOMContentLoaded", function () {
             };
 
             recognition.onend = () => {
-                clearTimeout(pauseTimeout); // Clear timeout if recognition ends
+                if (transcript.trim() !== "") {
+                    // Apply 10-second delay before sending the transcript
+                    pauseTimeout = setTimeout(() => {
+                        sendMessage(transcript, true);
+                        usingVoice = false;
+                    }, pauseTime);
+                } else {
+                    appendMessage("bot", "No input detected. Please try again.");
+                    usingVoice = false;
+                }
             };
 
             recognition.start();
