@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let isSpeaking = false;
     let usingVoice = false;
     const synth = window.speechSynthesis;
+    let silenceTimeout; // Silence timeout to prevent quick response
 
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
@@ -86,21 +87,35 @@ document.addEventListener("DOMContentLoaded", function () {
     function startVoiceRecognition() {
         if ("webkitSpeechRecognition" in window) {
             recognition = new webkitSpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
+            recognition.continuous = true; // Continuous listening
+            recognition.interimResults = false; // Final results only
             recognition.lang = "en-US";
 
             recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                sendMessage(transcript, true);
-                recognition.stop();
-                usingVoice = false;
+                clearTimeout(silenceTimeout); // Clear any pending timeout
+                const transcript = event.results[event.results.length - 1][0].transcript;
+
+                // Wait for 1.5 seconds after the last spoken word before sending
+                silenceTimeout = setTimeout(() => {
+                    sendMessage(transcript, true);
+                    recognition.stop();
+                    usingVoice = false;
+                }, 1500); // Delay for 1.5 seconds
             };
 
             recognition.onerror = () => {
                 appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
                 usingVoice = false;
             };
+
+            recognition.onend = () => {
+                clearTimeout(silenceTimeout); // Clear any pending timeout
+                if (usingVoice) {
+                    appendMessage("bot", "Voice input ended. Please try again.");
+                    usingVoice = false;
+                }
+            };
+
             recognition.start();
         } else {
             alert("Voice recognition is not supported in this browser.");
