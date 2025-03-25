@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {  
+document.addEventListener("DOMContentLoaded", function () { 
     const chatBox = document.getElementById("chat-box");
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
@@ -9,10 +9,6 @@ document.addEventListener("DOMContentLoaded", function () {
     let isSpeaking = false;
     let usingVoice = false;
     const synth = window.speechSynthesis;
-    let recognitionTimeout;
-    const pauseTime = 10000; // 10 seconds delay after the user stops speaking
-    let beepAudio; // Store the beep audio element
-    let isBeeping = false; // Flag to check if the beep is currently playing
 
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
@@ -90,56 +86,24 @@ document.addEventListener("DOMContentLoaded", function () {
     function startVoiceRecognition() {
         if ("webkitSpeechRecognition" in window) {
             recognition = new webkitSpeechRecognition();
-            recognition.continuous = true; // Keep recognizing while the user speaks
-            recognition.interimResults = true; // Capture interim results
+            recognition.continuous = false;
+            recognition.interimResults = false;
             recognition.lang = "en-US";
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
-
-                // Clear any previous timeout
-                clearTimeout(recognitionTimeout);
-
-                // Set a timeout to detect when the user has finished speaking
-                recognitionTimeout = setTimeout(() => {
-                    sendMessage(transcript, true); // Send the final transcript after the 10-second pause
-                    recognition.stop(); // Stop recognition once the timeout is triggered
-                    usingVoice = false;
-                    stopBeep(); // Stop the beep once the user is done speaking
-                }, pauseTime); // Wait 10 seconds after last detected input
+                sendMessage(transcript, true);
+                recognition.stop();
+                usingVoice = false;
             };
 
             recognition.onerror = () => {
                 appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
                 usingVoice = false;
-                stopBeep(); // Stop the beep in case of an error
             };
-
-            recognition.onstart = () => {
-                isBeeping = true;
-                beepAudio = new Audio("/static/beep2.mp3");
-                beepAudio.loop = true; // Loop the beep sound
-                beepAudio.play(); // Play the beep continuously while speaking
-            };
-
-            recognition.onend = () => {
-                // If recognition ends, stop the beep
-                if (isBeeping) {
-                    stopBeep();
-                }
-            };
-
             recognition.start();
         } else {
             alert("Voice recognition is not supported in this browser.");
-        }
-    }
-
-    function stopBeep() {
-        if (beepAudio) {
-            beepAudio.pause();
-            beepAudio.currentTime = 0; // Reset the beep to the beginning
-            isBeeping = false;
         }
     }
 
