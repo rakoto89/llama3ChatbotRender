@@ -82,6 +82,7 @@ document.addEventListener("DOMContentLoaded", function () {
             isSpeaking = false;
         }
     }
+
     function startVoiceRecognition() {
         if ("webkitSpeechRecognition" in window) {
             recognition = new webkitSpeechRecognition();
@@ -89,32 +90,17 @@ document.addEventListener("DOMContentLoaded", function () {
             recognition.interimResults = false;
             recognition.lang = "en-US";
 
-            let transcript = "";  // Store transcript temporarily
-            let pauseTimeout;
-            const pauseTime = 10000; // ⏳ 10-second delay
-
             recognition.onresult = (event) => {
-                transcript = event.results[0][0].transcript; // Save the transcript
+                const transcript = event.results[0][0].transcript;
+                sendMessage(transcript, true);
+                recognition.stop();
+                usingVoice = false;
             };
 
             recognition.onerror = () => {
                 appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
                 usingVoice = false;
             };
-
-            recognition.onend = () => {
-                if (transcript.trim() !== "") {
-                    // Apply 10-second delay before sending the transcript
-                    pauseTimeout = setTimeout(() => {
-                        sendMessage(transcript, true);
-                        usingVoice = false;
-                    }, pauseTime);
-                } else {
-                    appendMessage("bot", "No input detected. Please try again.");
-                    usingVoice = false;
-                }
-            };
-
             recognition.start();
         } else {
             alert("Voice recognition is not supported in this browser.");
