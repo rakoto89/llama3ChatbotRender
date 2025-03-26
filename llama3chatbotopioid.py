@@ -1,6 +1,7 @@
 import os
 import requests
 import pdfplumber
+import re  # Import regular expressions
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS  # Enable CORS for frontend compatibility
 
@@ -98,19 +99,18 @@ def get_llama3_response(question):
 
 def format_response(response_text):
     """Formats the AI response to a structured, readable format"""
-    # Remove any instances of 'brbr' from the response
-    response_text = response_text.replace("brbr", "")
     
-    # Additional formatting for better structure
+    # Remove any unwanted 'brbr' occurrences
+    response_text = re.sub(r"brbr", "", response_text)
+    
+    # Make the response more readable by properly structuring the lists and bullet points
     formatted_text = response_text.strip()
-    
-    # If the response includes bullet points or numbered lists, you can add extra formatting
-    if "1." in formatted_text:
-        formatted_text = formatted_text.replace("1.", "\n1.").replace("2.", "\n2.").replace("3.", "\n3.")
-        formatted_text = formatted_text.replace("\n", "<br>")  # Convert newlines to <br> for HTML rendering
-    
-    # Ensure any additional 'brbr' that may be introduced during formatting is also removed
-    formatted_text = formatted_text.replace("brbr", "")
+
+    # If the response includes bullet points or numbered lists, reformat them for better structure
+    formatted_text = formatted_text.replace("1.", "\n1.").replace("2.", "\n2.").replace("3.", "\n3.")
+
+    # Add appropriate newlines for readability
+    formatted_text = formatted_text.replace("\n", "<br>")  # Convert newlines to <br> for HTML rendering
 
     return formatted_text
 
