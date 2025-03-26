@@ -12,6 +12,11 @@ document.addEventListener("DOMContentLoaded", function () {
     let silenceTimeout; // Silence timeout to prevent quick response
 
     function appendMessage(sender, message) {
+        // Skip adding or speaking if the message is <br> or empty
+        if (message.trim() === "<br>" || message.trim() === "") {
+            return;
+        }
+
         const msgDiv = document.createElement("div");
         msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
         msgDiv.innerHTML = message;
@@ -66,6 +71,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function speakResponse(text, callback) {
+        // Skip speaking if message is <br> or empty
+        if (text.trim() === "<br>" || text.trim() === "") {
+            return;
+        }
+
         if ("speechSynthesis" in window) {
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.onend = () => {
