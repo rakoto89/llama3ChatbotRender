@@ -84,6 +84,9 @@ def get_llama3_response(question):
         data = response.json()
         response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
 
+        # Remove any unwanted "brbr" occurrences
+        response_text = response_text.replace("brbr", "")  # Removes "brbr" entirely
+
         # Append AI response to conversation history
         conversation_history.append({"role": "assistant", "content": response_text})
 
@@ -92,22 +95,6 @@ def get_llama3_response(question):
     except requests.exceptions.RequestException as e:
         app.logger.error(f"Llama 3 API error: {str(e)}")
         return f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"
-
-def format_response(response_text):
-    """Formats the AI response to a structured, readable format"""
-    formatted_text = response_text.strip()
-    
-    # If the response includes bullet points or numbered lists, add extra formatting
-    if "1." in formatted_text:
-        # Properly format numbered items with <br> after each item
-        formatted_text = formatted_text.replace("1.", "<br>1.") \
-                                       .replace("2.", "<br>2.") \
-                                       .replace("3.", "<br>3.") \
-                                       .replace("4.", "<br>4.") \
-                                       .replace("5.", "<br>5.")  # You can add more if needed
-        formatted_text = formatted_text.replace("\n", " ")  # Remove other newlines
-
-    return formatted_text
 
 @app.route("/")
 def index():
@@ -126,11 +113,10 @@ def ask():
 
     if is_question_relevant(user_question):
         answer = get_llama3_response(user_question)
-        formatted_answer = format_response(answer)
     else:
-        formatted_answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
+        answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
-    return jsonify({"answer": formatted_answer})
+    return jsonify({"answer": answer})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))  # Use the port assigned by Render
