@@ -1,4 +1,4 @@
-import os 
+import os
 import requests
 import pdfplumber
 from flask import Flask, request, jsonify, render_template
@@ -101,13 +101,16 @@ def format_response(response_text):
     # Remove any instances of 'brbr' from the response
     response_text = response_text.replace("brbr", "")
     
-    # Format the response, ensuring that numbered lists have line breaks
+    # Additional formatting for better structure
     formatted_text = response_text.strip()
     
     # If the response includes bullet points or numbered lists, you can add extra formatting
     if "1." in formatted_text:
         formatted_text = formatted_text.replace("1.", "\n1.").replace("2.", "\n2.").replace("3.", "\n3.")
         formatted_text = formatted_text.replace("\n", "<br>")  # Convert newlines to <br> for HTML rendering
+    
+    # Ensure any additional 'brbr' that may be introduced during formatting is also removed
+    formatted_text = formatted_text.replace("brbr", "")
 
     return formatted_text
 
