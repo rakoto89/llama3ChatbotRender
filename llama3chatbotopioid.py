@@ -3,6 +3,7 @@ import requests
 import pdfplumber
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS  # Enable CORS for frontend compatibility
+from bs4 import BeautifulSoup  # Add BeautifulSoup for web scraping
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
@@ -51,6 +52,32 @@ relevant_topics = [
     "number", "percentage", "symptoms", "signs"
 ]
 
+# List of websites to scrape content from
+URLS = [
+    "https://www.samhsa.gov/find-help/national-helpline",
+    "https://www.cdc.gov/drugoverdose/prevention/index.html",
+    "https://www.dea.gov/factsheets/opioids",
+    "https://opioidhelp.bowiestate.edu"
+    "https://www.psychiatry.org/patients-families/opioid-use-disorder#:~:text=Access%20to%20prescription%20opioids%20and,develop%20an%20addiction%20to%20them."
+]
+
+
+def extract_text_from_websites(urls):
+    """Scrapes and extracts text from a list of URLs."""
+    web_text = ""
+    for url in urls:
+        try:
+            response = requests.get(url, timeout=10)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.text, "html.parser")
+                
+                # Extract visible text from paragraphs
+                for paragraph in soup.find_all("p"):
+                    web_text += paragraph.get_text() + "\n"
+        except requests.RequestException as e:
+            print(f"Error fetching {url}: {e}")
+    return web_text.strip()
+
 
 def is_question_relevant(question):
     """Checks if the question contains opioid-related keywords"""
@@ -63,9 +90,12 @@ def get_llama3_response(question):
     # Append user message to conversation history
     conversation_history.append({"role": "user", "content": question})
 
+    # Combine PDF text and website text for context
+    combined_text = pdf_text + "\n\n" + extract_text_from_websites(URLS)
+
     # Keep only the last 5 messages to stay within token limits
     messages = [
-        {"role": "system", "content": "You are an expert in opioid education. Answer user questions as clearly as possible."}
+        {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
     ] + conversation_history[-5:]
 
     # Set up headers with API key
