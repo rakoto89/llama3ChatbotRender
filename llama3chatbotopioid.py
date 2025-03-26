@@ -44,7 +44,7 @@ relevant_topics = [
     "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance",
     "support", "support for opioid addiction", "drug use", "email", "campus", "phone number",
     "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication",
-    "number", "percentage"
+    "number", "percentage", "symptoms", "signs"
 ]
 
 def is_question_relevant(question):
