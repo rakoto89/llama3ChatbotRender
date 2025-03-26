@@ -26,7 +26,6 @@ def extract_text_from_pdf(pdf_paths):
 
 
 import PyPDF2
-
 pdf_text = ''
 
 
@@ -94,7 +93,7 @@ def get_llama3_response(question):
         # Append AI response to conversation history
         conversation_history.append({"role": "assistant", "content": response_text})
 
-        # Process and format the response for HTML and voice
+        # Process and format the response to ensure it's structured
         formatted_response = format_response(response_text)
 
         return formatted_response
@@ -108,12 +107,12 @@ def format_response(response_text, for_voice=False):
     """Formats the AI response to a structured, readable format"""
     formatted_text = response_text.strip()
 
-    # Remove unwanted "brbr" or similar placeholders
+    # Remove "brbr" or any placeholders
     formatted_text = formatted_text.replace("brbr", "")
 
-    # If it's for voice output, remove any <br> tags
+    # If it's for voice output, remove <br> and clean text
     if for_voice:
-        formatted_text = formatted_text.replace("<br>", " ")  # Replace <br> with a space for voice
+        formatted_text = formatted_text.replace("<br>", " ").replace("\n", " ")
     else:
         # Convert newlines to <br> for HTML display
         formatted_text = formatted_text.replace("\n", "<br>")
@@ -138,16 +137,29 @@ def ask():
         return jsonify({"answer": "Please ask a valid question."})
 
     if is_question_relevant(user_question):
-        response_text = get_llama3_response(user_question)
+        answer = get_llama3_response(user_question)
     else:
-        response_text = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
+        answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
-    # Clean the response for HTML and voice separately
-    html_response = format_response(response_text, for_voice=False)  # For HTML rendering
-    voice_response = format_response(response_text, for_voice=True)  # For voice output
+    return jsonify({"answer": answer})
 
-    # Send the response back as JSON, including the voice and HTML versions
-    return jsonify({"answer": html_response, "voice_answer": voice_response})
+
+@app.route("/voice", methods=["POST"])
+def voice_response():
+    """Handles voice responses with clean text for TTS"""
+    data = request.json
+    user_question = data.get("question", "").strip()
+
+    if not user_question:
+        return jsonify({"answer": "Please ask a valid question."})
+
+    if is_question_relevant(user_question):
+        answer = get_llama3_response(user_question)
+        clean_voice_response = format_response(answer, for_voice=True)
+    else:
+        clean_voice_response = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
+
+    return jsonify({"answer": clean_voice_response})
 
 
 if __name__ == "__main__":
