@@ -1,4 +1,4 @@
-import os
+import os 
 import requests
 import pdfplumber
 from flask import Flask, request, jsonify, render_template
@@ -84,17 +84,32 @@ def get_llama3_response(question):
         data = response.json()
         response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
 
-        # Remove any unwanted "brbr" occurrences
-        response_text = response_text.replace("brbr", "")  # Removes "brbr" entirely
-
         # Append AI response to conversation history
         conversation_history.append({"role": "assistant", "content": response_text})
 
-        return response_text
+        # Process and format the response to ensure it's structured
+        formatted_response = format_response(response_text)
+
+        return formatted_response
 
     except requests.exceptions.RequestException as e:
         app.logger.error(f"Llama 3 API error: {str(e)}")
         return f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"
+
+def format_response(response_text):
+    """Formats the AI response to a structured, readable format"""
+    # Remove any instances of 'brbr' from the response
+    response_text = response_text.replace("brbr", "")
+    
+    # Format the response, ensuring that numbered lists have line breaks
+    formatted_text = response_text.strip()
+    
+    # If the response includes bullet points or numbered lists, you can add extra formatting
+    if "1." in formatted_text:
+        formatted_text = formatted_text.replace("1.", "\n1.").replace("2.", "\n2.").replace("3.", "\n3.")
+        formatted_text = formatted_text.replace("\n", "<br>")  # Convert newlines to <br> for HTML rendering
+
+    return formatted_text
 
 @app.route("/")
 def index():
