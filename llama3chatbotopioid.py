@@ -11,52 +11,56 @@ CORS(app)
 LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions").strip()
 REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()  # Secure API key handling
 
+# Store conversation history
+conversation_history = []
+
 def extract_text_from_pdf(pdf_paths):
     text = ""
-    # for pdf_path in pdf_paths:
     with pdfplumber.open(pdf_paths) as pdf:
         for page in pdf.pages:
             extracted_text = page.extract_text()
             if extracted_text:
                 text += extracted_text + "\n"
     return text.strip()
+
 import PyPDF2
-pdf_text=''
+pdf_text = ''
+
 def read_pdfs_in_folder(folder_path):
-    # Navigate through the folder
     concatenated_text = ''
     for filename in os.listdir(folder_path):
-        print(filename)
         if filename.endswith('.pdf'):
             pdf_path = os.path.join(folder_path, filename)
-            print(pdf_path)
-            pdf_text=extract_text_from_pdf(pdf_path)
-            #print(pdf_text)
+            pdf_text = extract_text_from_pdf(pdf_path)
             concatenated_text += pdf_text + '\n\n'
     return concatenated_text
-pdf_text=read_pdfs_in_folder('pdfs')
-print(pdf_text)
+
+pdf_text = read_pdfs_in_folder('pdfs')
 
 # List of relevant opioid-related keywords
 relevant_topics = [
     "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin", 
-    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium", "people", "students, "teens", "adults", "substance abuse", "drugs", "tolerance", "opiates", "help", "assistance", "support", "support for opioid addiction", "support for opioid" "opium", "opiate", "drug" "email", "campus", "phone number", "BSU", "Bowie State University", "opioid", "use", "disorder", "opioid use", "opioid disorder", "opioid usage", "usage", "taking opioids", "taking", "recreational use", "opioid dependence", "opioid self-medication", "self medication", "number", "percentage"
+    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium",
+    "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance",
+    "support", "support for opioid addiction", "drug use", "email", "campus", "phone number",
+    "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication",
+    "number", "percentage"
 ]
 
 def is_question_relevant(question):
     """Checks if the question contains opioid-related keywords"""
     return any(topic.lower() in question.lower() for topic in relevant_topics)
 
-def get_llama3_response(question, context):
+def get_llama3_response(question):
     """Sends a request to the OpenRouter Llama 3 API with API key authentication"""
-    opioid_context = (
-        "You are an expert in opioid education. Answer the user's question as clearly "
-        "as possible using the document as reference, but NEVER mention the document, "
-        "the source, or phrases like 'Based on the document' or 'According to the document'. "
-        "Just provide a direct answer, as if you already knew the information."
-    )
 
-    prompt = f"Answer the question concisely and naturally without mentioning the document or saying 'Based on the document', 'provided text'. \n\nHere is the document content:\n{context}\n\nQuestion: {question}"
+    # Append user message to conversation history
+    conversation_history.append({"role": "user", "content": question})
+
+    # Keep only the last 5 messages to stay within token limits
+    messages = [
+        {"role": "system", "content": "You are an expert in opioid education. Answer user questions as clearly as possible."}
+    ] + conversation_history[-5:]
 
     # Set up headers with API key
     headers = {
@@ -68,10 +72,10 @@ def get_llama3_response(question, context):
         response = requests.post(
             LLAMA3_ENDPOINT,
             json={
-                "model": "meta-llama/llama-3.1-8b-instruct:free",  # Use the model name set in OpenRouter
-                "messages": [{"role": "user", "content": prompt}]
+                "model": "meta-llama/llama-3.1-8b-instruct:free",
+                "messages": messages
             },
-            headers=headers,  # Pass API key
+            headers=headers,
             timeout=30
         )
 
@@ -80,17 +84,13 @@ def get_llama3_response(question, context):
         data = response.json()
         response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
 
-        # List of unwanted phrases to remove
-        unwanted_phrases = ["Based on the document", "According to the document", "From the document"]
-
-        # Remove unwanted phrases from the response
-        for phrase in unwanted_phrases:
-            response_text = response_text.replace(phrase, "").strip()
+        # Append AI response to conversation history
+        conversation_history.append({"role": "assistant", "content": response_text})
 
         return response_text
 
     except requests.exceptions.RequestException as e:
-        app.logger.error(f"Llama 3 API error: {str(e)}")  # Logs error in Render logs
+        app.logger.error(f"Llama 3 API error: {str(e)}")
         return f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"
 
 @app.route("/")
@@ -109,7 +109,7 @@ def ask():
         return jsonify({"answer": "Please ask a valid question."})
 
     if is_question_relevant(user_question):
-        answer = get_llama3_response(user_question, pdf_text)
+        answer = get_llama3_response(user_question)
     else:
         answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
