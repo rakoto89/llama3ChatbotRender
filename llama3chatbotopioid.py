@@ -87,10 +87,7 @@ def get_llama3_response(question):
         # Append AI response to conversation history
         conversation_history.append({"role": "assistant", "content": response_text})
 
-        # Process and format the response to ensure it's structured
-        formatted_response = format_response(response_text)
-
-        return formatted_response
+        return response_text
 
     except requests.exceptions.RequestException as e:
         app.logger.error(f"Llama 3 API error: {str(e)}")
@@ -98,13 +95,17 @@ def get_llama3_response(question):
 
 def format_response(response_text):
     """Formats the AI response to a structured, readable format"""
-    # Assuming the response contains a list of points separated by line breaks or other markers
     formatted_text = response_text.strip()
     
-    # If the response includes bullet points or numbered lists, you can add extra formatting
+    # If the response includes bullet points or numbered lists, add extra formatting
     if "1." in formatted_text:
-        formatted_text = formatted_text.replace("1.", "\n1.").replace("2.", "\n2.").replace("3.", "\n3.")
-        formatted_text = formatted_text.replace("\n", "<br>")  # Convert newlines to <br> for HTML rendering
+        # Properly format numbered items with <br> after each item
+        formatted_text = formatted_text.replace("1.", "<br>1.") \
+                                       .replace("2.", "<br>2.") \
+                                       .replace("3.", "<br>3.") \
+                                       .replace("4.", "<br>4.") \
+                                       .replace("5.", "<br>5.")  # You can add more if needed
+        formatted_text = formatted_text.replace("\n", " ")  # Remove other newlines
 
     return formatted_text
 
@@ -125,10 +126,11 @@ def ask():
 
     if is_question_relevant(user_question):
         answer = get_llama3_response(user_question)
+        formatted_answer = format_response(answer)
     else:
-        answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
+        formatted_answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
-    return jsonify({"answer": answer})
+    return jsonify({"answer": formatted_answer})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))  # Use the port assigned by Render
