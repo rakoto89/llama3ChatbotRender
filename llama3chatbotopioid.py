@@ -49,19 +49,14 @@ relevant_topics = [
     "number", "percentage", "symptoms", "signs"
 ]
 
-# Add this function to read URLs from urls.txt
-def load_urls_from_file(file_path):
-    urls = []
-    if os.path.exists(file_path):
-        with open(file_path, "r") as f:
-            urls = [line.strip() for line in f if line.strip()]
-    return urls
-
-# Path to urls.txt
-URLS_FILE_PATH = os.path.join(os.path.dirname(__file__), "data", "urls.txt")
-
-# Load updated URLs
-URLS = load_urls_from_file(URLS_FILE_PATH)
+# Websites to crawl
+URLS = [
+    "https://www.samhsa.gov/find-help/national-helpline",
+    "https://www.cdc.gov/drugoverdose/prevention/index.html",
+    "https://www.dea.gov/factsheets/opioids",
+    "https://opioidhelp.bowiestate.edu",
+    "https://www.psychiatry.org/patients-families/opioid-use-disorder#:~:text=Access%20to%20prescription%20opioids%20and,develop%20an%20addiction%20to%20them."
+]
 
 # Web crawler function
 def crawl_and_extract_text(base_urls, max_pages=20):
@@ -82,7 +77,7 @@ def crawl_and_extract_text(base_urls, max_pages=20):
             visited.add(url)
 
             try:
-                response = requests.get(url, timeout=60)
+                response = requests.get(url, timeout=10)
                 if response.status_code != 200:
                     continue
 
@@ -109,11 +104,6 @@ def crawl_and_extract_text(base_urls, max_pages=20):
 
     return text_data.strip()
 
-# Reload URLs and crawl updated sites before combining content
-def update_urls_and_crawl():
-    updated_urls = load_urls_from_file(URLS_FILE_PATH)
-    return crawl_and_extract_text(updated_urls, max_pages=10)
-
 # Check if question is relevant
 def is_question_relevant(question):
     return any(topic.lower() in question.lower() for topic in relevant_topics)
@@ -122,7 +112,7 @@ def is_question_relevant(question):
 def get_llama3_response(question):
     conversation_history.append({"role": "user", "content": question})
 
-    combined_text = pdf_text + "\n\n" + update_urls_and_crawl()
+    combined_text = pdf_text + "\n\n" + crawl_and_extract_text(URLS, max_pages=10)
 
     messages = [
         {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
