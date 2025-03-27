@@ -82,7 +82,7 @@ def crawl_and_extract_text(base_urls, max_pages=20):
             visited.add(url)
 
             try:
-                response = requests.get(url, timeout=10)
+                response = requests.get(url, timeout=60)
                 if response.status_code != 200:
                     continue
 
