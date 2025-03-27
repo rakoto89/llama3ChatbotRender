@@ -1,8 +1,6 @@
 import os
 import requests
 import pdfplumber
-import asyncio
-import aiohttp
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from bs4 import BeautifulSoup
@@ -13,17 +11,14 @@ import time
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
 
-# Load Llama 3 API endpoint and API key from environment variables
+
 LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions").strip()
 REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
 
-# Store conversation history
+
 conversation_history = []
 
 
-# ============================
-# PDF Text Extraction
-# ============================
 def extract_text_from_pdf(pdf_paths):
     text = ""
     with pdfplumber.open(pdf_paths) as pdf:
@@ -32,7 +27,6 @@ def extract_text_from_pdf(pdf_paths):
             if extracted_text:
                 text += extracted_text + "\n"
     return text.strip()
-
 
 def read_pdfs_in_folder(folder_path):
     concatenated_text = ''
@@ -43,14 +37,18 @@ def read_pdfs_in_folder(folder_path):
             concatenated_text += pdf_text + '\n\n'
     return concatenated_text
 
-
-# Pre-load PDF text once at startup
 pdf_text = read_pdfs_in_folder('pdfs')
 
 
-# ============================
-# URL Crawling and Text Extraction
-# ============================
+relevant_topics = [
+    "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin",
+    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium",
+    "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance",
+    "support", "support for opioid addiction", "drug use", "email", "campus", "phone number",
+    "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication",
+    "number", "percentage", "symptoms", "signs"
+]
+
 def load_urls_from_file(file_path):
     urls = []
     if os.path.exists(file_path):
@@ -60,6 +58,8 @@ def load_urls_from_file(file_path):
 
 
 URLS_FILE_PATH = os.path.join(os.path.dirname(__file__), "data", "urls.txt")
+
+
 URLS = load_urls_from_file(URLS_FILE_PATH)
 
 
@@ -88,9 +88,11 @@ def crawl_and_extract_text(base_urls, max_pages=20):
                 soup = BeautifulSoup(response.text, "html.parser")
                 pages_crawled += 1
 
+               
                 for tag in soup.find_all(["p", "h1", "h2", "h3", "li"]):
-                    text_data += tag.get_text().strip() + "\n"
+                    text_data += tag.get_text() + "\n"
 
+                
                 for link_tag in soup.find_all("a", href=True):
                     href = link_tag['href']
                     full_url = urljoin(url, href)
@@ -106,34 +108,14 @@ def crawl_and_extract_text(base_urls, max_pages=20):
 
     return text_data.strip()
 
-
-# Pre-crawl and cache results at startup
 def update_urls_and_crawl():
     updated_urls = load_urls_from_file(URLS_FILE_PATH)
     return crawl_and_extract_text(updated_urls, max_pages=10)
 
-
-# ============================
-# Check Relevance of Questions
-# ============================
-relevant_topics = [
-    "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin",
-    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium",
-    "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance",
-    "support", "support for opioid addiction", "drug use", "email", "campus", "phone number",
-    "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication",
-    "number", "percentage", "symptoms", "signs"
-]
-
-
 def is_question_relevant(question):
     return any(topic.lower() in question.lower() for topic in relevant_topics)
 
-
-# ============================
-# Async API Call to Llama 3
-# ============================
-async def get_llama3_response_async(question):
+def get_llama3_response(question):
     conversation_history.append({"role": "user", "content": question})
 
     combined_text = pdf_text + "\n\n" + update_urls_and_crawl()
@@ -147,52 +129,36 @@ async def get_llama3_response_async(question):
         "Content-Type": "application/json"
     }
 
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.post(
-                LLAMA3_ENDPOINT,
-                json={
-                    "model": "meta-llama/llama-3.1-8b-instruct:free",
-                    "messages": messages
-                },
-                headers=headers,
-                timeout=20
-            ) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
-                    conversation_history.append({"role": "assistant", "content": response_text})
-                    return format_response(response_text)
-                else:
-                    return f"ERROR: API returned status {response.status}"
+    try:
+        response = requests.post(
+            LLAMA3_ENDPOINT,
+            json={
+                "model": "meta-llama/llama-3.1-8b-instruct:free",
+                "messages": messages
+            },
+            headers=headers,
+            timeout=30
+        )
 
-        except Exception as e:
-            app.logger.error(f"Llama 3 API error: {str(e)}")
-            return f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"
+        response.raise_for_status()
+        data = response.json()
+        response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
+        conversation_history.append({"role": "assistant", "content": response_text})
 
+        return format_response(response_text)
 
-# Wrapper to run async function synchronously
-def get_llama3_response(question):
-    # Run the async version and wait for result
-    return asyncio.run(get_llama3_response_async(question))
+    except requests.exceptions.RequestException as e:
+        app.logger.error(f"Llama 3 API error: {str(e)}")
+        return f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"
 
-
-# ============================
-# Format Bot Response
-# ============================
 def format_response(response_text, for_voice=False):
     formatted_text = response_text.strip().replace("brbr", "")
     return formatted_text.replace("<br>", " ").replace("\n", " ") if for_voice else formatted_text.replace("\n", "<br>")
 
-
-# ============================
-# Flask Routes
-# ============================
 @app.route("/")
 def index():
     intro_message = "🤖 Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!"
     return render_template("index.html", intro_message=intro_message)
-
 
 @app.route("/ask", methods=["POST"])
 def ask():
@@ -208,7 +174,6 @@ def ask():
         answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
     return jsonify({"answer": answer})
-
 
 @app.route("/voice", methods=["POST"])
 def voice_response():
@@ -226,10 +191,6 @@ def voice_response():
 
     return jsonify({"answer": clean_voice_response})
 
-
-# ============================
-# Run Flask Application
-# ============================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
