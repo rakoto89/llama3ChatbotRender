@@ -49,7 +49,7 @@ relevant_topics = [
     "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance",
     "support", "support for opioid addiction", "drug use", "email", "campus", "phone number",
     "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication",
-    "number", "percentage", "symptoms", "signs"
+    "number", "percentage", "symptoms", "signs", "opioid abuse"
 ]
 
 # List of websites to scrape content from
