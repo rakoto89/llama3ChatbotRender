@@ -11,14 +11,14 @@ import time
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
 
-# Load Llama 3 API endpoint and API key from environment variables
+
 LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions").strip()
 REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
 
-# Store conversation history
+
 conversation_history = []
 
-# Extract text from PDFs
+
 def extract_text_from_pdf(pdf_paths):
     text = ""
     with pdfplumber.open(pdf_paths) as pdf:
@@ -39,7 +39,7 @@ def read_pdfs_in_folder(folder_path):
 
 pdf_text = read_pdfs_in_folder('pdfs')
 
-# Relevant keywords
+
 relevant_topics = [
     "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin",
     "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium",
@@ -49,7 +49,6 @@ relevant_topics = [
     "number", "percentage", "symptoms", "signs"
 ]
 
-# ✅ Add this function to read URLs from urls.txt
 def load_urls_from_file(file_path):
     urls = []
     if os.path.exists(file_path):
@@ -57,13 +56,13 @@ def load_urls_from_file(file_path):
             urls = [line.strip() for line in f if line.strip()]
     return urls
 
-# Path to urls.txt
+
 URLS_FILE_PATH = os.path.join(os.path.dirname(__file__), "data", "urls.txt")
 
-# Load updated URLs
+
 URLS = load_urls_from_file(URLS_FILE_PATH)
 
-# Web crawler function
+
 def crawl_and_extract_text(base_urls, max_pages=20):
     visited = set()
     text_data = ""
@@ -89,11 +88,11 @@ def crawl_and_extract_text(base_urls, max_pages=20):
                 soup = BeautifulSoup(response.text, "html.parser")
                 pages_crawled += 1
 
-                # Extract paragraph, headers, and list item text
+               
                 for tag in soup.find_all(["p", "h1", "h2", "h3", "li"]):
                     text_data += tag.get_text() + "\n"
 
-                # Follow internal links
+                
                 for link_tag in soup.find_all("a", href=True):
                     href = link_tag['href']
                     full_url = urljoin(url, href)
@@ -109,16 +108,13 @@ def crawl_and_extract_text(base_urls, max_pages=20):
 
     return text_data.strip()
 
-# ✅ Reload URLs and crawl updated sites before combining content
 def update_urls_and_crawl():
     updated_urls = load_urls_from_file(URLS_FILE_PATH)
     return crawl_and_extract_text(updated_urls, max_pages=10)
 
-# Check if question is relevant
 def is_question_relevant(question):
     return any(topic.lower() in question.lower() for topic in relevant_topics)
 
-# Llama 3 response function
 def get_llama3_response(question):
     conversation_history.append({"role": "user", "content": question})
 
@@ -155,12 +151,10 @@ def get_llama3_response(question):
         app.logger.error(f"Llama 3 API error: {str(e)}")
         return f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"
 
-# Format response for HTML or voice
 def format_response(response_text, for_voice=False):
     formatted_text = response_text.strip().replace("brbr", "")
     return formatted_text.replace("<br>", " ").replace("\n", " ") if for_voice else formatted_text.replace("\n", "<br>")
 
-# Web routes
 @app.route("/")
 def index():
     intro_message = "🤖 Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!"
@@ -197,7 +191,6 @@ def voice_response():
 
     return jsonify({"answer": clean_voice_response})
 
-# App runner
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
