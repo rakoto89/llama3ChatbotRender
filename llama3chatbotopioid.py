@@ -63,7 +63,7 @@ URLS_FILE_PATH = os.path.join(os.path.dirname(__file__), "data", "urls.txt")
 URLS = load_urls_from_file(URLS_FILE_PATH)
 
 
-def crawl_and_extract_text(base_urls, max_pages=20):
+def crawl_and_extract_text(base_urls, max_pages=5):  # Reduced the max_pages to 5 for faster crawling
     visited = set()
     text_data = ""
 
@@ -72,7 +72,7 @@ def crawl_and_extract_text(base_urls, max_pages=20):
         base_domain = urlparse(base_url).netloc
         pages_crawled = 0
 
-        while queue and pages_crawled < max_pages:
+        while queue and pages_crawled < max_pages:  # Limit the number of pages to crawl
             url = queue.popleft()
 
             if url in visited:
@@ -88,11 +88,11 @@ def crawl_and_extract_text(base_urls, max_pages=20):
                 soup = BeautifulSoup(response.text, "html.parser")
                 pages_crawled += 1
 
-               
+                # Extract text from tags
                 for tag in soup.find_all(["p", "h1", "h2", "h3", "li"]):
                     text_data += tag.get_text() + "\n"
 
-                
+                # Extract links for further crawling
                 for link_tag in soup.find_all("a", href=True):
                     href = link_tag['href']
                     full_url = urljoin(url, href)
@@ -110,7 +110,8 @@ def crawl_and_extract_text(base_urls, max_pages=20):
 
 def update_urls_and_crawl():
     updated_urls = load_urls_from_file(URLS_FILE_PATH)
-    return crawl_and_extract_text(updated_urls, max_pages=10)
+    return crawl_and_extract_text(updated_urls, max_pages=5)  # Same limit for the updated crawl
+
 
 def is_question_relevant(question):
     return any(topic.lower() in question.lower() for topic in relevant_topics)
