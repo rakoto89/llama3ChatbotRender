@@ -2,20 +2,23 @@ import os
 import requests
 import pdfplumber
 from flask import Flask, request, jsonify, render_template
-from flask_cors import CORS  # Enable CORS for frontend compatibility
-from bs4 import BeautifulSoup  # Add BeautifulSoup for web scraping
+from flask_cors import CORS
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin, urlparse
+from collections import deque
+import time
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
 
 # Load Llama 3 API endpoint and API key from environment variables
 LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions").strip()
-REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()  # Secure API key handling
+REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
 
 # Store conversation history
 conversation_history = []
 
-
+# Extract text from PDFs
 def extract_text_from_pdf(pdf_paths):
     text = ""
     with pdfplumber.open(pdf_paths) as pdf:
@@ -24,11 +27,6 @@ def extract_text_from_pdf(pdf_paths):
             if extracted_text:
                 text += extracted_text + "\n"
     return text.strip()
-
-
-import PyPDF2
-pdf_text = ''
-
 
 def read_pdfs_in_folder(folder_path):
     concatenated_text = ''
@@ -39,68 +37,99 @@ def read_pdfs_in_folder(folder_path):
             concatenated_text += pdf_text + '\n\n'
     return concatenated_text
 
-
 pdf_text = read_pdfs_in_folder('pdfs')
 
-# List of relevant opioid-related keywords
+# Relevant keywords
 relevant_topics = [
     "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin",
     "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium",
     "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance",
     "support", "support for opioid addiction", "drug use", "email", "campus", "phone number",
     "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication",
-    "number", "percentage", "symptoms", "signs", "opioid abuse"
+    "number", "percentage", "symptoms", "signs"
 ]
 
-# List of websites to scrape content from
-URLS = [
-    "https://www.samhsa.gov/find-help/national-helpline",
-    "https://www.cdc.gov/drugoverdose/prevention/index.html",
-    "https://www.dea.gov/factsheets/opioids",
-    "https://opioidhelp.bowiestate.edu"
-    "https://www.psychiatry.org/patients-families/opioid-use-disorder#:~:text=Access%20to%20prescription%20opioids%20and,develop%20an%20addiction%20to%20them."
-]
+# ✅ Add this function to read URLs from urls.txt
+def load_urls_from_file(file_path):
+    urls = []
+    if os.path.exists(file_path):
+        with open(file_path, "r") as f:
+            urls = [line.strip() for line in f if line.strip()]
+    return urls
 
+# Path to urls.txt
+URLS_FILE_PATH = os.path.join(os.path.dirname(__file__), "data", "urls.txt")
 
-def extract_text_from_websites(urls):
-    """Scrapes and extracts text from a list of URLs."""
-    web_text = ""
-    for url in urls:
-        try:
-            response = requests.get(url, timeout=10)
-            if response.status_code == 200:
+# Load updated URLs
+URLS = load_urls_from_file(URLS_FILE_PATH)
+
+# Web crawler function
+def crawl_and_extract_text(base_urls, max_pages=20):
+    visited = set()
+    text_data = ""
+
+    for base_url in base_urls:
+        queue = deque([base_url])
+        base_domain = urlparse(base_url).netloc
+        pages_crawled = 0
+
+        while queue and pages_crawled < max_pages:
+            url = queue.popleft()
+
+            if url in visited:
+                continue
+
+            visited.add(url)
+
+            try:
+                response = requests.get(url, timeout=10)
+                if response.status_code != 200:
+                    continue
+
                 soup = BeautifulSoup(response.text, "html.parser")
-                
-                # Extract visible text from paragraphs
-                for paragraph in soup.find_all("p"):
-                    web_text += paragraph.get_text() + "\n"
-        except requests.RequestException as e:
-            print(f"Error fetching {url}: {e}")
-    return web_text.strip()
+                pages_crawled += 1
 
+                # Extract paragraph, headers, and list item text
+                for tag in soup.find_all(["p", "h1", "h2", "h3", "li"]):
+                    text_data += tag.get_text() + "\n"
 
+                # Follow internal links
+                for link_tag in soup.find_all("a", href=True):
+                    href = link_tag['href']
+                    full_url = urljoin(url, href)
+                    link_domain = urlparse(full_url).netloc
+
+                    if base_domain == link_domain and full_url not in visited:
+                        queue.append(full_url)
+
+                time.sleep(0.5)
+
+            except Exception as e:
+                print(f"Error crawling {url}: {e}")
+
+    return text_data.strip()
+
+# ✅ Reload URLs and crawl updated sites before combining content
+def update_urls_and_crawl():
+    updated_urls = load_urls_from_file(URLS_FILE_PATH)
+    return crawl_and_extract_text(updated_urls, max_pages=10)
+
+# Check if question is relevant
 def is_question_relevant(question):
-    """Checks if the question contains opioid-related keywords"""
     return any(topic.lower() in question.lower() for topic in relevant_topics)
 
-
+# Llama 3 response function
 def get_llama3_response(question):
-    """Sends a request to the OpenRouter Llama 3 API with API key authentication"""
-
-    # Append user message to conversation history
     conversation_history.append({"role": "user", "content": question})
 
-    # Combine PDF text and website text for context
-    combined_text = pdf_text + "\n\n" + extract_text_from_websites(URLS)
+    combined_text = pdf_text + "\n\n" + update_urls_and_crawl()
 
-    # Keep only the last 5 messages to stay within token limits
     messages = [
         {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
     ] + conversation_history[-5:]
 
-    # Set up headers with API key
     headers = {
-        "Authorization": f"Bearer {REN_API_KEY.strip()}",
+        "Authorization": f"Bearer {REN_API_KEY}",
         "Content-Type": "application/json"
     }
 
@@ -115,52 +144,31 @@ def get_llama3_response(question):
             timeout=30
         )
 
-        response.raise_for_status()  # Raise an error for HTTP errors
-
+        response.raise_for_status()
         data = response.json()
         response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
-
-        # Append AI response to conversation history
         conversation_history.append({"role": "assistant", "content": response_text})
 
-        # Process and format the response to ensure it's structured
-        formatted_response = format_response(response_text)
-
-        return formatted_response
+        return format_response(response_text)
 
     except requests.exceptions.RequestException as e:
         app.logger.error(f"Llama 3 API error: {str(e)}")
         return f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"
 
-
+# Format response for HTML or voice
 def format_response(response_text, for_voice=False):
-    """Formats the AI response to a structured, readable format"""
-    formatted_text = response_text.strip()
+    formatted_text = response_text.strip().replace("brbr", "")
+    return formatted_text.replace("<br>", " ").replace("\n", " ") if for_voice else formatted_text.replace("\n", "<br>")
 
-    # Remove "brbr" or any placeholders
-    formatted_text = formatted_text.replace("brbr", "")
-
-    # If it's for voice output, remove <br> and clean text
-    if for_voice:
-        formatted_text = formatted_text.replace("<br>", " ").replace("\n", " ")
-    else:
-        # Convert newlines to <br> for HTML display
-        formatted_text = formatted_text.replace("\n", "<br>")
-
-    return formatted_text
-
-
+# Web routes
 @app.route("/")
 def index():
-    """Serves the chatbot HTML page with an introductory message"""
     intro_message = "🤖 Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!"
     return render_template("index.html", intro_message=intro_message)
 
-
 @app.route("/ask", methods=["POST"])
 def ask():
-    """Handles user questions and returns responses from Llama 3"""
-    data = request.json  # Accept JSON input
+    data = request.json
     user_question = data.get("question", "").strip()
 
     if not user_question:
@@ -173,10 +181,8 @@ def ask():
 
     return jsonify({"answer": answer})
 
-
 @app.route("/voice", methods=["POST"])
 def voice_response():
-    """Handles voice responses with clean text for TTS"""
     data = request.json
     user_question = data.get("question", "").strip()
 
@@ -191,7 +197,7 @@ def voice_response():
 
     return jsonify({"answer": clean_voice_response})
 
-
+# App runner
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Use the port assigned by Render
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
