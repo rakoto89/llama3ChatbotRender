@@ -7,17 +7,16 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 from collections import deque
 import time
+import asyncio
+import aiohttp
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
 
-
 LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions").strip()
 REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
 
-
 conversation_history = []
-
 
 def extract_text_from_pdf(pdf_paths):
     text = ""
@@ -39,7 +38,6 @@ def read_pdfs_in_folder(folder_path):
 
 pdf_text = read_pdfs_in_folder('pdfs')
 
-
 relevant_topics = [
     "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin",
     "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium",
@@ -56,62 +54,63 @@ def load_urls_from_file(file_path):
             urls = [line.strip() for line in f if line.strip()]
     return urls
 
-
 URLS_FILE_PATH = os.path.join(os.path.dirname(__file__), "data", "urls.txt")
-
 
 URLS = load_urls_from_file(URLS_FILE_PATH)
 
+async def fetch_url(session, url, visited, base_domain, text_data, queue):
+    if url in visited:
+        return
 
-def crawl_and_extract_text(base_urls, max_pages=5):  # Reduced the max_pages to 5 for faster crawling
+    visited.add(url)
+
+    try:
+        async with session.get(url, timeout=10) as response:
+            if response.status != 200:
+                return
+
+            soup = BeautifulSoup(await response.text(), "html.parser")
+
+            # Extract text from tags
+            for tag in soup.find_all(["p", "h1", "h2", "h3", "li"]):
+                text_data.append(tag.get_text() + "\n")
+
+            # Extract links for further crawling
+            for link_tag in soup.find_all("a", href=True):
+                href = link_tag['href']
+                full_url = urljoin(url, href)
+                link_domain = urlparse(full_url).netloc
+
+                if base_domain == link_domain and full_url not in visited:
+                    queue.append(full_url)
+
+            await asyncio.sleep(0.5)
+
+    except Exception as e:
+        print(f"Error crawling {url}: {e}")
+
+async def crawl_and_extract_text(base_urls, max_pages=5):
     visited = set()
-    text_data = ""
+    text_data = []
+    queue = deque(base_urls)
 
-    for base_url in base_urls:
-        queue = deque([base_url])
-        base_domain = urlparse(base_url).netloc
-        pages_crawled = 0
-
-        while queue and pages_crawled < max_pages:  # Limit the number of pages to crawl
+    async with aiohttp.ClientSession() as session:
+        tasks = []
+        while queue and len(visited) < max_pages:
             url = queue.popleft()
+            tasks.append(fetch_url(session, url, visited, urlparse(url).netloc, text_data, queue))
+            if len(tasks) >= 10:  # Limit concurrent requests
+                await asyncio.gather(*tasks)
+                tasks = []
 
-            if url in visited:
-                continue
+        if tasks:
+            await asyncio.gather(*tasks)
 
-            visited.add(url)
-
-            try:
-                response = requests.get(url, timeout=10)
-                if response.status_code != 200:
-                    continue
-
-                soup = BeautifulSoup(response.text, "html.parser")
-                pages_crawled += 1
-
-                # Extract text from tags
-                for tag in soup.find_all(["p", "h1", "h2", "h3", "li"]):
-                    text_data += tag.get_text() + "\n"
-
-                # Extract links for further crawling
-                for link_tag in soup.find_all("a", href=True):
-                    href = link_tag['href']
-                    full_url = urljoin(url, href)
-                    link_domain = urlparse(full_url).netloc
-
-                    if base_domain == link_domain and full_url not in visited:
-                        queue.append(full_url)
-
-                time.sleep(0.5)
-
-            except Exception as e:
-                print(f"Error crawling {url}: {e}")
-
-    return text_data.strip()
+    return ''.join(text_data).strip()
 
 def update_urls_and_crawl():
     updated_urls = load_urls_from_file(URLS_FILE_PATH)
-    return crawl_and_extract_text(updated_urls, max_pages=5)  # Same limit for the updated crawl
-
+    return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))  # Same limit for the updated crawl
 
 def is_question_relevant(question):
     return any(topic.lower() in question.lower() for topic in relevant_topics)
