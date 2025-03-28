@@ -71,6 +71,11 @@ async def fetch_url(session, url, visited, base_domain, text_data, queue):
 
             soup = BeautifulSoup(await response.text(), "html.parser")
 
+            # NEW: Filter pages to keep only opioid-related content
+            page_text = soup.get_text().lower()
+            if not any(keyword in page_text for keyword in relevant_topics):
+                return
+
             # Extract text from tags
             for tag in soup.find_all(["p", "h1", "h2", "h3", "li"]):
                 text_data.append(tag.get_text() + "\n")
@@ -81,7 +86,8 @@ async def fetch_url(session, url, visited, base_domain, text_data, queue):
                 full_url = urljoin(url, href)
                 link_domain = urlparse(full_url).netloc
 
-                if base_domain == link_domain and full_url not in visited:
+                # MODIFIED: Allow crawling all subdomains of the base domain
+                if base_domain in link_domain and full_url not in visited:
                     queue.append(full_url)
 
             await asyncio.sleep(0.5)
