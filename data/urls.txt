@@ -3,3 +3,6 @@ https://www.cdc.gov/
 https://www.who.int/
 https://www.kff.org/
 https://ncfrp.org/
+https://www.fcc.gov/
+https://www.nih.gov/
+https://www.shadac.org/
