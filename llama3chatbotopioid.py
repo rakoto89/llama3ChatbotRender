@@ -44,7 +44,8 @@ relevant_topics = [
     "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance",
     "support", "support for opioid addiction", "drug use", "email", "campus", "phone number",
     "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication",
-    "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse"
+    "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription"
+    "medication-assistanted treatment",   "medication assistanted treatment" "MAT", "opioid epidemic"
 ]
 
 def load_urls_from_file(file_path):
