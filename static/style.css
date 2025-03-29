@@ -21,13 +21,13 @@ body {
 
 /* Updated: No square box around chat */
 .chat-container {
-    width: auto; /* Remove fixed width */
+    width: auto; /* Full width with no fixed container */
     background: transparent; /* No background to remove box */
     border-radius: 0; /* No rounded corners */
     box-shadow: none; /* Remove shadow */
     text-align: center;
     overflow: visible;
-    padding-top: 20px; /* Optional: Add a little spacing if needed */
+    padding-top: 20px; /* Optional spacing for better alignment */
 }
 
 /* Chat header styling */
@@ -40,15 +40,16 @@ body {
     text-align: center;
 }
 
-/* Chat box styling */
+/* Chat box styling - No white box */
 .chat-box {
     height: 400px; /* Keep height */
     overflow-y: auto;
-    padding: 15px; /* Increased padding */
-    background: #f9f9f9;
+    padding: 15px;
+    background: transparent; /* Remove white background */
     text-align: left;
     display: flex;
     flex-direction: column;
+    border: none; /* Remove any borders */
 }
 
 /* Bot message style */
