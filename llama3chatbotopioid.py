@@ -45,7 +45,9 @@ relevant_topics = [
     "support", "support for opioid addiction", "drug use", "email", "campus", "phone number",
     "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication",
     "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription"
-    "medication-assistanted treatment",   "medication assistanted treatment", "MAT", "opioid epidemic", "teen", "adult", "death"
+    "medication-assistanted treatment",   "medication assistanted treatment", "MAT", "opioid epidemic", "teen", 
+    "dangers", "genetic", "environmental factors", "pain mangement","socioeconomic factors", "consequences", "adult", "death"
+    "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS"
 ]
 
 def load_urls_from_file(file_path):
