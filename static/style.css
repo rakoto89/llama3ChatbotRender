@@ -19,7 +19,7 @@ body {
     border-radius: 0; /* No circular shape to prevent distortion */
 }
 
-/* Updated: No square box around chat */
+/* Updated: No box around chat and no header background */
 .chat-container {
     width: auto; /* Full width with no fixed container */
     background: transparent; /* No background to remove box */
@@ -30,22 +30,22 @@ body {
     padding-top: 20px; /* Optional spacing for better alignment */
 }
 
-/* Chat header styling */
+/* Chat header with no background */
 .chat-header {
-    background: black;
-    color: white;
-    padding: 15px; /* Increased padding */
+    background: transparent; /* No background */
+    color: black; /* Text in black */
+    padding: 15px 0; /* Space at the top and bottom */
     font-size: 22px; /* Increased font size */
     font-weight: bold;
     text-align: center;
 }
 
-/* Chat box styling - No white box */
+/* Chat box with no background */
 .chat-box {
     height: 400px; /* Keep height */
     overflow-y: auto;
     padding: 15px;
-    background: transparent; /* Remove white background */
+    background: transparent; /* No background */
     text-align: left;
     display: flex;
     flex-direction: column;
@@ -80,42 +80,49 @@ body {
 .input-container {
     display: flex;
     padding: 15px; /* Increased padding */
-    background: white;
+    background: transparent; /* No background */
 }
 
-/* Input field style */
+/* Input field with no background */
 input {
     flex: 1;
     padding: 10px; /* Increased padding */
     border: 1px solid #ccc;
     border-radius: 5px;
+    background: transparent; /* No background */
+    color: black;
 }
 
-/* Button styles */
+/* Button styles with no background */
 button {
     margin-left: 10px; /* Increased margin */
     padding: 10px 15px; /* Increased padding */
     border: none;
     cursor: pointer;
     border-radius: 5px;
+    background: transparent; /* No background */
+    color: black;
 }
 
 /* Send button */
 #send-btn {
-    background: #4CAF50; /* Green */
-    color: white;
+    background: transparent; /* No background */
+    color: green; /* Green text */
+    border: 1px solid green;
 }
 
 /* Voice button */
 #voice-btn {
-    background: #007bff; /* Blue */
-    color: white;
+    background: transparent; /* No background */
+    color: blue; /* Blue text */
+    border: 1px solid blue;
 }
 
 /* Stop button */
 #stop-btn {
-    background: #dc3545; /* Red */
-    color: white;
+    background: transparent; /* No background */
+    color: red; /* Red text */
+    border: 1px solid red;
 }
 
 /* Add emoji support */
