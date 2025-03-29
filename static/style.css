@@ -92,14 +92,14 @@ h1 {
     background: transparent; /* No background */
 }
 
-/* Input field with no background */
+/* Input field with white background and black text */
 input {
     flex: 1;
     padding: 10px; /* Increased padding */
     border: 1px solid #ccc;
     border-radius: 5px;
-    background: transparent; /* No background */
-    color: black;
+    background: white; /* Updated to white background */
+    color: black; /* Text set to black */
 }
 
 /* Button styles with no background */
