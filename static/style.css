@@ -11,11 +11,11 @@ body {
 
 /* Title styling */
 h1 {
-    font-size: 36px; /* Adjust size as needed */
+    font-size: 60px; /* Size of the header */
     font-weight: bold;
     color: black;
     text-align: center;
-    margin-top: 20px;
+    margin-top: 10px; /* Reduced margin to move the header up */
 }
 
 /* Bowie State Logo styling */
