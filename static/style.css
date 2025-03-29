@@ -9,6 +9,15 @@ body {
     margin: 0;
 }
 
+/* Title styling */
+h1 {
+    font-size: 36px; /* Adjust size as needed */
+    font-weight: bold;
+    color: black;
+    text-align: center;
+    margin-top: 20px;
+}
+
 /* Bowie State Logo styling */
 .top-right-image {
     position: absolute;
@@ -101,27 +110,27 @@ button {
     cursor: pointer;
     border-radius: 5px;
     background: transparent; /* No background */
-    color: black;
+    color: white; /* Text color set to white */
 }
 
 /* Send button */
 #send-btn {
-    background: transparent; /* No background */
-    color: green; /* Green text */
+    background: green; /* Green background */
+    color: white; /* White text */
     border: 1px solid green;
 }
 
 /* Voice button */
 #voice-btn {
-    background: transparent; /* No background */
-    color: blue; /* Blue text */
+    background: blue; /* Blue background */
+    color: white; /* White text */
     border: 1px solid blue;
 }
 
 /* Stop button */
 #stop-btn {
-    background: transparent; /* No background */
-    color: red; /* Red text */
+    background: red; /* Red background */
+    color: white; /* White text */
     border: 1px solid red;
 }
 
