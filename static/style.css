@@ -11,6 +11,7 @@ body {
 
 /* Title styling */
 h1 {
+    font-family: Cambria, serif; /* Change font to Cambria */
     font-size: 300px; /* Size of the header */
     font-weight: bold;
     color: black;
