@@ -44,9 +44,9 @@ relevant_topics = [
     "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance",
     "support", "support for opioid addiction", "drug use", "email", "campus", "phone number",
     "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication",
-    "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription"
-    "medication-assistanted treatment",   "medication assistanted treatment", "MAT", "opioid epidemic", "teen", 
-    "dangers", "genetic", "environmental factors", "pain mangement","socioeconomic factors", "consequences", "adult", "death"
+    "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
+    "medication-assistanted treatment", "medication assistanted treatment", "MAT", "opioid epidemic", "teen", 
+    "dangers", "genetic", "environmental factors", "pain mangement", "socioeconomic factors", "consequences", "adult", "death",
     "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS"
 ]
 
@@ -131,7 +131,7 @@ def get_llama3_response(question):
 
     messages = [
         {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
-    ] + conversation_history[-5:]
+    ] + conversation_history[-5:]  # Limit conversation history to last 5 messages
 
     headers = {
         "Authorization": f"Bearer {REN_API_KEY}",
@@ -152,13 +152,18 @@ def get_llama3_response(question):
         response.raise_for_status()
         data = response.json()
         response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
+        
+        # Add assistant's response to conversation history
         conversation_history.append({"role": "assistant", "content": response_text})
 
         return format_response(response_text)
 
     except requests.exceptions.RequestException as e:
         app.logger.error(f"Llama 3 API error: {str(e)}")
-        return f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"
+        return jsonify({"answer": f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"})
+    except Exception as e:
+        app.logger.error(f"General error: {str(e)}")
+        return jsonify({"answer": f"An error occurred: {str(e)}"})
 
 def format_response(response_text, for_voice=False):
     formatted_text = response_text.strip().replace("brbr", "")
