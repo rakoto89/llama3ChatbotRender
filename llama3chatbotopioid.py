@@ -18,7 +18,6 @@ REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
 
 conversation_history = []
 
-# Extract text from a single PDF file
 def extract_text_from_pdf(pdf_paths):
     text = ""
     with pdfplumber.open(pdf_paths) as pdf:
@@ -28,7 +27,6 @@ def extract_text_from_pdf(pdf_paths):
                 text += extracted_text + "\n"
     return text.strip()
 
-# Read all PDFs in a folder and concatenate their text
 def read_pdfs_in_folder(folder_path):
     concatenated_text = ''
     for filename in os.listdir(folder_path):
@@ -38,10 +36,8 @@ def read_pdfs_in_folder(folder_path):
             concatenated_text += pdf_text + '\n\n'
     return concatenated_text
 
-# Load and process text from PDFs
 pdf_text = read_pdfs_in_folder('pdfs')
 
-# Relevant opioid-related topics for filtering content
 relevant_topics = [
     "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin",
     "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium",
@@ -49,12 +45,11 @@ relevant_topics = [
     "support", "support for opioid addiction", "drug use", "email", "campus", "phone number",
     "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication",
     "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
-    "medication-assisted treatment", "MAT", "opioid epidemic", "teen", "dangers", "genetic", "environmental factors",
-    "pain management", "socioeconomic factors", "consequences", "adult", "death", "semi-synthetic opioids",
-    "neonatal abstinence syndrome", "NAS"
+    "medication-assistanted treatment", "medication assistanted treatment", "MAT", "opioid epidemic", "teen", 
+    "dangers", "genetic", "environmental factors", "pain mangement", "socioeconomic factors", "consequences", "adult", "death",
+    "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS"
 ]
 
-# Load URLs from file for crawling
 def load_urls_from_file(file_path):
     urls = []
     if os.path.exists(file_path):
@@ -63,9 +58,9 @@ def load_urls_from_file(file_path):
     return urls
 
 URLS_FILE_PATH = os.path.join(os.path.dirname(__file__), "data", "urls.txt")
+
 URLS = load_urls_from_file(URLS_FILE_PATH)
 
-# Asynchronously fetch and extract text from URL
 async def fetch_url(session, url, visited, base_domain, text_data, queue):
     if url in visited:
         return
@@ -79,12 +74,12 @@ async def fetch_url(session, url, visited, base_domain, text_data, queue):
 
             soup = BeautifulSoup(await response.text(), "html.parser")
 
-            # Filter pages for opioid-related content
+            # NEW: Filter pages to keep only opioid-related content
             page_text = soup.get_text().lower()
             if not any(keyword in page_text for keyword in relevant_topics):
                 return
 
-            # Extract text from various HTML tags
+            # Extract text from tags
             for tag in soup.find_all(["p", "h1", "h2", "h3", "li"]):
                 text_data.append(tag.get_text() + "\n")
 
@@ -94,7 +89,7 @@ async def fetch_url(session, url, visited, base_domain, text_data, queue):
                 full_url = urljoin(url, href)
                 link_domain = urlparse(full_url).netloc
 
-                # Allow crawling all subdomains of the base domain
+                # MODIFIED: Allow crawling all subdomains of the base domain
                 if base_domain in link_domain and full_url not in visited:
                     queue.append(full_url)
 
@@ -103,7 +98,6 @@ async def fetch_url(session, url, visited, base_domain, text_data, queue):
     except Exception as e:
         print(f"Error crawling {url}: {e}")
 
-# Crawl URLs and extract text related to opioids
 async def crawl_and_extract_text(base_urls, max_pages=5):
     visited = set()
     text_data = []
@@ -123,16 +117,13 @@ async def crawl_and_extract_text(base_urls, max_pages=5):
 
     return ''.join(text_data).strip()
 
-# Update and crawl new URLs for relevant content
 def update_urls_and_crawl():
     updated_urls = load_urls_from_file(URLS_FILE_PATH)
-    return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))  # Limit to 5 pages for crawl
+    return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))  # Same limit for the updated crawl
 
-# Check if the user's question is relevant to opioids
 def is_question_relevant(question):
     return any(topic.lower() in question.lower() for topic in relevant_topics)
 
-# Get response from the Llama3 model
 def get_llama3_response(question):
     conversation_history.append({"role": "user", "content": question})
 
@@ -140,7 +131,7 @@ def get_llama3_response(question):
 
     messages = [
         {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
-    ] + conversation_history[-5:]  # Keep the last 5 messages for context
+    ] + conversation_history[-5:]
 
     headers = {
         "Authorization": f"Bearer {REN_API_KEY}",
@@ -169,18 +160,10 @@ def get_llama3_response(question):
         app.logger.error(f"Llama 3 API error: {str(e)}")
         return f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"
 
-# Format the response for the frontend (handle text or voice output)
 def format_response(response_text, for_voice=False):
     formatted_text = response_text.strip().replace("brbr", "")
     return formatted_text.replace("<br>", " ").replace("\n", " ") if for_voice else formatted_text.replace("\n", "<br>")
 
-# Route for the home page
-@app.route("/")
-def index():
-    intro_message = "🤖 Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!"
-    return render_template("index.html", intro_message=intro_message)
-
-# Route for handling user input
 @app.route("/ask", methods=["POST"])
 def ask():
     data = request.json
@@ -189,14 +172,17 @@ def ask():
     if not user_question:
         return jsonify({"answer": "Please ask a valid question."})
 
-    if is_question_relevant(user_question):
+    # Skip the relevance check for follow-up questions (any question after the first one)
+    if conversation_history:  # If there's already a conversation, assume it's a follow-up
         answer = get_llama3_response(user_question)
     else:
-        answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
+        if is_question_relevant(user_question):
+            answer = get_llama3_response(user_question)
+        else:
+            answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
     return jsonify({"answer": answer})
 
-# Route for handling voice input
 @app.route("/voice", methods=["POST"])
 def voice_response():
     data = request.json
@@ -205,15 +191,24 @@ def voice_response():
     if not user_question:
         return jsonify({"answer": "Please ask a valid question."})
 
-    if is_question_relevant(user_question):
+    # Skip the relevance check for follow-up questions (any question after the first one)
+    if conversation_history:  # If there's already a conversation, assume it's a follow-up
         answer = get_llama3_response(user_question)
         clean_voice_response = format_response(answer, for_voice=True)
     else:
-        clean_voice_response = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
+        if is_question_relevant(user_question):
+            answer = get_llama3_response(user_question)
+            clean_voice_response = format_response(answer, for_voice=True)
+        else:
+            clean_voice_response = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
     return jsonify({"answer": clean_voice_response})
+
+@app.route("/")
+def index():
+    intro_message = "🤖 Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!"
+    return render_template("index.html", intro_message=intro_message)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
