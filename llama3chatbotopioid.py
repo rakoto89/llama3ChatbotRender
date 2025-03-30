@@ -29,7 +29,6 @@ def extract_text_from_pdf(pdf_paths):
                 text += extracted_text + "\n"
     return text.strip()
 
-
 # Read all PDFs from a folder
 def read_pdfs_in_folder(folder_path):
     concatenated_text = ''
@@ -39,7 +38,6 @@ def read_pdfs_in_folder(folder_path):
             pdf_text = extract_text_from_pdf(pdf_path)
             concatenated_text += pdf_text + '\n\n'
     return concatenated_text
-
 
 pdf_text = read_pdfs_in_folder('pdfs')
 
@@ -59,9 +57,14 @@ relevant_topics = [
 # Contextual follow-up keywords (for related follow-up questions)
 contextual_keywords = [
     "this", "that", "it", "them", "those", "they", "summarize", "explain", "elaborate",
-    "clarify", "tell me more", "give more details", "what else"
+    "clarify", "tell me more", "give more details", "what else", "anything else", "expand"
 ]
 
+# Open-ended follow-up patterns that should be accepted
+open_ended_patterns = [
+    "anything else", "what more", "should i know", "can you tell me", "any other",
+    "is there more", "tell me more", "give me more", "expand on this", "elaborate"
+]
 
 # Load URLs from a file
 def load_urls_from_file(file_path):
@@ -71,10 +74,8 @@ def load_urls_from_file(file_path):
             urls = [line.strip() for line in f if line.strip()]
     return urls
 
-
 URLS_FILE_PATH = os.path.join(os.path.dirname(__file__), "data", "urls.txt")
 URLS = load_urls_from_file(URLS_FILE_PATH)
-
 
 # Async web crawling to extract relevant text
 async def fetch_url(session, url, visited, base_domain, text_data, queue):
@@ -113,7 +114,6 @@ async def fetch_url(session, url, visited, base_domain, text_data, queue):
     except Exception as e:
         print(f"Error crawling {url}: {e}")
 
-
 # Start URL crawling and extract content
 async def crawl_and_extract_text(base_urls, max_pages=5):
     visited = set()
@@ -134,30 +134,32 @@ async def crawl_and_extract_text(base_urls, max_pages=5):
 
     return ''.join(text_data).strip()
 
-
 # Update and crawl new URLs
 def update_urls_and_crawl():
     updated_urls = load_urls_from_file(URLS_FILE_PATH)
     return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))
-
 
 # Check if a question is related to opioids
 def is_question_relevant(question):
     """Checks if a question is opioid-related."""
     return any(topic.lower() in question.lower() for topic in relevant_topics)
 
-
 # Check if a follow-up question is contextually related to the last relevant question
 def is_follow_up_question_relevant(follow_up_question):
     """Check if the follow-up is related to the last relevant question."""
     if not last_relevant_question:
         return False
-    # Check for contextual keywords or similar wording to previous question
+
+    # Check if it's an open-ended valid follow-up
+    for pattern in open_ended_patterns:
+        if pattern in follow_up_question.lower():
+            return True
+
+    # Check for contextual keywords or related terms
     return (
         any(keyword in follow_up_question.lower() for keyword in contextual_keywords)
         or any(topic in follow_up_question.lower() for topic in last_relevant_question.lower().split())
     )
-
 
 # Generate response using Llama3 API
 def get_llama3_response(question):
@@ -196,18 +198,15 @@ def get_llama3_response(question):
         app.logger.error(f"Llama 3 API error: {str(e)}")
         return f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"
 
-
 # Format response for chat or voice
 def format_response(response_text, for_voice=False):
     formatted_text = response_text.strip().replace("brbr", "")
     return formatted_text.replace("<br>", " ").replace("\n", " ") if for_voice else formatted_text.replace("\n", "<br>")
 
-
 @app.route("/")
 def index():
     intro_message = "🤖 Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!"
     return render_template("index.html", intro_message=intro_message)
-
 
 @app.route("/ask", methods=["POST"])
 def ask():
@@ -233,7 +232,6 @@ def ask():
         answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
     return jsonify({"answer": answer})
-
 
 @app.route("/voice", methods=["POST"])
 def voice_response():
@@ -261,7 +259,6 @@ def voice_response():
         clean_voice_response = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
     return jsonify({"answer": clean_voice_response})
-
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
