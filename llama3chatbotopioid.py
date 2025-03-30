@@ -17,9 +17,9 @@ LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://openrouter.ai/api/v
 REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
 
 conversation_history = []
-last_relevant_question = None  # Store the last relevant opioid-related question
+last_relevant_question = None  # Stores the last relevant opioid-related question
 
-
+# PDF extraction function
 def extract_text_from_pdf(pdf_paths):
     text = ""
     with pdfplumber.open(pdf_paths) as pdf:
@@ -30,6 +30,7 @@ def extract_text_from_pdf(pdf_paths):
     return text.strip()
 
 
+# Read all PDFs from a folder
 def read_pdfs_in_folder(folder_path):
     concatenated_text = ''
     for filename in os.listdir(folder_path):
@@ -42,6 +43,7 @@ def read_pdfs_in_folder(folder_path):
 
 pdf_text = read_pdfs_in_folder('pdfs')
 
+# Keywords related to opioid content
 relevant_topics = [
     "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin",
     "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium",
@@ -54,7 +56,14 @@ relevant_topics = [
     "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS"
 ]
 
+# Contextual follow-up keywords (for related follow-up questions)
+contextual_keywords = [
+    "this", "that", "it", "them", "those", "they", "summarize", "explain", "elaborate",
+    "clarify", "tell me more", "give more details", "what else"
+]
 
+
+# Load URLs from a file
 def load_urls_from_file(file_path):
     urls = []
     if os.path.exists(file_path):
@@ -67,6 +76,7 @@ URLS_FILE_PATH = os.path.join(os.path.dirname(__file__), "data", "urls.txt")
 URLS = load_urls_from_file(URLS_FILE_PATH)
 
 
+# Async web crawling to extract relevant text
 async def fetch_url(session, url, visited, base_domain, text_data, queue):
     if url in visited:
         return
@@ -80,22 +90,21 @@ async def fetch_url(session, url, visited, base_domain, text_data, queue):
 
             soup = BeautifulSoup(await response.text(), "html.parser")
 
-            # Filter pages to keep only opioid-related content
+            # Check if page contains opioid-related keywords
             page_text = soup.get_text().lower()
             if not any(keyword in page_text for keyword in relevant_topics):
                 return
 
-            # Extract text from tags
+            # Extract relevant text content
             for tag in soup.find_all(["p", "h1", "h2", "h3", "li"]):
                 text_data.append(tag.get_text() + "\n")
 
-            # Extract links for further crawling
+            # Extract and queue new links to crawl
             for link_tag in soup.find_all("a", href=True):
                 href = link_tag['href']
                 full_url = urljoin(url, href)
                 link_domain = urlparse(full_url).netloc
 
-                # Crawl only subdomains of the base domain
                 if base_domain in link_domain and full_url not in visited:
                     queue.append(full_url)
 
@@ -105,6 +114,7 @@ async def fetch_url(session, url, visited, base_domain, text_data, queue):
         print(f"Error crawling {url}: {e}")
 
 
+# Start URL crawling and extract content
 async def crawl_and_extract_text(base_urls, max_pages=5):
     visited = set()
     text_data = []
@@ -115,7 +125,7 @@ async def crawl_and_extract_text(base_urls, max_pages=5):
         while queue and len(visited) < max_pages:
             url = queue.popleft()
             tasks.append(fetch_url(session, url, visited, urlparse(url).netloc, text_data, queue))
-            if len(tasks) >= 10:  # Limit concurrent requests
+            if len(tasks) >= 10:
                 await asyncio.gather(*tasks)
                 tasks = []
 
@@ -125,23 +135,31 @@ async def crawl_and_extract_text(base_urls, max_pages=5):
     return ''.join(text_data).strip()
 
 
+# Update and crawl new URLs
 def update_urls_and_crawl():
     updated_urls = load_urls_from_file(URLS_FILE_PATH)
     return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))
 
 
+# Check if a question is related to opioids
 def is_question_relevant(question):
-    """Check if a question is opioid-related"""
+    """Checks if a question is opioid-related."""
     return any(topic.lower() in question.lower() for topic in relevant_topics)
 
 
-def is_follow_up_question_relevant(follow_up_question, previous_question):
-    """Check if follow-up question relates to the previous question"""
-    if not previous_question:
+# Check if a follow-up question is contextually related to the last relevant question
+def is_follow_up_question_relevant(follow_up_question):
+    """Check if the follow-up is related to the last relevant question."""
+    if not last_relevant_question:
         return False
-    return any(keyword in follow_up_question.lower() for keyword in previous_question.lower().split())
+    # Check for contextual keywords or similar wording to previous question
+    return (
+        any(keyword in follow_up_question.lower() for keyword in contextual_keywords)
+        or any(topic in follow_up_question.lower() for topic in last_relevant_question.lower().split())
+    )
 
 
+# Generate response using Llama3 API
 def get_llama3_response(question):
     conversation_history.append({"role": "user", "content": question})
 
@@ -179,6 +197,7 @@ def get_llama3_response(question):
         return f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"
 
 
+# Format response for chat or voice
 def format_response(response_text, for_voice=False):
     formatted_text = response_text.strip().replace("brbr", "")
     return formatted_text.replace("<br>", " ").replace("\n", " ") if for_voice else formatted_text.replace("\n", "<br>")
@@ -200,13 +219,16 @@ def ask():
     if not user_question:
         return jsonify({"answer": "Please ask a valid question."})
 
+    # Check for initial opioid-related question
     if is_question_relevant(user_question):
-        last_relevant_question = user_question  # Save context of relevant question
+        last_relevant_question = user_question
         answer = get_llama3_response(user_question)
 
-    elif last_relevant_question and is_follow_up_question_relevant(user_question, last_relevant_question):
-        answer = get_llama3_response(user_question)  # Valid follow-up to the last relevant question
+    # Check for valid follow-up question
+    elif last_relevant_question and is_follow_up_question_relevant(user_question):
+        answer = get_llama3_response(user_question)
 
+    # Reject unrelated questions or invalid follow-ups
     else:
         answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
@@ -223,15 +245,18 @@ def voice_response():
     if not user_question:
         return jsonify({"answer": "Please ask a valid question."})
 
+    # Check for opioid-related question in voice mode
     if is_question_relevant(user_question):
         last_relevant_question = user_question
         answer = get_llama3_response(user_question)
         clean_voice_response = format_response(answer, for_voice=True)
 
-    elif last_relevant_question and is_follow_up_question_relevant(user_question, last_relevant_question):
+    # Check for relevant follow-up
+    elif last_relevant_question and is_follow_up_question_relevant(user_question):
         answer = get_llama3_response(user_question)
         clean_voice_response = format_response(answer, for_voice=True)
 
+    # Reject irrelevant questions
     else:
         clean_voice_response = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
