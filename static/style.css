@@ -1,8 +1,7 @@
 /* General body styling */
 body {
     font-family: Arial, sans-serif;
-    background: url('{{ url_for("static", filename="images/vivid-blurred-colorful-wallpaper-background.jpg") }}') no-repeat center center fixed;
-    background-size: cover; /* Cover to fill the screen */
+    background: linear-gradient(to bottom, #fffde8, #fff9c4, #fff59d, #ffeb3b, #ffca28); /* Gradient to mimic the image */
     display: flex;
     justify-content: center;
     align-items: center;
