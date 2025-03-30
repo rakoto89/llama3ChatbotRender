@@ -63,7 +63,8 @@ contextual_keywords = [
 # Open-ended follow-up patterns that should be accepted
 open_ended_patterns = [
     "anything else", "what more", "should i know", "can you tell me", "any other",
-    "is there more", "tell me more", "give me more", "expand on this", "elaborate"
+    "is there more", "tell me more", "give me more", "expand on this", "elaborate",
+    "name three more"
 ]
 
 # Load URLs from a file
@@ -139,15 +140,10 @@ def update_urls_and_crawl():
     updated_urls = load_urls_from_file(URLS_FILE_PATH)
     return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))
 
-# Check if a question is relevant to opioids
+# Check if a question is related to opioids
 def is_question_relevant(question):
-    """Checks if a question is opioid-related, rejecting non-relevant content."""
-    question_lower = question.lower()
-
-    # Ensure that the question is focused on opioid-related topics
-    return any(keyword in question_lower for keyword in relevant_topics)
-    # Optionally, exclude other general topics (like Capitol Hill, politics) by adding checks:
-    # return any(keyword in question_lower for keyword in relevant_topics) and not any(political_term in question_lower for political_term in ["Capitol Hill", "politics", "congress", "government"])
+    """Checks if a question is opioid-related."""
+    return any(topic.lower() in question.lower() for topic in relevant_topics)
 
 # Check if a follow-up question is contextually related to the last relevant opioid question
 def is_follow_up_question_relevant(follow_up_question):
@@ -155,9 +151,15 @@ def is_follow_up_question_relevant(follow_up_question):
     if not last_relevant_question:
         return False
 
-    # Check if the follow-up is truly connected to opioid-related context
+    # Check if the follow-up is related to the current topic (opioids)
     follow_up_lower = follow_up_question.lower()
-    if any(keyword in follow_up_lower for keyword in contextual_keywords) or any(topic in follow_up_lower for topic in relevant_topics):
+
+    # Check if it’s a valid follow-up (e.g., 'name three more', 'what else', 'give me more')
+    if any(keyword in follow_up_lower for keyword in open_ended_patterns):
+        return True
+
+    # Ensure the follow-up contains opioid-related terms
+    if any(keyword in follow_up_lower for keyword in relevant_topics):
         return True
 
     return False
