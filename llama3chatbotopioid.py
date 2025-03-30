@@ -158,7 +158,11 @@ def get_llama3_response(question):
 
     except requests.exceptions.RequestException as e:
         app.logger.error(f"Llama 3 API error: {str(e)}")
-        return f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"
+        return jsonify({"answer": f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"})
+
+    except Exception as e:
+        app.logger.error(f"Unexpected error: {str(e)}")
+        return jsonify({"answer": f"Unexpected error: {str(e)}"})
 
 def format_response(response_text, for_voice=False):
     formatted_text = response_text.strip().replace("brbr", "")
