@@ -49,15 +49,14 @@ relevant_topics = [
     "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS"
 ]
 
-# Function to check if the question is related to opioids
+# Function to check if a question is opioid-related
 def is_question_relevant(question):
     return any(topic.lower() in question.lower() for topic in relevant_topics)
 
-# Function to determine if a follow-up is related to the previous relevant question
+# Function to determine if a follow-up question is related to the previous relevant question
 def is_followup_related(question):
-    if not previous_relevant_question:
-        return False
-    return True  # Allow follow-up related to the previous relevant question
+    # Check if the follow-up contains opioid-related keywords
+    return any(topic.lower() in question.lower() for topic in relevant_topics)
 
 # Function to get a response from Llama3 model
 def get_llama3_response(question):
@@ -66,7 +65,7 @@ def get_llama3_response(question):
     combined_text = pdf_text + "\n\n"  # Your PDF-based information
     messages = [
         {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
-    ] + conversation_history[-5:]  # Only consider last 5 exchanges
+    ] + conversation_history[-5:]  # Consider last 5 exchanges for context
 
     headers = {
         "Authorization": f"Bearer {REN_API_KEY}",
@@ -110,17 +109,18 @@ def ask():
     if not user_question:
         return jsonify({"answer": "Please ask a valid question."})
 
-    # Check if the question is related to opioids
+    # Check if the initial question is opioid-related
     if is_question_relevant(user_question):
         answer = get_llama3_response(user_question)
         previous_relevant_question = user_question  # Store the previous relevant question
         return jsonify({"answer": answer})
 
-    # Handle follow-up questions
+    # Handle follow-up questions if they are related to the previous opioid question
     elif previous_relevant_question and is_followup_related(user_question):
         answer = get_llama3_response(user_question)
         return jsonify({"answer": answer})
 
+    # Reject unrelated initial or follow-up questions
     else:
         return jsonify({"answer": "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."})
 
