@@ -131,7 +131,7 @@ def get_llama3_response(question):
 
     messages = [
         {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
-    ] + conversation_history[-5:]  # Limit to last 5 messages in the conversation
+    ] + conversation_history[-5:]
 
     headers = {
         "Authorization": f"Bearer {REN_API_KEY}",
@@ -152,8 +152,6 @@ def get_llama3_response(question):
         response.raise_for_status()
         data = response.json()
         response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
-        
-        # Add the assistant's response to conversation history
         conversation_history.append({"role": "assistant", "content": response_text})
 
         return format_response(response_text)
@@ -179,45 +177,12 @@ def ask():
     if not user_question:
         return jsonify({"answer": "Please ask a valid question."})
 
-    # Add user's question to the conversation history
-    conversation_history.append({"role": "user", "content": user_question})
+    if is_question_relevant(user_question):
+        answer = get_llama3_response(user_question)
+    else:
+        answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
-    # Combine PDF and web crawl text with conversation history
-    combined_text = pdf_text + "\n\n" + update_urls_and_crawl()
-
-    # Get the response from LLama3
-    messages = [
-        {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
-    ] + conversation_history[-5:]  # Limit to last 5 messages in the conversation
-
-    headers = {
-        "Authorization": f"Bearer {REN_API_KEY}",
-        "Content-Type": "application/json"
-    }
-
-    try:
-        response = requests.post(
-            LLAMA3_ENDPOINT,
-            json={
-                "model": "meta-llama/llama-3.1-8b-instruct:free",
-                "messages": messages
-            },
-            headers=headers,
-            timeout=30
-        )
-
-        response.raise_for_status()
-        data = response.json()
-        response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
-        
-        # Add the assistant's response to conversation history
-        conversation_history.append({"role": "assistant", "content": response_text})
-
-        return format_response(response_text)
-
-    except requests.exceptions.RequestException as e:
-        app.logger.error(f"Llama 3 API error: {str(e)}")
-        return f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"
+    return jsonify({"answer": answer})
 
 @app.route("/voice", methods=["POST"])
 def voice_response():
@@ -227,46 +192,13 @@ def voice_response():
     if not user_question:
         return jsonify({"answer": "Please ask a valid question."})
 
-    # Add user's question to the conversation history
-    conversation_history.append({"role": "user", "content": user_question})
+    if is_question_relevant(user_question):
+        answer = get_llama3_response(user_question)
+        clean_voice_response = format_response(answer, for_voice=True)
+    else:
+        clean_voice_response = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
-    # Combine PDF and web crawl text with conversation history
-    combined_text = pdf_text + "\n\n" + update_urls_and_crawl()
-
-    # Get the response from LLama3
-    messages = [
-        {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
-    ] + conversation_history[-5:]  # Limit to last 5 messages in the conversation
-
-    headers = {
-        "Authorization": f"Bearer {REN_API_KEY}",
-        "Content-Type": "application/json"
-    }
-
-    try:
-        response = requests.post(
-            LLAMA3_ENDPOINT,
-            json={
-                "model": "meta-llama/llama-3.1-8b-instruct:free",
-                "messages": messages
-            },
-            headers=headers,
-            timeout=30
-        )
-
-        response.raise_for_status()
-        data = response.json()
-        response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
-        
-        # Add the assistant's response to conversation history
-        conversation_history.append({"role": "assistant", "content": response_text})
-
-        clean_voice_response = format_response(response_text, for_voice=True)
-        return jsonify({"answer": clean_voice_response})
-
-    except requests.exceptions.RequestException as e:
-        app.logger.error(f"Llama 3 API error: {str(e)}")
-        return jsonify({"answer": f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"})
+    return jsonify({"answer": clean_voice_response})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
