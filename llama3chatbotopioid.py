@@ -58,7 +58,7 @@ relevant_topics = [
 
 # Contextual follow-up keywords (for related follow-up questions)
 contextual_keywords = [
-    "this", "that", "it", "them", "those", "they", "summarize", "explain", "elaborate",
+    "this", "that", "it", "them", "those", "summarize", "explain", "elaborate",
     "clarify", "tell me more", "give more details", "what else"
 ]
 
