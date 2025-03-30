@@ -131,7 +131,7 @@ def get_llama3_response(question):
 
     messages = [
         {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
-    ] + conversation_history[-5:]  # Limit conversation history to last 5 messages
+    ] + conversation_history[-50:]  # Limit conversation history to last 50 messages
 
     headers = {
         "Authorization": f"Bearer {REN_API_KEY}",
