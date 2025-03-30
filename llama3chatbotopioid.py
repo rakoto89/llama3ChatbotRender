@@ -1,7 +1,7 @@
 import os
 import requests
 import pdfplumber
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, session
 from flask_cors import CORS
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
@@ -11,6 +11,7 @@ import asyncio
 import aiohttp
 
 app = Flask(__name__, static_url_path='/static')
+app.secret_key = os.environ.get("SECRET_KEY", "your_secret_key_here")  # Necessary for Flask sessions
 CORS(app)
 
 LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions").strip()
@@ -122,25 +123,20 @@ def update_urls_and_crawl():
     return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))  # Same limit for the updated crawl
 
 def is_question_relevant(question):
-    summary_keywords = ["summarize", "last", "previous", "recap", "summary", "discussed", "talked about", "context", "review", "highlight", 
-"key points", "outline", overview", "reflect"
-]
-    
-    # Allow summaries or recaps even if unrelated to opioids
-    if any(keyword in question.lower() for keyword in summary_keywords):
-        return True
-
-    # Check for opioid-related keywords
     return any(topic.lower() in question.lower() for topic in relevant_topics)
 
 def get_llama3_response(question):
-    conversation_history.append({"role": "user", "content": question})
+    # Save user question to session history
+    if "conversation_history" not in session:
+        session["conversation_history"] = []
+    
+    session["conversation_history"].append({"role": "user", "content": question})
 
     combined_text = pdf_text + "\n\n" + update_urls_and_crawl()
 
     messages = [
         {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
-    ] + conversation_history  # No limit, include all conversation history
+    ] + session["conversation_history"][-5:]  # Limit to last 5 messages to prevent session bloat
 
     headers = {
         "Authorization": f"Bearer {REN_API_KEY}",
@@ -161,7 +157,9 @@ def get_llama3_response(question):
         response.raise_for_status()
         data = response.json()
         response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
-        conversation_history.append({"role": "assistant", "content": response_text})
+        
+        # Save assistant response to session history
+        session["conversation_history"].append({"role": "assistant", "content": response_text})
 
         return format_response(response_text)
 
