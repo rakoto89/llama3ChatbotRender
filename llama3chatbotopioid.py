@@ -139,27 +139,28 @@ def update_urls_and_crawl():
     updated_urls = load_urls_from_file(URLS_FILE_PATH)
     return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))
 
-# Check if a question is related to opioids
+# Check if a question is relevant to opioids
 def is_question_relevant(question):
-    """Checks if a question is opioid-related."""
-    return any(topic.lower() in question.lower() for topic in relevant_topics)
+    """Checks if a question is opioid-related, rejecting non-relevant content."""
+    question_lower = question.lower()
 
-# Check if a follow-up question is contextually related to the last relevant question
+    # Ensure that the question is focused on opioid-related topics
+    return any(keyword in question_lower for keyword in relevant_topics)
+    # Optionally, exclude other general topics (like Capitol Hill, politics) by adding checks:
+    # return any(keyword in question_lower for keyword in relevant_topics) and not any(political_term in question_lower for political_term in ["Capitol Hill", "politics", "congress", "government"])
+
+# Check if a follow-up question is contextually related to the last relevant opioid question
 def is_follow_up_question_relevant(follow_up_question):
-    """Check if the follow-up is related to the last relevant question."""
+    """Check if the follow-up is related to the last relevant opioid question."""
     if not last_relevant_question:
         return False
 
-    # Check if it's an open-ended valid follow-up
-    for pattern in open_ended_patterns:
-        if pattern in follow_up_question.lower():
-            return True
+    # Check if the follow-up is truly connected to opioid-related context
+    follow_up_lower = follow_up_question.lower()
+    if any(keyword in follow_up_lower for keyword in contextual_keywords) or any(topic in follow_up_lower for topic in relevant_topics):
+        return True
 
-    # Check for contextual keywords or related terms
-    return (
-        any(keyword in follow_up_question.lower() for keyword in contextual_keywords)
-        or any(topic in follow_up_question.lower() for topic in last_relevant_question.lower().split())
-    )
+    return False
 
 # Generate response using Llama3 API
 def get_llama3_response(question):
