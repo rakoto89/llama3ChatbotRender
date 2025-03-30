@@ -18,6 +18,7 @@ REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
 
 conversation_history = []
 
+# PDF extraction function
 def extract_text_from_pdf(pdf_paths):
     text = ""
     with pdfplumber.open(pdf_paths) as pdf:
@@ -27,6 +28,7 @@ def extract_text_from_pdf(pdf_paths):
                 text += extracted_text + "\n"
     return text.strip()
 
+# Function to read PDFs in a folder
 def read_pdfs_in_folder(folder_path):
     concatenated_text = ''
     for filename in os.listdir(folder_path):
@@ -38,6 +40,7 @@ def read_pdfs_in_folder(folder_path):
 
 pdf_text = read_pdfs_in_folder('pdfs')
 
+# Keywords related to opioids
 relevant_topics = [
     "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin",
     "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium",
@@ -50,80 +53,11 @@ relevant_topics = [
     "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS"
 ]
 
-def load_urls_from_file(file_path):
-    urls = []
-    if os.path.exists(file_path):
-        with open(file_path, "r") as f:
-            urls = [line.strip() for line in f if line.strip()]
-    return urls
-
-URLS_FILE_PATH = os.path.join(os.path.dirname(__file__), "data", "urls.txt")
-
-URLS = load_urls_from_file(URLS_FILE_PATH)
-
-async def fetch_url(session, url, visited, base_domain, text_data, queue):
-    if url in visited:
-        return
-
-    visited.add(url)
-
-    try:
-        async with session.get(url, timeout=10) as response:
-            if response.status != 200:
-                return
-
-            soup = BeautifulSoup(await response.text(), "html.parser")
-
-            # NEW: Filter pages to keep only opioid-related content
-            page_text = soup.get_text().lower()
-            if not any(keyword in page_text for keyword in relevant_topics):
-                return
-
-            # Extract text from tags
-            for tag in soup.find_all(["p", "h1", "h2", "h3", "li"]):
-                text_data.append(tag.get_text() + "\n")
-
-            # Extract links for further crawling
-            for link_tag in soup.find_all("a", href=True):
-                href = link_tag['href']
-                full_url = urljoin(url, href)
-                link_domain = urlparse(full_url).netloc
-
-                # MODIFIED: Allow crawling all subdomains of the base domain
-                if base_domain in link_domain and full_url not in visited:
-                    queue.append(full_url)
-
-            await asyncio.sleep(0.5)
-
-    except Exception as e:
-        print(f"Error crawling {url}: {e}")
-
-async def crawl_and_extract_text(base_urls, max_pages=5):
-    visited = set()
-    text_data = []
-    queue = deque(base_urls)
-
-    async with aiohttp.ClientSession() as session:
-        tasks = []
-        while queue and len(visited) < max_pages:
-            url = queue.popleft()
-            tasks.append(fetch_url(session, url, visited, urlparse(url).netloc, text_data, queue))
-            if len(tasks) >= 10:  # Limit concurrent requests
-                await asyncio.gather(*tasks)
-                tasks = []
-
-        if tasks:
-            await asyncio.gather(*tasks)
-
-    return ''.join(text_data).strip()
-
-def update_urls_and_crawl():
-    updated_urls = load_urls_from_file(URLS_FILE_PATH)
-    return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))  # Same limit for the updated crawl
-
+# Function to check if the question is related to opioids
 def is_question_relevant(question):
     return any(topic.lower() in question.lower() for topic in relevant_topics)
 
+# Function to get a response from Llama3 model
 def get_llama3_response(question):
     conversation_history.append({"role": "user", "content": question})
 
@@ -164,10 +98,25 @@ def get_llama3_response(question):
         app.logger.error(f"Unexpected error: {str(e)}")
         return jsonify({"answer": f"Unexpected error: {str(e)}"})
 
+# Format the response
 def format_response(response_text, for_voice=False):
     formatted_text = response_text.strip().replace("brbr", "")
     return formatted_text.replace("<br>", " ").replace("\n", " ") if for_voice else formatted_text.replace("\n", "<br>")
 
+# Function to check if URL content is relevant (not used in your request but it's part of the original code)
+def update_urls_and_crawl():
+    updated_urls = load_urls_from_file(URLS_FILE_PATH)
+    return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))  # Same limit for the updated crawl
+
+# Load URLs from file (function unchanged)
+def load_urls_from_file(file_path):
+    urls = []
+    if os.path.exists(file_path):
+        with open(file_path, "r") as f:
+            urls = [line.strip() for line in f if line.strip()]
+    return urls
+
+# Main function to ask a question and get an answer
 @app.route("/ask", methods=["POST"])
 def ask():
     data = request.json
@@ -176,11 +125,12 @@ def ask():
     if not user_question:
         return jsonify({"answer": "Please ask a valid question."})
 
-    # First question check
-    if not conversation_history and not is_question_relevant(user_question):
-        return jsonify({"answer": "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."})
+    # Initial question check
+    if not conversation_history:
+        if not is_question_relevant(user_question):
+            return jsonify({"answer": "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."})
 
-    # Allow follow-up questions (if relevant to opioids)
+    # Follow-up question check (only relevant questions after an opioid-related question)
     if is_question_relevant(user_question) or (conversation_history and is_question_relevant(conversation_history[-1]["content"])):
         answer = get_llama3_response(user_question)
     else:
@@ -188,6 +138,7 @@ def ask():
 
     return jsonify({"answer": answer})
 
+# Main function to handle voice responses
 @app.route("/voice", methods=["POST"])
 def voice_response():
     data = request.json
@@ -196,11 +147,12 @@ def voice_response():
     if not user_question:
         return jsonify({"answer": "Please ask a valid question."})
 
-    # First question check
-    if not conversation_history and not is_question_relevant(user_question):
-        return jsonify({"answer": "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."})
+    # Initial question check
+    if not conversation_history:
+        if not is_question_relevant(user_question):
+            return jsonify({"answer": "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."})
 
-    # Allow follow-up questions (if relevant to opioids)
+    # Follow-up question check (only relevant questions after an opioid-related question)
     if is_question_relevant(user_question) or (conversation_history and is_question_relevant(conversation_history[-1]["content"])):
         answer = get_llama3_response(user_question)
         clean_voice_response = format_response(answer, for_voice=True)
