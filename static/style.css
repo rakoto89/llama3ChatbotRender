@@ -1,7 +1,8 @@
 /* General body styling */
 body {
     font-family: Arial, sans-serif;
-    background: linear-gradient(to bottom, #ffdd57, #ffeeb3); /* Gradient background */
+    background: url('{{ url_for("static", filename="images/vivid-blurred-colorful-wallpaper-background.jpg") }}') no-repeat center center fixed;
+    background-size: cover; /* Cover to fill the screen */
     display: flex;
     justify-content: center;
     align-items: center;
