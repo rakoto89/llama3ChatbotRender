@@ -172,14 +172,15 @@ def ask():
     if not user_question:
         return jsonify({"answer": "Please ask a valid question."})
 
-    # Skip the relevance check for follow-up questions (any question after the first one)
-    if conversation_history:  # If there's already a conversation, assume it's a follow-up
+    # First question check
+    if not conversation_history and not is_question_relevant(user_question):
+        return jsonify({"answer": "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."})
+
+    # Allow follow-up questions (if relevant to opioids)
+    if is_question_relevant(user_question) or (conversation_history and is_question_relevant(conversation_history[-1]["content"])):
         answer = get_llama3_response(user_question)
     else:
-        if is_question_relevant(user_question):
-            answer = get_llama3_response(user_question)
-        else:
-            answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
+        return jsonify({"answer": "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."})
 
     return jsonify({"answer": answer})
 
@@ -191,16 +192,16 @@ def voice_response():
     if not user_question:
         return jsonify({"answer": "Please ask a valid question."})
 
-    # Skip the relevance check for follow-up questions (any question after the first one)
-    if conversation_history:  # If there's already a conversation, assume it's a follow-up
+    # First question check
+    if not conversation_history and not is_question_relevant(user_question):
+        return jsonify({"answer": "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."})
+
+    # Allow follow-up questions (if relevant to opioids)
+    if is_question_relevant(user_question) or (conversation_history and is_question_relevant(conversation_history[-1]["content"])):
         answer = get_llama3_response(user_question)
         clean_voice_response = format_response(answer, for_voice=True)
     else:
-        if is_question_relevant(user_question):
-            answer = get_llama3_response(user_question)
-            clean_voice_response = format_response(answer, for_voice=True)
-        else:
-            clean_voice_response = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
+        clean_voice_response = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
     return jsonify({"answer": clean_voice_response})
 
