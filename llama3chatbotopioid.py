@@ -122,6 +122,15 @@ def update_urls_and_crawl():
     return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))  # Same limit for the updated crawl
 
 def is_question_relevant(question):
+    summary_keywords = ["summarize", "last", "previous", "recap", "summary", "discussed", "talked about", "context", "review", "highlight", 
+"key points", "outline", overview", "reflect"
+]
+    
+    # Allow summaries or recaps even if unrelated to opioids
+    if any(keyword in question.lower() for keyword in summary_keywords):
+        return True
+
+    # Check for opioid-related keywords
     return any(topic.lower() in question.lower() for topic in relevant_topics)
 
 def get_llama3_response(question):
@@ -131,7 +140,7 @@ def get_llama3_response(question):
 
     messages = [
         {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
-    ] + conversation_history[-5:]
+    ] + conversation_history  # No limit, include all conversation history
 
     headers = {
         "Authorization": f"Bearer {REN_API_KEY}",
