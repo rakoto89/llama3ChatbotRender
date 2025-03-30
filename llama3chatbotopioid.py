@@ -17,7 +17,6 @@ LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://openrouter.ai/api/v
 REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
 
 conversation_history = []
-last_non_opioid_question = None  # Variable to track the most recent non-opioid-related question
 
 def extract_text_from_pdf(pdf_paths):
     text = ""
@@ -48,7 +47,7 @@ relevant_topics = [
     "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription"
     "medication-assistanted treatment",   "medication assistanted treatment", "MAT", "opioid epidemic", "teen", 
     "dangers", "genetic", "environmental factors", "pain mangement","socioeconomic factors", "consequences", "adult", "death"
-    "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", "brands"
+    "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS"
 ]
 
 def load_urls_from_file(file_path):
@@ -126,8 +125,6 @@ def is_question_relevant(question):
     return any(topic.lower() in question.lower() for topic in relevant_topics)
 
 def get_llama3_response(question):
-    global last_non_opioid_question  # Access the global variable to track last non-opioid question
-
     conversation_history.append({"role": "user", "content": question})
 
     combined_text = pdf_text + "\n\n" + update_urls_and_crawl()
@@ -136,9 +133,10 @@ def get_llama3_response(question):
         {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
     ] + conversation_history[-5:]
 
-    # If the last non-opioid-related question was asked, don't answer opioid questions unless they follow up
-    if last_non_opioid_question and not is_question_relevant(question):
-        return "I can only answer questions related to opioids or opioid-related issues."
+    headers = {
+        "Authorization": f"Bearer {REN_API_KEY}",
+        "Content-Type": "application/json"
+    }
 
     try:
         response = requests.post(
@@ -147,7 +145,7 @@ def get_llama3_response(question):
                 "model": "meta-llama/llama-3.1-8b-instruct:free",
                 "messages": messages
             },
-            headers={"Authorization": f"Bearer {REN_API_KEY}", "Content-Type": "application/json"},
+            headers=headers,
             timeout=30
         )
 
@@ -155,10 +153,6 @@ def get_llama3_response(question):
         data = response.json()
         response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
         conversation_history.append({"role": "assistant", "content": response_text})
-
-        # If the question was non-opioid-related, store it as the last non-opioid question
-        if not is_question_relevant(question):
-            last_non_opioid_question = question
 
         return format_response(response_text)
 
@@ -209,3 +203,4 @@ def voice_response():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
