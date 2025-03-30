@@ -3,12 +3,7 @@ import requests
 import pdfplumber
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
-from bs4 import BeautifulSoup
-from urllib.parse import urljoin, urlparse
-from collections import deque
-import time
-import asyncio
-import aiohttp
+import logging
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
@@ -61,8 +56,7 @@ def is_question_relevant(question):
 def get_llama3_response(question):
     conversation_history.append({"role": "user", "content": question})
 
-    combined_text = pdf_text + "\n\n" + update_urls_and_crawl()
-
+    combined_text = pdf_text + "\n\n"  # Your PDF-based information
     messages = [
         {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
     ] + conversation_history[-5:]
@@ -82,7 +76,8 @@ def get_llama3_response(question):
             headers=headers,
             timeout=30
         )
-
+        
+        # Check for successful response
         response.raise_for_status()
         data = response.json()
         response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
@@ -90,9 +85,13 @@ def get_llama3_response(question):
 
         return format_response(response_text)
 
-    except requests.exceptions.RequestException as e:
-        app.logger.error(f"Llama 3 API error: {str(e)}")
-        return jsonify({"answer": f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"})
+    except requests.exceptions.HTTPError as http_err:
+        app.logger.error(f"HTTP error occurred: {http_err}")
+        return jsonify({"answer": f"HTTP error occurred: {http_err}"})
+
+    except requests.exceptions.RequestException as req_err:
+        app.logger.error(f"Request error occurred: {req_err}")
+        return jsonify({"answer": f"Request error occurred: {req_err}"})
 
     except Exception as e:
         app.logger.error(f"Unexpected error: {str(e)}")
@@ -103,20 +102,6 @@ def format_response(response_text, for_voice=False):
     formatted_text = response_text.strip().replace("brbr", "")
     return formatted_text.replace("<br>", " ").replace("\n", " ") if for_voice else formatted_text.replace("\n", "<br>")
 
-# Function to check if URL content is relevant (not used in your request but it's part of the original code)
-def update_urls_and_crawl():
-    updated_urls = load_urls_from_file(URLS_FILE_PATH)
-    return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))  # Same limit for the updated crawl
-
-# Load URLs from file (function unchanged)
-def load_urls_from_file(file_path):
-    urls = []
-    if os.path.exists(file_path):
-        with open(file_path, "r") as f:
-            urls = [line.strip() for line in f if line.strip()]
-    return urls
-
-# Main function to ask a question and get an answer
 @app.route("/ask", methods=["POST"])
 def ask():
     data = request.json
@@ -138,34 +123,10 @@ def ask():
 
     return jsonify({"answer": answer})
 
-# Main function to handle voice responses
-@app.route("/voice", methods=["POST"])
-def voice_response():
-    data = request.json
-    user_question = data.get("question", "").strip()
-
-    if not user_question:
-        return jsonify({"answer": "Please ask a valid question."})
-
-    # Initial question check
-    if not conversation_history:
-        if not is_question_relevant(user_question):
-            return jsonify({"answer": "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."})
-
-    # Follow-up question check (only relevant questions after an opioid-related question)
-    if is_question_relevant(user_question) or (conversation_history and is_question_relevant(conversation_history[-1]["content"])):
-        answer = get_llama3_response(user_question)
-        clean_voice_response = format_response(answer, for_voice=True)
-    else:
-        clean_voice_response = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
-
-    return jsonify({"answer": clean_voice_response})
-
 @app.route("/")
 def index():
     intro_message = "🤖 Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!"
     return render_template("index.html", intro_message=intro_message)
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(debug=True)
