@@ -1,7 +1,7 @@
 import os
 import requests
 import pdfplumber
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, session
 from flask_cors import CORS
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
@@ -11,13 +11,12 @@ import aiohttp
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
+app.secret_key = os.environ.get("SECRET_KEY", "super_secret_key")
 
 LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions").strip()
 REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
 
-conversation_history = []
-
-# --- PDF Handling ---
+# --- PDF Functions ---
 def extract_text_from_pdf(pdf_paths):
     text = ""
     with pdfplumber.open(pdf_paths) as pdf:
@@ -84,7 +83,6 @@ async def fetch_url(session, url, visited, base_domain, text_data, queue):
                 href = link_tag['href']
                 full_url = urljoin(url, href)
                 link_domain = urlparse(full_url).netloc
-
                 if base_domain in link_domain and full_url not in visited:
                     queue.append(full_url)
 
@@ -119,15 +117,16 @@ def update_urls_and_crawl():
 # Crawl once on startup
 crawled_text = update_urls_and_crawl()
 
-# --- LLM Communication ---
+# --- Core Chat Logic ---
 def is_question_relevant(question):
     return any(topic.lower() in question.lower() for topic in relevant_topics)
 
 def get_llama3_response(question):
+    conversation_history = session.get("conversation_history", [])
     conversation_history.append({"role": "user", "content": question})
 
     combined_text = pdf_text + "\n\n" + crawled_text
-    max_turns = 6
+    max_turns = 20  # Expanded memory: 20 user + assistant exchanges (40 messages)
     trimmed_history = conversation_history[-(max_turns * 2):]
 
     messages = [{"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}] + trimmed_history
@@ -152,6 +151,8 @@ def get_llama3_response(question):
         data = response.json()
         response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
         conversation_history.append({"role": "assistant", "content": response_text})
+
+        session["conversation_history"] = conversation_history  # Save memory
 
         return format_response(response_text)
 
@@ -199,6 +200,11 @@ def voice_response():
         clean_voice_response = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
     return jsonify({"answer": clean_voice_response})
+
+@app.route("/reset", methods=["POST"])
+def reset_memory():
+    session.pop("conversation_history", None)
+    return jsonify({"message": "Conversation memory has been cleared."})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
