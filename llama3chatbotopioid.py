@@ -19,7 +19,6 @@ REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
 
 conversation_history = []
 
-# Extract text from PDFs
 def extract_text_from_pdf(pdf_paths):
     text = ""
     with pdfplumber.open(pdf_paths) as pdf:
@@ -40,7 +39,6 @@ def read_pdfs_in_folder(folder_path):
 
 pdf_text = read_pdfs_in_folder('pdfs')
 
-# Define relevant topics for filtering
 relevant_topics = [
     "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin",
     "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium",
@@ -48,12 +46,11 @@ relevant_topics = [
     "support", "support for opioid addiction", "drug use", "email", "campus", "phone number",
     "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication",
     "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
-    "medication-assisted treatment", "medication assisted treatment", "MAT", "opioid epidemic", "teen",
+    "medication-assisted treatment", "medication assistanted treatment", "MAT", "opioid epidemic", "teen",
     "dangers", "genetic", "environmental factors", "pain management", "socioeconomic factors", "consequences", "adult", "death",
-    "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS"
+    "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", "brands"
 ]
 
-# Load URLs from file for web crawling
 def load_urls_from_file(file_path):
     urls = []
     if os.path.exists(file_path):
@@ -62,9 +59,9 @@ def load_urls_from_file(file_path):
     return urls
 
 URLS_FILE_PATH = os.path.join(os.path.dirname(__file__), "data", "urls.txt")
+
 URLS = load_urls_from_file(URLS_FILE_PATH)
 
-# Async web crawling for opioid-related data
 async def fetch_url(session, url, visited, base_domain, text_data, queue):
     if url in visited:
         return
@@ -78,22 +75,22 @@ async def fetch_url(session, url, visited, base_domain, text_data, queue):
 
             soup = BeautifulSoup(await response.text(), "html.parser")
 
-            # Filter pages to keep only opioid-related content
+            # NEW: Filter pages to keep only opioid-related content
             page_text = soup.get_text().lower()
             if not any(keyword in page_text for keyword in relevant_topics):
                 return
 
-            # Extract relevant content
+            # Extract text from tags
             for tag in soup.find_all(["p", "h1", "h2", "h3", "li"]):
                 text_data.append(tag.get_text() + "\n")
 
-            # Extract and queue new links for further crawling
+            # Extract links for further crawling
             for link_tag in soup.find_all("a", href=True):
                 href = link_tag['href']
                 full_url = urljoin(url, href)
                 link_domain = urlparse(full_url).netloc
 
-                # Crawl only within the same base domain
+                # MODIFIED: Allow crawling all subdomains of the base domain
                 if base_domain in link_domain and full_url not in visited:
                     queue.append(full_url)
 
@@ -123,60 +120,27 @@ async def crawl_and_extract_text(base_urls, max_pages=5):
 
 def update_urls_and_crawl():
     updated_urls = load_urls_from_file(URLS_FILE_PATH)
-    return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))
+    return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))  # Same limit for the updated crawl
 
-# Check if a question is relevant or a follow-up
+# Updated: Check if a question is relevant or a related follow-up
 def is_question_relevant(question):
     """Checks if the question contains opioid-related keywords or is a relevant follow-up."""
+    # Check for relevant topics
     if any(topic.lower() in question.lower() for topic in relevant_topics):
         return True
 
-    # Allow follow-up if previous user question is somewhat related
-    if conversation_history and conversation_history[-1]["role"] == "user":
-        prev_question = conversation_history[-1]["content"]
-        similarity_ratio = SequenceMatcher(None, prev_question.lower(), question.lower()).ratio()
+    # Allow follow-up questions if previous user question or bot response is related
+    if conversation_history:
+        prev_interaction = conversation_history[-1]["content"]
+        similarity_ratio = SequenceMatcher(None, prev_interaction.lower(), question.lower()).ratio()
 
-        # Allow follow-up if similarity is above 0.6 (threshold can be adjusted)
-        if similarity_ratio >= 0.6:
+        # Allow follow-up if similarity is above 0.5 or question asks for additional details
+        follow_up_triggers = ["other", "what else", "more", "different", "anything else", "others", "too"]
+        if similarity_ratio >= 0.5 or any(trigger in question.lower() for trigger in follow_up_triggers):
             return True
 
     return False
 
-# Summarize previous response if requested
-def summarize_response(response_text):
-    """Send a summarization request to Llama 3 to shorten the response."""
-    summary_prompt = f"Summarize this response concisely: {response_text}"
-    messages = [
-        {"role": "system", "content": "You are an expert summarizer."},
-        {"role": "user", "content": summary_prompt}
-    ]
-
-    headers = {
-        "Authorization": f"Bearer {REN_API_KEY}",
-        "Content-Type": "application/json"
-    }
-
-    try:
-        response = requests.post(
-            LLAMA3_ENDPOINT,
-            json={
-                "model": "meta-llama/llama-3.1-8b-instruct:free",
-                "messages": messages
-            },
-            headers=headers,
-            timeout=30
-        )
-
-        response.raise_for_status()
-        data = response.json()
-        summary_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No summary available").replace("*", "")
-        return summary_text.strip()
-
-    except requests.exceptions.RequestException as e:
-        app.logger.error(f"Error summarizing response: {str(e)}")
-        return "ERROR: Failed to generate a summary."
-
-# Get response from Llama 3
 def get_llama3_response(question):
     conversation_history.append({"role": "user", "content": question})
 
@@ -213,7 +177,6 @@ def get_llama3_response(question):
         app.logger.error(f"Llama 3 API error: {str(e)}")
         return f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"
 
-# Format response for text or voice
 def format_response(response_text, for_voice=False):
     formatted_text = response_text.strip().replace("brbr", "")
     return formatted_text.replace("<br>", " ").replace("\n", " ") if for_voice else formatted_text.replace("\n", "<br>")
@@ -231,11 +194,7 @@ def ask():
     if not user_question:
         return jsonify({"answer": "Please ask a valid question."})
 
-    if "summarize" in user_question.lower() and conversation_history:
-        # Summarize the last response if requested
-        last_bot_response = conversation_history[-1]["content"]
-        answer = summarize_response(last_bot_response)
-    elif is_question_relevant(user_question):
+    if is_question_relevant(user_question):
         answer = get_llama3_response(user_question)
     else:
         answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
@@ -250,11 +209,7 @@ def voice_response():
     if not user_question:
         return jsonify({"answer": "Please ask a valid question."})
 
-    if "summarize" in user_question.lower() and conversation_history:
-        last_bot_response = conversation_history[-1]["content"]
-        answer = summarize_response(last_bot_response)
-        clean_voice_response = format_response(answer, for_voice=True)
-    elif is_question_relevant(user_question):
+    if is_question_relevant(user_question):
         answer = get_llama3_response(user_question)
         clean_voice_response = format_response(answer, for_voice=True)
     else:
