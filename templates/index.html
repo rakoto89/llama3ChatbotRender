@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -9,22 +10,19 @@
 <body>
     <!-- Add the Bowie State Logo here -->
     <img src="{{ url_for('static', filename='images/bowie_state_logo.png') }}" alt="Bowie State Logo" class="top-right-image">
-
+    
     <div class="chat-container">
         <div class="chat-header">Opioid Awareness Chatbot</div>
         <div class="chat-box" id="chat-box">
-            <div class="bot-message">🤖 Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!</div>
+            <div class="bot-message">Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!</div>
         </div>
-
         <div class="input-container">
-            <input type="text" id="user-input" placeholder="Type your question here..." />
+            <input type="text" id="user-input" placeholder="Enter your question...">
             <button id="send-btn">Send</button>
             <button id="voice-btn">Voice</button>
             <button id="stop-btn">Stop</button>
-            <button id="end-chat-btn">End Conversation</button> <!-- New button -->
         </div>
     </div>
-
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
