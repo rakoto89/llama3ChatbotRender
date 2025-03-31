@@ -17,11 +17,75 @@
         </div>
         <div class="input-container">
             <input type="text" id="user-input" placeholder="Enter your question...">
-            <button id="send-btn">Send</button>
+            <button id="send-btn" onclick="sendMessage()">Send</button>
             <button id="voice-btn">Voice</button>
             <button id="stop-btn">Stop</button>
         </div>
     </div>
+
+    <!-- End Chat Button -->
+    <button id="end-chat-btn" onclick="endChat()">End Conversation</button>
+
+    <!-- Feedback Modal (Initially Hidden) -->
+    <div id="feedback-modal" style="display: none;">
+        <h3>Rate the Conversation</h3>
+        <div id="stars">
+            <span onclick="rateChat(1)">⭐</span>
+            <span onclick="rateChat(2)">⭐</span>
+            <span onclick="rateChat(3)">⭐</span>
+            <span onclick="rateChat(4)">⭐</span>
+            <span onclick="rateChat(5)">⭐</span>
+        </div>
+        <textarea id="review-text" placeholder="Write your review (optional)"></textarea>
+        <button onclick="submitFeedback()">Submit Feedback</button>
+    </div>
+
     <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        let chatEnded = false;
+
+        function sendMessage() {
+            if (chatEnded) return; // Prevent sending messages after chat ends
+            
+            // Logic to handle sending a message from the user
+            let message = document.getElementById("user-input").value;
+            document.getElementById("chat-box").innerHTML += "<div class='user-message'>" + message + "</div>";
+            document.getElementById("user-input").value = ''; // Clear input field
+        }
+
+        function endChat() {
+            chatEnded = true; // Prevent sending messages after chat ends
+            document.querySelector(".chat-container").style.display = "none"; // Hide the chat container
+            document.getElementById("end-chat-btn").style.display = "none"; // Hide the end button
+            
+            // Show the feedback modal after ending the conversation
+            document.getElementById("feedback-modal").style.display = "block";
+        }
+
+        let userRating = 0;
+
+        function rateChat(stars) {
+            userRating = stars;
+            let starElements = document.querySelectorAll("#stars span");
+            
+            // Update star colors based on rating
+            starElements.forEach((star, index) => {
+                star.style.color = index < userRating ? "#ffcc00" : "#ccc";
+            });
+        }
+
+        function submitFeedback() {
+            let review = document.getElementById("review-text").value;
+            
+            // Logic to handle the feedback submission, like sending it to a server or storing it locally
+            console.log("Feedback submitted: ");
+            console.log("Rating: " + userRating);
+            console.log("Review: " + review);
+            
+            // Hide the feedback modal
+            document.getElementById("feedback-modal").style.display = "none";
+            alert("Thank you for your feedback!");
+        }
+    </script>
 </body>
 </html>
