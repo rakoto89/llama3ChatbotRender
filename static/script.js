@@ -66,11 +66,13 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // ✅ Updated speakResponse() to ignore <br> only
     function speakResponse(text, callback) {
         if ("speechSynthesis" in window) {
-            const cleanText = text.replace(/<br\s*\/?>/g, " "); // Replaces <br> with space
+            // Remove <br> tags only for speech
+            const cleanText = text.replace(/<br\s*\/?>/g, " "); // Replaces <br> with a space
 
-            if (cleanText.trim() === "") return;
+            if (cleanText.trim() === "") return; // Skip if the text is empty after removing <br>
 
             const utterance = new SpeechSynthesisUtterance(cleanText);
             utterance.onend = () => {
@@ -89,6 +91,44 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function startVoiceRecognition() {
+        if ("webkitSpeechRecognition" in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true; // Continuous listening
+            recognition.interimResults = false; // Final results only
+            recognition.lang = "en-US";
+
+            recognition.onresult = (event) => {
+                clearTimeout(silenceTimeout); // Clear any pending timeout
+                const transcript = event.results[event.results.length - 1][0].transcript;
+
+                // Wait for 1.5 seconds after the last spoken word before sending
+                silenceTimeout = setTimeout(() => {
+                    sendMessage(transcript, true);
+                    recognition.stop();
+                    usingVoice = false;
+                }, 1500); // Delay for 1.5 seconds
+            };
+
+            recognition.onerror = () => {
+                appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
+                usingVoice = false;
+            };
+
+            recognition.onend = () => {
+                clearTimeout(silenceTimeout); // Clear any pending timeout
+                if (usingVoice) {
+                    appendMessage("bot", "Voice input ended. Please try again.");
+                    usingVoice = false;
+                }
+            };
+
+            recognition.start();
+        } else {
+            alert("Voice recognition is not supported in this browser.");
+        }
+    }
+
     function playBeep() {
         const beep = new Audio("/static/beep2.mp3"); 
         beep.play();
@@ -96,13 +136,37 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function speakElementText(element) {
         if ("speechSynthesis" in window) {
-            let text = element.getAttribute("data-speak") || "";
+            let text = "";
+
+            if (element.id === "send-btn") {
+                text = "Send button.";
+            } else if (element.id === "voice-btn") {
+                text = "Voice button.";
+            } else if (element.id === "stop-btn") {
+                text = "Stop button.";
+            } else if (element.id === "end-btn") {
+                text = "end chat button.";    
+            }
 
             if (text) {
                 let utterance = new SpeechSynthesisUtterance(text);
                 utterance.rate = 0.9;
                 synth.speak(utterance);
             }
+        }
+    }
+
+    function handleTabKey(event) {
+        if (event.key === "Tab") {
+            event.preventDefault();
+            
+            const elements = [userInput, sendBtn, voiceBtn, stopBtn, endBtn];
+            let currentIndex = elements.indexOf(document.activeElement);
+            let nextIndex = (currentIndex + 1) % elements.length;
+            let nextElement = elements[nextIndex];
+            nextElement.focus();
+            
+            setTimeout(() => speakElementText(nextElement), 200);
         }
     }
 
@@ -117,90 +181,20 @@ document.addEventListener("DOMContentLoaded", function () {
         sendBtn.disabled = true;
         sendMessage(userInput.value, false);
         setTimeout(() => sendBtn.disabled = false, 700);
-    });
 
     endBtn.addEventListener("click", () => {
-        openFeedbackPage();
+    window.location.href = "/feedback";
     });
 
-    // ⭐️ Opens Feedback Page
-    function openFeedbackPage() {
-        const feedbackHTML = `
-        <div id="feedback-container" tabindex="0" data-speak="Please rate your chat experience.">
-            <h2>Rate Your Chat Experience</h2>
+    userInput.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            sendBtn.click();
+        }
+    });
 
-            <div id="rating-container">
-                ${[1, 2, 3, 4, 5].map(num => `
-                    <div class="rating-row" tabindex="0" data-rating="${num}" data-speak="${num} star${num > 1 ? 's' : ''}">
-                        ${Array(num).fill().map(() => '⭐').join('')}
-                        ${Array(5 - num).fill().map(() => '☆').join('')}
-                    </div>
-                `).join('')}
-            </div>
-
-            <h3 id="feedback-title" tabindex="0" data-speak="Please provide feedback.">Please provide feedback</h3>
-            <textarea id="feedback-text" rows="4" cols="50" placeholder="Enter any additional feedback..." tabindex="0" data-speak="Feedback text area."></textarea>
-
-            <button id="submit-feedback-btn" tabindex="0" data-speak="Submit feedback.">Submit Feedback</button>
-            <button id="go-back-btn" tabindex="0" data-speak="Go back to chatbot.">Go Back to Chatbot</button>
-            <button id="skip-feedback-btn" tabindex="0" data-speak="Skip feedback.">Skip Feedback</button>
-        </div>
-        `;
-
-        document.body.innerHTML = feedbackHTML;
-
-        // Tab and Speak Functionality for New Elements
-        addTabAndSpeakListeners();
-
-        // Rating logic
-        const ratingRows = document.querySelectorAll(".rating-row");
-        ratingRows.forEach(row => {
-            row.addEventListener("click", () => {
-                ratingRows.forEach(r => r.classList.remove("selected"));
-                row.classList.add("selected");
-                row.childNodes.forEach(star => {
-                    star.classList.add("selected");
-                });
-            });
-
-            row.addEventListener("focus", () => {
-                speakElementText(row);
-            });
-        });
-
-        // Handle feedback submission
-        document.getElementById("submit-feedback-btn").addEventListener("click", () => {
-            alert("Thank you for your feedback!");
-            window.location.href = "/"; // Return to chatbot
-        });
-
-        // Go back to chatbot
-        document.getElementById("go-back-btn").addEventListener("click", () => {
-            window.location.href = "/"; // Return to chatbot
-        });
-
-        // Skip feedback
-        document.getElementById("skip-feedback-btn").addEventListener("click", () => {
-            window.location.href = "/"; // Skip feedback
-        });
-    }
-
-    function addTabAndSpeakListeners() {
-        const focusableElements = document.querySelectorAll("[tabindex]");
-        focusableElements.forEach(element => {
-            element.addEventListener("focus", () => speakElementText(element));
-        });
-
-        // Tab navigation to read elements out loud
-        document.addEventListener("keydown", function (event) {
-            if (event.key === "Tab") {
-                setTimeout(() => {
-                    const focusedElement = document.activeElement;
-                    if (focusedElement) {
-                        speakElementText(focusedElement);
-                    }
-                }, 100);
-            }
-        });
-    }
+    userInput.addEventListener("keydown", handleTabKey);
+    voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));
+    stopBtn.addEventListener("focus", () => speakElementText(stopBtn));
+    endBtn.addEventListener("focus", () => speakElementText(endBtn));
 });
