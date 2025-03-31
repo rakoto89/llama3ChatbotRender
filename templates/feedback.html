@@ -3,72 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rate your experience</title>
-    <link rel="stylesheet" href="feedback.css">
+    <title>Chatbot Feedback</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-
     <div class="container">
-        <div class="feedback-box">
-            <h1>Rate your experience</h1>
-            <p>We highly value your feedback! Rate your experience and provide us with your valuable feedback.</p>
-            
-            <!-- Star rating system -->
-            <div class="star-rating">
-                <span class="star" data-value="1">&#9733;</span>
-                <span class="star" data-value="2">&#9733;</span>
-                <span class="star" data-value="3">&#9733;</span>
-                <span class="star" data-value="4">&#9733;</span>
-                <span class="star" data-value="5">&#9733;</span>
+        <h1>Chatbot Feedback</h1>
+        <form id="feedback-form" method="POST" action="/submit-feedback">
+            <label for="rating">Rate the Chatbot:</label>
+            <div class="rating">
+                <input type="radio" id="star5" name="rating" value="5"><label for="star5">⭐</label>
+                <input type="radio" id="star4" name="rating" value="4"><label for="star4">⭐</label>
+                <input type="radio" id="star3" name="rating" value="3"><label for="star3">⭐</label>
+                <input type="radio" id="star2" name="rating" value="2"><label for="star2">⭐</label>
+                <input type="radio" id="star1" name="rating" value="1"><label for="star1">⭐</label>
             </div>
 
-            <!-- Text box for user feedback -->
-            <textarea id="feedback-text" placeholder="Tell us about your experience!" required></textarea>
+            <label for="comments">Any additional comments:</label>
+            <textarea id="comments" name="comments" rows="4" placeholder="Optional..."></textarea>
 
-            <!-- Buttons at the bottom -->
-            <div class="button-container">
-                <button id="send-feedback">Send feedback</button>
-                <button id="return-chatbot">Return to chatbot</button>
-                <button id="skip-feedback">Skip feedback</button>
-            </div>
+            <button type="submit">Submit Feedback</button>
+        </form>
+
+        <div id="success-message" style="display: none;">
+            <p>Thank you for your feedback! 🙌</p>
         </div>
     </div>
 
     <script>
-        // JavaScript for handling star selection
-        const stars = document.querySelectorAll('.star');
-        let selectedRating = 0;
+        document.getElementById("feedback-form").onsubmit = function(event) {
+            event.preventDefault(); // Prevent page reload
 
-        stars.forEach(star => {
-            star.addEventListener('click', () => {
-                selectedRating = parseInt(star.getAttribute('data-value'));
-                updateStarRating();
-            });
-        });
+            const formData = new FormData(event.target);
 
-        function updateStarRating() {
-            stars.forEach(star => {
-                if (parseInt(star.getAttribute('data-value')) <= selectedRating) {
-                    star.classList.add('selected');
+            fetch("/submit-feedback", {
+                method: "POST",
+                body: formData,
+            })
+            .then(response => {
+                if (response.ok) {
+                    document.getElementById("feedback-form").style.display = "none";
+                    document.getElementById("success-message").style.display = "block";
                 } else {
-                    star.classList.remove('selected');
+                    alert("Error submitting feedback. Please try again.");
                 }
+            })
+            .catch(() => {
+                alert("An error occurred. Please check your connection.");
             });
-        }
-
-        // Handle button click actions
-        document.getElementById('send-feedback').addEventListener('click', () => {
-            alert("Feedback sent! Thank you for your response.");
-        });
-
-        document.getElementById('return-chatbot').addEventListener('click', () => {
-            window.location.href = "/chatbot"; // Redirect to chatbot
-        });
-
-        document.getElementById('skip-feedback').addEventListener('click', () => {
-            window.location.href = "/chatbot"; // Redirect to chatbot
-        });
+        };
     </script>
-
 </body>
 </html>
