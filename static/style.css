@@ -134,16 +134,15 @@ button {
     border: 1px solid red;
 }
 
-/* End Chat Button */
-#end-chat-btn {
-    background: orange; /* Orange background */
+/* End Chat button */
+#end-btn {
+    background: gray; /* Gray background */
     color: white; /* White text */
-    padding: 10px 20px;
-    border: none;
+    border: 1px solid gray;
+    margin-left: 10px; /* Same margin as other buttons */
+    padding: 10px 15px; /* Matching padding */
+    border-radius: 5px; /* Rounded corners */
     cursor: pointer;
-    border-radius: 5px;
-    margin-top: 20px;
-    font-size: 16px;
 }
 
 /* Feedback Modal */
