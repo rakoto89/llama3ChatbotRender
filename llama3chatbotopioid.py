@@ -1,7 +1,7 @@
 import os
 import requests
 import pdfplumber
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, redirect, url_for
 from flask_cors import CORS
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
@@ -139,7 +139,7 @@ def is_question_relevant(question):
         prev_interaction = conversation_history[-1]["content"]
         similarity_ratio = SequenceMatcher(None, prev_interaction.lower(), question.lower()).ratio()
         
-        follow_up_triggers = ["What more", "Anything else", "What other things", "Is there anything more", "Any other thing", "Does that", "Anybody", "Anyone in particular", "is it", "what about", "other", "anymore", "what else", "more", "different", "anything else", "anyone else", "anything else", "others", "too"]
+        follow_up_triggers = ["what more", "anything else", "what other things", "is there anything more", "any other thing", "does that", "anybody", "anyone in particular", "is it", "what about", "other", "anymore", "what else", "more", "different", "anything else", "anyone else", "others", "too"]
         if similarity_ratio >= 0.5 or any(trigger in question.lower() for trigger in follow_up_triggers):
             return True
 
@@ -227,6 +227,16 @@ def voice_response():
         clean_voice_response = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
     return jsonify({"answer": clean_voice_response})
+
+@app.route("/end-chat", methods=["POST"])
+def end_chat():
+    """Redirect to thank-you page when conversation ends."""
+    return redirect(url_for("thank_you"))
+
+@app.route("/thank-you")
+def thank_you():
+    """Thank you page after ending the conversation."""
+    return render_template("thank_you.html")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
