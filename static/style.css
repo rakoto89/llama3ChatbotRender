@@ -136,13 +136,13 @@ button {
 
 /* End Chat Button */
 #end-chat-btn {
-    background: orange; /* Orange background */
+    background: red; /* Red background */
     color: white; /* White text */
     padding: 10px 20px;
     border: none;
     cursor: pointer;
     border-radius: 5px;
-    margin-top: 20px;
+    margin-left: 10px; /* Align next to the stop button */
     font-size: 16px;
 }
 
@@ -171,10 +171,14 @@ button {
 }
 
 #stars span {
-    font-size: 30px;
+    font-size: 40px;
     cursor: pointer;
-    color: #ccc;
+    color: white; /* Default color of the stars */
     margin: 0 5px;
+}
+
+#stars span.selected {
+    color: yellow; /* Turn yellow when selected */
 }
 
 #review-text {
@@ -194,6 +198,7 @@ button {
     border: none;
     cursor: pointer;
     border-radius: 5px;
+    font-size: 16px;
 }
 
 /* Add emoji support */
