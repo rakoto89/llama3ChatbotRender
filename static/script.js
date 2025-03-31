@@ -1,25 +1,16 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const chatPage = document.getElementById("chat-page");
-    const feedbackPage = document.getElementById("feedback-page");
+document.addEventListener("DOMContentLoaded", function () { 
     const chatBox = document.getElementById("chat-box");
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
     const stopBtn = document.getElementById("stop-btn");
     const endBtn = document.getElementById("end-btn");
-
-    const submitFeedbackBtn = document.getElementById("submit-feedback");
-    const goBackBtn = document.getElementById("go-back-btn");
-    const skipFeedbackBtn = document.getElementById("skip-feedback");
-    const feedbackInput = document.getElementById("feedback-input");
-    const stars = document.querySelectorAll(".star");
-
+    
     let recognition;
     let isSpeaking = false;
     let usingVoice = false;
     const synth = window.speechSynthesis;
-    let silenceTimeout;
-    let selectedRating = 0;
+    let silenceTimeout; // Silence timeout to prevent quick response
 
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
@@ -27,10 +18,10 @@ document.addEventListener("DOMContentLoaded", function () {
         msgDiv.innerHTML = message;
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
-
+        
         if (sender === "bot" && usingVoice && message === "Listening...") {
             speakResponse(message, () => {
-                playBeep();
+                playBeep(); // Play beep after saying "Listening..."
                 startVoiceRecognition();
             });
         }
@@ -75,10 +66,13 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // ✅ Updated speakResponse() to ignore <br> only
     function speakResponse(text, callback) {
         if ("speechSynthesis" in window) {
-            const cleanText = text.replace(/<br\s*\/?>/g, " ");
-            if (cleanText.trim() === "") return;
+            // Remove <br> tags only for speech
+            const cleanText = text.replace(/<br\s*\/?>/g, " "); // Replaces <br> with a space
+
+            if (cleanText.trim() === "") return; // Skip if the text is empty after removing <br>
 
             const utterance = new SpeechSynthesisUtterance(cleanText);
             utterance.onend = () => {
@@ -100,19 +94,20 @@ document.addEventListener("DOMContentLoaded", function () {
     function startVoiceRecognition() {
         if ("webkitSpeechRecognition" in window) {
             recognition = new webkitSpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = false;
+            recognition.continuous = true; // Continuous listening
+            recognition.interimResults = false; // Final results only
             recognition.lang = "en-US";
 
             recognition.onresult = (event) => {
-                clearTimeout(silenceTimeout);
+                clearTimeout(silenceTimeout); // Clear any pending timeout
                 const transcript = event.results[event.results.length - 1][0].transcript;
 
+                // Wait for 1.5 seconds after the last spoken word before sending
                 silenceTimeout = setTimeout(() => {
                     sendMessage(transcript, true);
                     recognition.stop();
                     usingVoice = false;
-                }, 1500);
+                }, 1500); // Delay for 1.5 seconds
             };
 
             recognition.onerror = () => {
@@ -121,7 +116,7 @@ document.addEventListener("DOMContentLoaded", function () {
             };
 
             recognition.onend = () => {
-                clearTimeout(silenceTimeout);
+                clearTimeout(silenceTimeout); // Clear any pending timeout
                 if (usingVoice) {
                     appendMessage("bot", "Voice input ended. Please try again.");
                     usingVoice = false;
@@ -135,7 +130,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function playBeep() {
-        const beep = new Audio("/static/beep2.mp3");
+        const beep = new Audio("/static/beep2.mp3"); 
         beep.play();
     }
 
@@ -150,17 +145,7 @@ document.addEventListener("DOMContentLoaded", function () {
             } else if (element.id === "stop-btn") {
                 text = "Stop button.";
             } else if (element.id === "end-btn") {
-                text = "End chat button.";
-            } else if (element.classList.contains("star")) {
-                text = `Rating ${element.getAttribute("data-rating")} star.`;
-            } else if (element.id === "feedback-input") {
-                text = "Please provide feedback.";
-            } else if (element.id === "submit-feedback") {
-                text = "Submit feedback button.";
-            } else if (element.id === "go-back-btn") {
-                text = "Go back to chatbot button.";
-            } else if (element.id === "skip-feedback") {
-                text = "Skip feedback button.";
+                text = "End chat button.";    
             }
 
             if (text) {
@@ -174,43 +159,16 @@ document.addEventListener("DOMContentLoaded", function () {
     function handleTabKey(event) {
         if (event.key === "Tab") {
             event.preventDefault();
-
-            const elements = [
-                userInput,
-                sendBtn,
-                voiceBtn,
-                stopBtn,
-                endBtn,
-                ...stars,
-                feedbackInput,
-                submitFeedbackBtn,
-                goBackBtn,
-                skipFeedbackBtn,
-            ];
-
+            
+            const elements = [userInput, sendBtn, voiceBtn, stopBtn, endBtn];
             let currentIndex = elements.indexOf(document.activeElement);
             let nextIndex = (currentIndex + 1) % elements.length;
             let nextElement = elements[nextIndex];
             nextElement.focus();
-
+            
             setTimeout(() => speakElementText(nextElement), 200);
         }
     }
-
-    // Handle feedback page star selection
-    stars.forEach((star) => {
-        star.addEventListener("click", () => {
-            selectedRating = parseInt(star.getAttribute("data-rating"));
-            stars.forEach((s) => s.classList.remove("selected"));
-            for (let i = 0; i < selectedRating; i++) {
-                stars[i].classList.add("selected");
-            }
-        });
-
-        star.addEventListener("focus", () => {
-            speakElementText(star);
-        });
-    });
 
     voiceBtn.addEventListener("click", () => {
         usingVoice = true;
@@ -222,31 +180,11 @@ document.addEventListener("DOMContentLoaded", function () {
     sendBtn.addEventListener("click", () => {
         sendBtn.disabled = true;
         sendMessage(userInput.value, false);
-        setTimeout(() => (sendBtn.disabled = false), 700);
-    });
+        setTimeout(() => sendBtn.disabled = false, 700);
+    }); // ✅ Corrected closing bracket
 
-    // ✅ Switch to feedback page on "End Chat" click
     endBtn.addEventListener("click", () => {
-        chatPage.style.display = "none";
-        feedbackPage.style.display = "block";
-    });
-
-    submitFeedbackBtn.addEventListener("click", () => {
-        alert(
-            `Thank you for your feedback! Rating: ${selectedRating} star(s)\nFeedback: ${feedbackInput.value}`
-        );
-        feedbackPage.style.display = "none";
-        chatPage.style.display = "block";
-    });
-
-    goBackBtn.addEventListener("click", () => {
-        feedbackPage.style.display = "none";
-        chatPage.style.display = "block";
-    });
-
-    skipFeedbackBtn.addEventListener("click", () => {
-        feedbackPage.style.display = "none";
-        chatPage.style.display = "block";
+        window.location.href = "/feedback";
     });
 
     userInput.addEventListener("keypress", function (event) {
@@ -260,8 +198,4 @@ document.addEventListener("DOMContentLoaded", function () {
     voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));
     stopBtn.addEventListener("focus", () => speakElementText(stopBtn));
     endBtn.addEventListener("focus", () => speakElementText(endBtn));
-    feedbackInput.addEventListener("focus", () => speakElementText(feedbackInput));
-    submitFeedbackBtn.addEventListener("focus", () => speakElementText(submitFeedbackBtn));
-    goBackBtn.addEventListener("focus", () => speakElementText(goBackBtn));
-    skipFeedbackBtn.addEventListener("focus", () => speakElementText(skipFeedbackBtn));
 });
