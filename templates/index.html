@@ -7,9 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <!-- Add the Bowie State Logo here -->
-    <img src="{{ url_for('static', filename='images/bowie_state_logo.png') }}" alt="Bowie State Logo" class="top-right-image">
-    
+    <!-- Chatbot Page -->
     <div class="chat-container">
         <div class="chat-header">Opioid Awareness Chatbot</div>
         <div class="chat-box" id="chat-box">
@@ -36,7 +34,17 @@
                 <span data-star="5">★</span>
             </div>
             <textarea id="review-text" placeholder="Optional review..."></textarea>
-            <button id="submit-rating">Submit Rating</button>
+            <button id="submit-rating" class="submit-btn">Submit Rating</button>
+            <button id="submit-feedback-btn" class="submit-btn">Submit Feedback</button>
+            <button id="go-back-btn" class="submit-btn">Go Back to Chatbot</button>
+            <button id="skip-feedback-btn" class="submit-btn">Skip Feedback</button>
+        </div>
+    </div>
+
+    <!-- Thank You Page -->
+    <div id="thank-you-page" class="thank-you-page">
+        <div class="thank-you-container">
+            <h3>Thanks so much for sharing your experience with us! 😊</h3>
         </div>
     </div>
 
