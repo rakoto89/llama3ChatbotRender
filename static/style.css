@@ -1,7 +1,7 @@
 /* General body styling */
 body {
     font-family: Arial, sans-serif;
-    background: linear-gradient(to bottom, #fffde8, #fff9c4, #fff59d, #ffeb3b, #ffca28); /* Gradient to mimic the image */
+    background: linear-gradient(to bottom, #ffdd57, #ffeeb3); /* Gradient background */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -11,180 +11,188 @@ body {
 
 /* Title styling */
 h1 {
-    font-size: 300px; /* Size of the header */
+    font-size: 40px;
     font-weight: bold;
     color: black;
     text-align: center;
     margin-top: 10px; /* Reduced margin to move the header up */
+    font-family: 'Courier New', Courier, monospace; /* Custom font for chatbot title */
 }
 
-/* Chat container */
+/* Bowie State Logo styling */
+.top-right-image {
+    position: absolute;
+    top: 10px;
+    left: 10px; /* Logo at the top-left */
+    width: 80px; /* Increased width for clarity */
+    height: auto; /* Maintain aspect ratio */
+    border-radius: 0; /* No circular shape to prevent distortion */
+}
+
+/* Chat container styling */
 .chat-container {
-    width: auto; /* Full width with no fixed container */
-    background: transparent; /* No background to remove box */
-    border-radius: 0; /* No rounded corners */
-    box-shadow: none; /* Remove shadow */
-    text-align: center;
-    overflow: visible;
-    padding-top: 20px; /* Optional spacing for better alignment */
-}
-
-/* Chat header */
-.chat-header {
-    background: transparent; /* No background */
-    color: black; /* Text in black */
-    padding: 15px 0; /* Space at the top and bottom */
-    font-size: 22px; /* Increased font size */
-    font-weight: bold;
-    text-align: center;
-}
-
-/* Chat box */
-.chat-box {
-    height: 400px; /* Keep height */
-    overflow-y: auto;
-    padding: 15px;
-    background: transparent; /* No background */
-    text-align: left;
+    width: 100%;
+    max-width: 600px;
+    height: 500px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    border: none; /* Remove any borders */
 }
 
-/* Bot message style */
+/* Chat header styling */
+.chat-header {
+    background-color: #ffdd57;
+    padding: 10px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    border-bottom: 1px solid #ccc;
+}
+
+/* Chatbox styling */
+.chat-box {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 10px;
+    background-color: #f9f9f9;
+}
+
+/* Message bubble styling */
+.bot-message, .user-message {
+    padding: 8px 12px;
+    margin: 5px;
+    border-radius: 12px;
+    max-width: 80%;
+}
+
+/* Bot message styling */
 .bot-message {
-    background: black;
-    color: white;
-    padding: 15px; /* Increased padding */
-    border-radius: 10px;
-    margin: 8px 0; /* Increased margin */
-    max-width: 80%;
+    background-color: #e0f7fa;
     align-self: flex-start;
-    word-wrap: break-word;
+    color: #000;
 }
 
-/* User message style */
+/* User message styling */
 .user-message {
-    background: #d3d3d3; /* Lighter gray */
-    color: black;
-    padding: 15px; /* Increased padding */
-    border-radius: 10px;
-    margin: 8px 0; /* Increased margin */
-    max-width: 80%;
+    background-color: #dcedc8;
     align-self: flex-end;
-    word-wrap: break-word;
+    color: #000;
 }
 
-/* Input and button container */
+/* Input container styling */
 .input-container {
     display: flex;
-    padding: 15px; /* Increased padding */
-    background: transparent; /* No background */
-}
-
-/* Input field */
-input {
-    flex: 1;
-    padding: 10px; /* Increased padding */
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background: white; /* Updated to white background */
-    color: black; /* Text set to black */
-}
-
-/* Button styles */
-button {
-    margin-left: 10px; /* Increased margin */
-    padding: 10px 15px; /* Increased padding */
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-    background: transparent; /* No background */
-    color: white; /* Text color set to white */
-}
-
-/* Send button */
-#send-btn {
-    background: green;
-    color: white;
-    border: 1px solid green;
-}
-
-/* Voice button */
-#voice-btn {
-    background: blue;
-    color: white;
-    border: 1px solid blue;
-}
-
-/* Stop button */
-#stop-btn {
-    background: red;
-    color: white;
-    border: 1px solid red;
-}
-
-/* End Chat Button */
-#end-chat-btn {
-    background: red;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-    margin-left: 10px; /* Align next to the stop button */
-    font-size: 16px;
-}
-
-/* Rating page */
-.rating-page {
-    display: none; /* Hidden by default */
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-}
-
-.rating-container {
-    background: white;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-    text-align: center;
-}
-
-#stars span {
-    font-size: 40px;
-    cursor: pointer;
-    color: white; /* Default white color */
-    margin: 0 5px;
-}
-
-#stars span.selected {
-    color: yellow; /* Turns yellow when selected */
-}
-
-#review-text {
-    width: 300px;
-    height: 100px;
     padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    margin-bottom: 15px;
-    font-size: 14px;
+    background-color: #fff;
+    border-top: 1px solid #ccc;
 }
 
-.submit-btn {
-    background: green;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
+/* Input box styling */
+#user-input {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
     font-size: 16px;
+    background-color: white; /* White input box */
+    color: black; /* Black text */
+}
+
+/* Button styling */
+button {
+    padding: 8px 12px;
+    margin-left: 5px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    color: white; /* White text */
+}
+
+/* Button colors */
+#send-btn {
+    background-color: green; /* Green send button */
+}
+#send-btn:hover {
+    background-color: darkgreen;
+}
+
+#voice-btn {
+    background-color: blue; /* Blue voice button */
+}
+#voice-btn:hover {
+    background-color: darkblue;
+}
+
+#stop-btn {
+    background-color: red; /* Red stop button */
+}
+#stop-btn:hover {
+    background-color: darkred;
+}
+
+/* End conversation button styling */
+#end-btn {
+    background-color: #ff9800; /* Orange end button */
+}
+#end-btn:hover {
+    background-color: #e68900;
+}
+
+/* Feedback section styling */
+.feedback-container {
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* Star rating styles */
+.star {
+    font-size: 24px;
+    color: #ccc;
+    cursor: pointer;
+}
+
+.star:hover,
+.star.active {
+    color: #ffdd57;
+}
+
+/* Optional feedback input */
+#feedback-text {
+    width: 80%;
+    padding: 10px;
+    margin-top: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* Submit button for feedback */
+#submit-feedback-btn {
+    background-color: #4caf50;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+#submit-feedback-btn:hover {
+    background-color: #45a049;
+}
+
+/* Thank you page styles */
+.thank-you-container {
+    text-align: center;
+    margin-top: 50px;
+}
+
+/* Thank you message */
+.thank-you-message {
+    font-size: 24px;
+    color: #4caf50;
+    margin-top: 20px;
 }
