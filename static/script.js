@@ -4,6 +4,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const submitFeedbackButton = document.getElementById("submit-feedback-btn");
     const goBackButton = document.getElementById("go-back-btn");
     const skipFeedbackButton = document.getElementById("skip-feedback-btn");
+
+    // The new buttons: Send, Stop Voice, and End Conversation
+    const sendButton = document.getElementById("send-btn");
+    const stopVoiceButton = document.getElementById("stop-voice-btn");
+    const endConversationButton = document.getElementById("end-conversation-btn");
+
     let selectedRating = 0;
 
     // Handle star selection
@@ -37,14 +43,12 @@ document.addEventListener("DOMContentLoaded", function () {
     // Handle "Submit Rating" button click
     submitRatingButton.addEventListener("click", function () {
         alert(`Rating submitted: ${selectedRating} star(s)`);
-        // You can send this rating to your server if needed
         showThankYouPage();
     });
 
     // Handle "Submit Feedback" button click
     submitFeedbackButton.addEventListener("click", function () {
         alert("Feedback submitted.");
-        // You can collect and submit feedback text if needed
         showThankYouPage();
     });
 
@@ -56,6 +60,31 @@ document.addEventListener("DOMContentLoaded", function () {
     // Handle "Skip Feedback" button click
     skipFeedbackButton.addEventListener("click", function () {
         showChatbotPage();
+    });
+
+    // Handle "Send" button click (for sending messages)
+    sendButton.addEventListener("click", function () {
+        const userMessage = document.getElementById("user-input").value;
+        if (userMessage) {
+            alert(`Message sent: ${userMessage}`);
+            // You can add logic here to send the message to the chatbot or process it
+            document.getElementById("user-input").value = ''; // Clear input field after sending
+        } else {
+            alert("Please enter a message before sending.");
+        }
+    });
+
+    // Handle "Stop Voice" button click
+    stopVoiceButton.addEventListener("click", function () {
+        alert("Voice input has been stopped.");
+        // Add logic here to stop speech input if you are using speech recognition
+    });
+
+    // Handle "End Conversation" button click
+    endConversationButton.addEventListener("click", function () {
+        alert("Ending conversation.");
+        // You can reset the chatbot's state or hide the chatbot window
+        showThankYouPage(); // This will end the conversation and show the thank you page
     });
 
     // Show the Thank You page after rating/feedback submission
