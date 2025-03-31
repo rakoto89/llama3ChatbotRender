@@ -23,51 +23,6 @@
             <button id="end-btn">End Chat</button> <!-- Added End Chat button -->
         </div>
     </div>
-
- <!-- Feedback Section (Hidden Initially) -->
-    <div id="feedback-container" style="display:none;" aria-hidden="true">
-        <h2>Please Provide Feedback</h2>
-        <div id="rating-container">
-            <div class="rating-row" tabindex="6">
-                <span class="star" data-value="1">&#9733;</span>
-                <span class="star" data-value="1">&#9733;</span>
-                <span class="star" data-value="1">&#9733;</span>
-                <span class="star" data-value="1">&#9733;</span>
-                <span class="star" data-value="1">&#9733;</span>
-            </div>
-            <div class="rating-row" tabindex="7">
-                <span class="star" data-value="2">&#9733;</span>
-                <span class="star" data-value="2">&#9733;</span>
-                <span class="star" data-value="2">&#9733;</span>
-                <span class="star" data-value="2">&#9733;</span>
-            </div>
-            <div class="rating-row" tabindex="8">
-                <span class="star" data-value="3">&#9733;</span>
-                <span class="star" data-value="3">&#9733;</span>
-                <span class="star" data-value="3">&#9733;</span>
-            </div>
-            <div class="rating-row" tabindex="9">
-                <span class="star" data-value="4">&#9733;</span>
-                <span class="star" data-value="4">&#9733;</span>
-            </div>
-            <div class="rating-row" tabindex="10">
-                <span class="star" data-value="5">&#9733;</span>
-            </div>
-        </div>
-        
-        <textarea id="feedback-text" placeholder="Provide your feedback..." tabindex="11"></textarea>
-        
-        <div class="feedback-buttons">
-            <button id="submit-feedback-btn" tabindex="12">Submit Feedback</button>
-            <button id="go-back-btn" tabindex="13">Go Back to Chatbot</button>
-            <button id="skip-feedback-btn" tabindex="14">Skip Feedback</button>
-        </div>
-    </div>
-
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
-</body>
-</html>
-
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
