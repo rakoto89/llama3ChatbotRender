@@ -23,6 +23,33 @@
             <button id="end-btn">End Chat</button> <!-- Added End Chat button -->
         </div>
     </div>
+    <!-- Feedback Section (Hidden Initially) -->
+    <div id="feedback-container" class="hidden">
+        <h3>Rate Your Experience</h3>
+        <div id="stars">
+            <span data-value="1">⭐</span>
+            <span data-value="2">⭐⭐</span>
+            <span data-value="3">⭐⭐⭐</span>
+            <span data-value="4">⭐⭐⭐⭐</span>
+            <span data-value="5">⭐⭐⭐⭐⭐</span>
+        </div>
+        <textarea id="review-text" placeholder="Write your review here..."></textarea>
+        
+        <!-- Feedback Buttons -->
+        <div class="feedback-buttons">
+            <button id="submit-feedback-btn">Submit Feedback</button>
+            <button id="go-back-btn">Go Back to Chatbot</button>
+            <button id="skip-feedback-btn">Skip Feedback</button>
+        </div>
+    </div>
+
+    <div id="thank-you-container" class="hidden">
+        <h3 id="thank-you-message"></h3>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
