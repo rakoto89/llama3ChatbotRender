@@ -144,7 +144,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 text = "Voice button.";
             } else if (element.id === "stop-btn") {
                 text = "Stop button.";
-            } else if (element.id === "end chat-btn") {
+            } else if (element.id === "end-btn") {
                 text = "end chat button.";    
             }
 
@@ -181,6 +181,9 @@ document.addEventListener("DOMContentLoaded", function () {
         sendBtn.disabled = true;
         sendMessage(userInput.value, false);
         setTimeout(() => sendBtn.disabled = false, 700);
+
+    endBtn.addEventListener("click", () => {
+    window.location.href = "/feedback";
     });
 
     userInput.addEventListener("keypress", function (event) {
