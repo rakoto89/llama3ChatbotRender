@@ -89,6 +89,9 @@ document.addEventListener("DOMContentLoaded", function () {
             synth.cancel();
             isSpeaking = false;
         }
+        if (recognition) {
+            recognition.stop(); // ✅ Ensures voice recognition stops
+        }
     }
 
     function startVoiceRecognition() {
@@ -173,9 +176,15 @@ document.addEventListener("DOMContentLoaded", function () {
     voiceBtn.addEventListener("click", () => {
         usingVoice = true;
         appendMessage("bot", "Listening...");
+        startVoiceRecognition(); // ✅ Start voice recognition after activating voice
     });
 
-    stopBtn.addEventListener("click", stopSpeaking);
+    stopBtn.addEventListener("click", () => {
+        stopSpeaking();
+        if (recognition) {
+            recognition.stop(); // ✅ Ensures recognition stops properly
+        }
+    });
 
     sendBtn.addEventListener("click", () => {
         sendBtn.disabled = true;
