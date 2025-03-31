@@ -228,6 +228,16 @@ def voice_response():
 
     return jsonify({"answer": clean_voice_response})
 
+@app.route("/feedback")
+def feedback_page():
+    return render_template("feedback.html")
+
+@app.route("/submit_feedback", methods=["POST"])
+def submit_feedback():
+    feedback = request.form.get("feedback")
+    # Process the feedback here, e.g., store it in a database
+    return jsonify({"message": "Thank you for your feedback!"})
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
