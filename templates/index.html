@@ -23,6 +23,39 @@
             <button id="end-btn">End Chat</button> <!-- Added End Chat button -->
         </div>
     </div>
+
+    <!-- Feedback Page HTML (hidden initially) -->
+    <div id="feedback-container" style="display: none;">
+        <h2 tabindex="0" data-speak="Please rate your chat experience.">Rate Your Chat Experience</h2>
+        <div id="rating-container">
+            <!-- Rating Stars -->
+            <div class="rating-row" tabindex="0" data-rating="1" data-speak="1 star">
+                <span class="star">☆</span><span class="star">☆</span><span class="star">☆</span><span class="star">☆</span><span class="star">☆</span>
+            </div>
+            <div class="rating-row" tabindex="0" data-rating="2" data-speak="2 stars">
+                <span class="star">★</span><span class="star">☆</span><span class="star">☆</span><span class="star">☆</span><span class="star">☆</span>
+            </div>
+            <div class="rating-row" tabindex="0" data-rating="3" data-speak="3 stars">
+                <span class="star">★</span><span class="star">★</span><span class="star">☆</span><span class="star">☆</span><span class="star">☆</span>
+            </div>
+            <div class="rating-row" tabindex="0" data-rating="4" data-speak="4 stars">
+                <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">☆</span><span class="star">☆</span>
+            </div>
+            <div class="rating-row" tabindex="0" data-rating="5" data-speak="5 stars">
+                <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">☆</span>
+            </div>
+        </div>
+
+        <h3 tabindex="0" data-speak="Please provide feedback.">Please provide feedback</h3>
+        <textarea id="feedback-text" rows="4" cols="50" placeholder="Enter any additional feedback..." tabindex="0"></textarea>
+
+        <div class="feedback-buttons">
+            <button id="submit-feedback-btn" tabindex="0" data-speak="Submit feedback.">Submit Feedback</button>
+            <button id="go-back-btn" tabindex="0" data-speak="Go back to chatbot.">Go Back to Chatbot</button>
+            <button id="skip-feedback-btn" tabindex="0" data-speak="Skip feedback.">Skip Feedback</button>
+        </div>
+    </div>
+
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
