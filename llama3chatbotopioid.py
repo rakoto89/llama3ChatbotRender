@@ -139,7 +139,7 @@ def is_question_relevant(question):
         prev_interaction = conversation_history[-1]["content"]
         similarity_ratio = SequenceMatcher(None, prev_interaction.lower(), question.lower()).ratio()
         
-        follow_up_triggers = ["other", "anymore", "what else", "more", "different", "anything else", anyone else", "anything else", "others", "too"]
+        follow_up_triggers = ["other", "anymore", "what else", "more", "different", "anything else", "anyone else", "anything else", "others", "too"]
         if similarity_ratio >= 0.5 or any(trigger in question.lower() for trigger in follow_up_triggers):
             return True
 
