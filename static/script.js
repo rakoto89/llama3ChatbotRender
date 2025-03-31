@@ -160,7 +160,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (event.key === "Tab") {
             event.preventDefault();
             
-            const elements = [userInput, sendBtn, voiceBtn, stopBtn];
+            const elements = [userInput, sendBtn, voiceBtn, stopBtn, endBtn];
             let currentIndex = elements.indexOf(document.activeElement);
             let nextIndex = (currentIndex + 1) % elements.length;
             let nextElement = elements[nextIndex];
