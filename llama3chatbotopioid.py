@@ -18,6 +18,7 @@ LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://openrouter.ai/api/v
 REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
 
 conversation_history = []
+conversation_context = {}
 
 def extract_text_from_pdf(pdf_paths):
     text = ""
@@ -75,22 +76,18 @@ async def fetch_url(session, url, visited, base_domain, text_data, queue):
 
             soup = BeautifulSoup(await response.text(), "html.parser")
 
-            # NEW: Filter pages to keep only opioid-related content
             page_text = soup.get_text().lower()
             if not any(keyword in page_text for keyword in relevant_topics):
                 return
 
-            # Extract text from tags
             for tag in soup.find_all(["p", "h1", "h2", "h3", "li"]):
                 text_data.append(tag.get_text() + "\n")
 
-            # Extract links for further crawling
             for link_tag in soup.find_all("a", href=True):
                 href = link_tag['href']
                 full_url = urljoin(url, href)
                 link_domain = urlparse(full_url).netloc
 
-                # MODIFIED: Allow crawling all subdomains of the base domain
                 if base_domain in link_domain and full_url not in visited:
                     queue.append(full_url)
 
@@ -109,7 +106,7 @@ async def crawl_and_extract_text(base_urls, max_pages=5):
         while queue and len(visited) < max_pages:
             url = queue.popleft()
             tasks.append(fetch_url(session, url, visited, urlparse(url).netloc, text_data, queue))
-            if len(tasks) >= 10:  # Limit concurrent requests
+            if len(tasks) >= 10:
                 await asyncio.gather(*tasks)
                 tasks = []
 
@@ -120,28 +117,42 @@ async def crawl_and_extract_text(base_urls, max_pages=5):
 
 def update_urls_and_crawl():
     updated_urls = load_urls_from_file(URLS_FILE_PATH)
-    return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))  # Same limit for the updated crawl
+    return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))
 
-# Updated: Check if a question is relevant or a related follow-up
 def is_question_relevant(question):
     """Checks if the question contains opioid-related keywords or is a relevant follow-up."""
+    
+    pronouns = ['it', 'they', 'this', 'that']
     # Check for relevant topics
     if any(topic.lower() in question.lower() for topic in relevant_topics):
         return True
 
-    # Allow follow-up questions if previous user question or bot response is related
+    # Check if pronouns are used and try to find the context
+    for pronoun in pronouns:
+        if pronoun in question.lower():
+            # Look up the last topic if this is a pronoun reference
+            if conversation_context.get("last_topic"):
+                return True
+
+    # Allow follow-up questions based on similarity with the last question
     if conversation_history:
         prev_interaction = conversation_history[-1]["content"]
         similarity_ratio = SequenceMatcher(None, prev_interaction.lower(), question.lower()).ratio()
-
-        # Allow follow-up if similarity is above 0.5 or question asks for additional details
+        
         follow_up_triggers = ["other", "what else", "more", "different", "anything else", "others", "too"]
         if similarity_ratio >= 0.5 or any(trigger in question.lower() for trigger in follow_up_triggers):
             return True
 
     return False
 
+def update_conversation_context(question):
+    """Update the conversation context with the last topic mentioned."""
+    keywords = [keyword for keyword in relevant_topics if keyword in question.lower()]
+    if keywords:
+        conversation_context['last_topic'] = keywords[-1]
+
 def get_llama3_response(question):
+    update_conversation_context(question)
     conversation_history.append({"role": "user", "content": question})
 
     combined_text = pdf_text + "\n\n" + update_urls_and_crawl()
