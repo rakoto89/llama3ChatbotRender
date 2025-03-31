@@ -9,6 +9,15 @@ body {
     margin: 0;
 }
 
+/* Title styling */
+h1 {
+    font-size: 300px; /* Size of the header */
+    font-weight: bold;
+    color: black;
+    text-align: center;
+    margin-top: 10px; /* Reduced margin to move the header up */
+}
+
 /* Chat container */
 .chat-container {
     width: auto; /* Full width with no fixed container */
@@ -71,6 +80,16 @@ body {
     display: flex;
     padding: 15px; /* Increased padding */
     background: transparent; /* No background */
+}
+
+/* Input field */
+input {
+    flex: 1;
+    padding: 10px; /* Increased padding */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: white; /* Updated to white background */
+    color: black; /* Text set to black */
 }
 
 /* Button styles */
@@ -168,26 +187,4 @@ button {
     cursor: pointer;
     border-radius: 5px;
     font-size: 16px;
-}
-
-/* Thank You Page */
-.thank-you-page {
-    display: none; /* Hidden by default */
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-}
-
-.thank-you-container {
-    background: white;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-    text-align: center;
 }
