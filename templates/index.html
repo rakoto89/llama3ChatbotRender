@@ -10,7 +10,7 @@
     <!-- Add the Bowie State Logo here -->
     <img src="{{ url_for('static', filename='images/bowie_state_logo.png') }}" alt="Bowie State Logo" class="top-right-image">
     
-    <div class="chat-container">
+    <div class="chat-container" id="chat-container">
         <div class="chat-header">Opioid Awareness Chatbot</div>
         <div class="chat-box" id="chat-box">
             <div class="bot-message">Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!</div>
@@ -20,9 +20,34 @@
             <button id="send-btn">Send</button>
             <button id="voice-btn">Voice</button>
             <button id="stop-btn">Stop</button>
-            <button id="end-btn">End Chat</button> <!-- Added End Chat button -->
+            <button id="end-btn">End Chat</button> <!-- End Chat Button Added -->
         </div>
     </div>
+
+    <!-- Feedback Section (Hidden Initially) -->
+    <div id="feedback-container" class="hidden">
+        <h3>Rate Your Experience</h3>
+        <div id="stars">
+            <span data-value="1">⭐</span>
+            <span data-value="2">⭐⭐</span>
+            <span data-value="3">⭐⭐⭐</span>
+            <span data-value="4">⭐⭐⭐⭐</span>
+            <span data-value="5">⭐⭐⭐⭐⭐</span>
+        </div>
+        <textarea id="review-text" placeholder="Write your review here..."></textarea>
+        
+        <!-- Feedback Buttons -->
+        <div class="feedback-buttons">
+            <button id="submit-feedback-btn">Submit Feedback</button>
+            <button id="go-back-btn">Go Back to Chatbot</button>
+            <button id="skip-feedback-btn">Skip Feedback</button>
+        </div>
+    </div>
+
+    <div id="thank-you-container" class="hidden">
+        <h3 id="thank-you-message"></h3>
+    </div>
+
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
