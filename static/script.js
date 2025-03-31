@@ -145,7 +145,7 @@ document.addEventListener("DOMContentLoaded", function () {
             } else if (element.id === "stop-btn") {
                 text = "Stop button.";
             } else if (element.id === "end-btn") {
-                text = "end chat button.";    
+                text = "End chat button.";    
             }
 
             if (text) {
@@ -181,9 +181,10 @@ document.addEventListener("DOMContentLoaded", function () {
         sendBtn.disabled = true;
         sendMessage(userInput.value, false);
         setTimeout(() => sendBtn.disabled = false, 700);
+    }); // ✅ Corrected closing bracket
 
     endBtn.addEventListener("click", () => {
-    window.location.href = "/feedback";
+        window.location.href = "/feedback";
     });
 
     userInput.addEventListener("keypress", function (event) {
