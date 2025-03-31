@@ -4,6 +4,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
     const stopBtn = document.getElementById("stop-btn");
+    const endChatBtn = document.getElementById("end-chat-btn");  // Reference to End Chat button
+    const ratingPage = document.getElementById("rating-page");    // Reference to Rating Page
 
     let recognition;
     let isSpeaking = false;
@@ -65,10 +67,8 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // ✅ Updated speakResponse() to ignore <br> only
     function speakResponse(text, callback) {
         if ("speechSynthesis" in window) {
-            // Remove <br> tags only for speech
             const cleanText = text.replace(/<br\s*\/?>/g, " "); // Replaces <br> with a space
 
             if (cleanText.trim() === "") return; // Skip if the text is empty after removing <br>
@@ -166,6 +166,12 @@ document.addEventListener("DOMContentLoaded", function () {
             setTimeout(() => speakElementText(nextElement), 200);
         }
     }
+
+    // End chat functionality
+    endChatBtn.addEventListener("click", () => {
+        chatBox.style.display = "none";  // Hide the chat interface
+        ratingPage.style.display = "flex"; // Show the rating page
+    });
 
     voiceBtn.addEventListener("click", () => {
         usingVoice = true;
