@@ -131,14 +131,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
             <div id="rating-container">
                 ${[1, 2, 3, 4, 5].map(num => `
-                    <div class="rating-row" tabindex="0" data-rating="${num}" data-speak="${num} star${num > 1 ? 's' : ''}.">
+                    <div class="rating-row" tabindex="0" data-rating="${num}" data-speak="${num} star${num > 1 ? 's' : ''}">
                         ${Array(num).fill().map(() => '⭐').join('')}
                         ${Array(5 - num).fill().map(() => '☆').join('')}
                     </div>
                 `).join('')}
             </div>
 
-            <h3 id="feedback-label" tabindex="0" data-speak="Please provide feedback.">Please provide feedback</h3>
+            <h3 id="feedback-title" tabindex="0" data-speak="Please provide feedback.">Please provide feedback</h3>
             <textarea id="feedback-text" rows="4" cols="50" placeholder="Enter any additional feedback..." tabindex="0" data-speak="Feedback text area."></textarea>
 
             <button id="submit-feedback-btn" tabindex="0" data-speak="Submit feedback.">Submit Feedback</button>
@@ -151,6 +151,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Tab and Speak Functionality for New Elements
         addTabAndSpeakListeners();
+
+        // Rating logic
+        const ratingRows = document.querySelectorAll(".rating-row");
+        ratingRows.forEach(row => {
+            row.addEventListener("click", () => {
+                ratingRows.forEach(r => r.classList.remove("selected"));
+                row.classList.add("selected");
+                row.childNodes.forEach(star => {
+                    star.classList.add("selected");
+                });
+            });
+
+            row.addEventListener("focus", () => {
+                speakElementText(row);
+            });
+        });
 
         // Handle feedback submission
         document.getElementById("submit-feedback-btn").addEventListener("click", () => {
