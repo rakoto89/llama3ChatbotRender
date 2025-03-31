@@ -1,4 +1,4 @@
-import os
+import os 
 import requests
 import pdfplumber
 from flask import Flask, request, jsonify, render_template
@@ -10,6 +10,8 @@ import time
 import asyncio
 import aiohttp
 from difflib import SequenceMatcher
+import json
+from datetime import datetime
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
@@ -227,6 +229,51 @@ def voice_response():
         clean_voice_response = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
     return jsonify({"answer": clean_voice_response})
+
+# ✅ New Route to Display Feedback Page
+@app.route("/feedback")
+def feedback_page():
+    return render_template("feedback.html")
+
+# ✅ New Route to Handle Feedback Submission
+@app.route("/submit-feedback", methods=["POST"])
+def submit_feedback():
+    rating = request.form.get("rating")
+    comments = request.form.get("comments", "").strip()
+
+    if not rating or not rating.isdigit() or int(rating) < 1 or int(rating) > 5:
+        return jsonify({"error": "Invalid rating"}), 400
+
+    feedback_data = {
+        "timestamp": datetime.now().isoformat(),
+        "rating": int(rating),
+        "comments": comments,
+        "user_id": os.urandom(16).hex()  # Generate anonymous user ID
+    }
+
+    feedback_folder = os.path.join(os.path.dirname(__file__), "data")
+    feedback_file = os.path.join(feedback_folder, "feedback.json")
+
+    if not os.path.exists(feedback_folder):
+        os.makedirs(feedback_folder)
+
+    try:
+        if os.path.exists(feedback_file):
+            with open(feedback_file, "r") as f:
+                feedback_list = json.load(f)
+        else:
+            feedback_list = []
+
+        feedback_list.append(feedback_data)
+
+        with open(feedback_file, "w") as f:
+            json.dump(feedback_list, f, indent=4)
+
+        return jsonify({"success": "Feedback submitted successfully!"}), 200
+
+    except Exception as e:
+        print(f"Error saving feedback: {e}")
+        return jsonify({"error": "Could not save feedback."}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
