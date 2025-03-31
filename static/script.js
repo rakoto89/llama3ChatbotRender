@@ -145,7 +145,7 @@ document.addEventListener("DOMContentLoaded", function () {
             } else if (element.id === "stop-btn") {
                 text = "Stop button.";
             } else if (element.id === "end-btn") {
-                text = "end chat button.";    
+                text = "End chat button.";    
             }
 
             if (text) {
@@ -170,22 +170,28 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // ✅ Voice button to start recognition
     voiceBtn.addEventListener("click", () => {
         usingVoice = true;
         appendMessage("bot", "Listening...");
     });
 
+    // ✅ Stop button to stop voice synthesis
     stopBtn.addEventListener("click", stopSpeaking);
 
+    // ✅ Send button to send message
     sendBtn.addEventListener("click", () => {
         sendBtn.disabled = true;
         sendMessage(userInput.value, false);
         setTimeout(() => sendBtn.disabled = false, 700);
-
-    endBtn.addEventListener("click", () => {
-    window.location.href = "/feedback";
     });
 
+    // ✅ End button to go to the feedback page
+    endBtn.addEventListener("click", () => {
+        window.location.href = "/feedback";
+    });
+
+    // ✅ Handling Enter key for sending message
     userInput.addEventListener("keypress", function (event) {
         if (event.key === "Enter") {
             event.preventDefault();
@@ -193,6 +199,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    // ✅ Handle tab key for keyboard navigation
     userInput.addEventListener("keydown", handleTabKey);
     voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));
     stopBtn.addEventListener("focus", () => speakElementText(stopBtn));
