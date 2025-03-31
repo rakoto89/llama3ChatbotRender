@@ -1,59 +1,144 @@
-// Handle "End Conversation" button click
-document.getElementById('end-chat-btn').addEventListener('click', function () {
-    // Hide the chat UI and show the rating page
-    document.querySelector('.chat-container').style.display = 'none';
-    document.getElementById('rating-page').style.display = 'flex';
-});
+document.addEventListener("DOMContentLoaded", function () {
+    const chatBox = document.getElementById("chat-box");
+    const userInput = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-btn");
+    const voiceBtn = document.getElementById("voice-btn");
+    const stopBtn = document.getElementById("stop-btn");
+    const endBtn = document.getElementById("end-btn");
 
-// Star rating functionality
-const stars = document.querySelectorAll('#stars span');
-let selectedRating = 0;
+    let recognition;
+    let isSpeaking = false;
+    let usingVoice = false;
+    const synth = window.speechSynthesis;
+    let silenceTimeout; // Silence timeout to prevent quick response
 
-// Add functionality to handle star selection
-stars.forEach((star, index) => {
-    star.addEventListener('click', () => {
-        selectedRating = index + 1; // Update selected rating based on clicked star
-        stars.forEach((s, i) => {
-            if (i < selectedRating) {
-                s.classList.add('selected');
-            } else {
-                s.classList.remove('selected');
-            }
-        });
-    });
-});
+    // Append message to chatbox
+    function appendMessage(sender, message) {
+        const msgDiv = document.createElement("div");
+        msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
+        msgDiv.innerHTML = message;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
 
-// Handle "Submit Rating" button click
-document.getElementById('submit-rating').addEventListener('click', function () {
-    const review = document.getElementById('review-text').value;
-    if (selectedRating === 0) {
-        alert('Please select a rating before submitting.');
-    } else {
-        // Process or save the review and rating
-        alert(`Thank you for your feedback! Rating: ${selectedRating} stars, Review: ${review}`);
-        // Redirect to the thank-you page after submission
-        document.getElementById('rating-page').style.display = 'none';
-        document.getElementById('thank-you-page').style.display = 'flex';
+        // Voice feedback if using voice
+        if (sender === "bot" && usingVoice) {
+            speakResponse(message);
+        }
     }
-});
 
-// Handle "Submit Feedback" button click
-document.getElementById('submit-feedback-btn').addEventListener('click', function () {
-    // Redirect to the thank-you page with a feedback message
-    document.getElementById('rating-page').style.display = 'none';
-    document.getElementById('thank-you-page').style.display = 'flex';
-});
+    // Send user message
+    function sendMessage() {
+        const message = userInput.value.trim();
+        if (message === "") return;
 
-// Handle "Go Back to Chatbot" button click
-document.getElementById('go-back-btn').addEventListener('click', function () {
-    // Hide rating page and show the chatbot page again
-    document.getElementById('rating-page').style.display = 'none';
-    document.querySelector('.chat-container').style.display = 'block';
-});
+        appendMessage("user", message);
+        userInput.value = "";
 
-// Handle "Skip Feedback" button click
-document.getElementById('skip-feedback-btn').addEventListener('click', function () {
-    // Redirect to a simple "Thank You" page
-    document.getElementById('rating-page').style.display = 'none';
-    document.getElementById('thank-you-page').style.display = 'flex';
+        // Send message to Flask server
+        fetch("/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: message }),
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                appendMessage("bot", data.response);
+            })
+            .catch((error) => {
+                appendMessage("bot", "Error: Unable to get a response.");
+                console.error("Error:", error);
+            });
+    }
+
+    // Voice recognition start
+    function startVoiceRecognition() {
+        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = "en-US";
+
+        recognition.onstart = function () {
+            isSpeaking = true;
+            usingVoice = true;
+            voiceBtn.innerText = "Listening...";
+        };
+
+        recognition.onresult = function (event) {
+            const transcript = event.results[0][0].transcript;
+            appendMessage("user", transcript);
+            sendVoiceMessage(transcript);
+        };
+
+        recognition.onerror = function (event) {
+            console.error("Speech recognition error:", event.error);
+            isSpeaking = false;
+            voiceBtn.innerText = "🎙️ Voice";
+        };
+
+        recognition.onend = function () {
+            isSpeaking = false;
+            voiceBtn.innerText = "🎙️ Voice";
+        };
+
+        recognition.start();
+    }
+
+    // Send voice message
+    function sendVoiceMessage(transcript) {
+        fetch("/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: transcript }),
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                appendMessage("bot", data.response);
+            })
+            .catch((error) => {
+                appendMessage("bot", "Error: Unable to get a response.");
+                console.error("Error:", error);
+            });
+    }
+
+    // Stop voice recognition
+    function stopVoiceRecognition() {
+        if (isSpeaking && recognition) {
+            recognition.stop();
+            isSpeaking = false;
+            voiceBtn.innerText = "🎙️ Voice";
+        }
+    }
+
+    // Text-to-speech for bot response
+    function speakResponse(response) {
+        if (synth.speaking) {
+            synth.cancel();
+        }
+
+        const utterance = new SpeechSynthesisUtterance(response);
+        utterance.lang = "en-US";
+        synth.speak(utterance);
+    }
+
+    // End conversation and redirect to feedback
+    function endConversation() {
+        window.location.href = "/feedback"; // Redirect to feedback page
+    }
+
+    // Event listeners
+    sendBtn.addEventListener("click", sendMessage);
+    userInput.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+            sendMessage();
+        }
+    });
+
+    voiceBtn.addEventListener("click", function () {
+        if (!isSpeaking) {
+            startVoiceRecognition();
+        } else {
+            stopVoiceRecognition();
+        }
+    });
+
+    stopBtn.addEventListener("click", stopVoiceRecognition);
+    endBtn.addEventListener("click", endConversation);
 });
