@@ -181,7 +181,7 @@ document.addEventListener("DOMContentLoaded", function () {
         sendBtn.disabled = true;
         sendMessage(userInput.value, false);
         setTimeout(() => sendBtn.disabled = false, 700);
-    }); // ✅ Corrected closing bracket
+    }); // ✅ Corrected closing bracket 
 
     endBtn.addEventListener("click", () => {
         window.location.href = "/feedback";
