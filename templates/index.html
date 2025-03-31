@@ -16,11 +16,11 @@
             <div class="bot-message">Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!</div>
         </div>
         <div class="input-container">
-            <input type="text" id="user-input" placeholder="Enter your question...">
-            <button id="send-btn">Send</button>
-            <button id="voice-btn">Voice</button>
-            <button id="stop-btn">Stop</button>
-            <button id="end-btn">End Chat</button> <!-- End Chat Button -->
+            <input type="text" id="user-input" placeholder="Enter your question..." aria-label="Chat Input">
+            <button id="send-btn" tabindex="0" aria-label="Send Message">Send</button>
+            <button id="voice-btn" tabindex="0" aria-label="Start Voice Input">Voice</button>
+            <button id="stop-btn" tabindex="0" aria-label="Stop Voice Input">Stop</button>
+            <button id="end-btn" tabindex="0" aria-label="End Chat">End Chat</button>
         </div>
     </div>
 
@@ -28,19 +28,19 @@
     <div id="feedback-container" class="hidden">
         <h3>Rate Your Experience</h3>
         <div id="stars">
-            <span data-value="1">⭐</span>
-            <span data-value="2">⭐⭐</span>
-            <span data-value="3">⭐⭐⭐</span>
-            <span data-value="4">⭐⭐⭐⭐</span>
-            <span data-value="5">⭐⭐⭐⭐⭐</span>
+            <span data-value="1" tabindex="0" aria-label="1 Star">⭐</span>
+            <span data-value="2" tabindex="0" aria-label="2 Stars">⭐⭐</span>
+            <span data-value="3" tabindex="0" aria-label="3 Stars">⭐⭐⭐</span>
+            <span data-value="4" tabindex="0" aria-label="4 Stars">⭐⭐⭐⭐</span>
+            <span data-value="5" tabindex="0" aria-label="5 Stars">⭐⭐⭐⭐⭐</span>
         </div>
-        <textarea id="review-text" placeholder="Write your review here..."></textarea>
+        <textarea id="review-text" placeholder="Write your review here..." aria-label="Review Input"></textarea>
 
         <!-- Feedback Buttons -->
         <div class="feedback-buttons">
-            <button id="submit-feedback-btn">Submit Feedback</button>
-            <button id="go-back-btn">Go Back to Chatbot</button>
-            <button id="skip-feedback-btn">Skip Feedback</button>
+            <button id="submit-feedback-btn" tabindex="0" aria-label="Submit Feedback">Submit Feedback</button>
+            <button id="go-back-btn" tabindex="0" aria-label="Go Back to Chatbot">Go Back to Chatbot</button>
+            <button id="skip-feedback-btn" tabindex="0" aria-label="Skip Feedback">Skip Feedback</button>
         </div>
     </div>
 
