@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Feedback</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Chatbot Feedback</h1>
+        <form id="feedback-form" method="POST" action="/submit-feedback">
+            <label for="rating">Rate the Chatbot:</label>
+            <div class="rating">
+                <input type="radio" id="star5" name="rating" value="5"><label for="star5">⭐</label>
+                <input type="radio" id="star4" name="rating" value="4"><label for="star4">⭐</label>
+                <input type="radio" id="star3" name="rating" value="3"><label for="star3">⭐</label>
+                <input type="radio" id="star2" name="rating" value="2"><label for="star2">⭐</label>
+                <input type="radio" id="star1" name="rating" value="1"><label for="star1">⭐</label>
+            </div>
+
+            <label for="comments">Any additional comments:</label>
+            <textarea id="comments" name="comments" rows="4" placeholder="Optional..."></textarea>
+
+            <button type="submit">Submit Feedback</button>
+        </form>
+
+        <div id="success-message" style="display: none;">
+            <p>Thank you for your feedback! 🙌</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("feedback-form").onsubmit = function(event) {
+            event.preventDefault(); // Prevent page reload
+
+            const formData = new FormData(event.target);
+
+            fetch("/submit-feedback", {
+                method: "POST",
+                body: formData,
+            })
+            .then(response => {
+                if (response.ok) {
+                    document.getElementById("feedback-form").style.display = "none";
+                    document.getElementById("success-message").style.display = "block";
+                } else {
+                    alert("Error submitting feedback. Please try again.");
+                }
+            })
+            .catch(() => {
+                alert("An error occurred. Please check your connection.");
+            });
+        };
+    </script>
+</body>
+</html>
