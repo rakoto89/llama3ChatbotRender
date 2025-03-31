@@ -1,101 +1,59 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const stars = document.querySelectorAll("#stars span");
-    const submitRatingButton = document.getElementById("submit-rating");
-    const submitFeedbackButton = document.getElementById("submit-feedback-btn");
-    const goBackButton = document.getElementById("go-back-btn");
-    const skipFeedbackButton = document.getElementById("skip-feedback-btn");
+// Handle "End Conversation" button click
+document.getElementById('end-chat-btn').addEventListener('click', function () {
+    // Hide the chat UI and show the rating page
+    document.querySelector('.chat-container').style.display = 'none';
+    document.getElementById('rating-page').style.display = 'flex';
+});
 
-    // The new buttons: Send, Stop Voice, and End Conversation
-    const sendButton = document.getElementById("send-btn");
-    const stopVoiceButton = document.getElementById("stop-voice-btn");
-    const endConversationButton = document.getElementById("end-conversation-btn");
+// Star rating functionality
+const stars = document.querySelectorAll('#stars span');
+let selectedRating = 0;
 
-    let selectedRating = 0;
-
-    // Handle star selection
-    stars.forEach(star => {
-        star.addEventListener("click", function () {
-            selectedRating = parseInt(star.getAttribute("data-star"));
-            updateStarSelection(selectedRating);
-            enableFeedbackButtons();
-        });
-    });
-
-    // Update the appearance of the stars based on selection
-    function updateStarSelection(rating) {
-        stars.forEach(star => {
-            if (parseInt(star.getAttribute("data-star")) <= rating) {
-                star.classList.add("selected");
+// Add functionality to handle star selection
+stars.forEach((star, index) => {
+    star.addEventListener('click', () => {
+        selectedRating = index + 1; // Update selected rating based on clicked star
+        stars.forEach((s, i) => {
+            if (i < selectedRating) {
+                s.classList.add('selected');
             } else {
-                star.classList.remove("selected");
+                s.classList.remove('selected');
             }
         });
+    });
+});
+
+// Handle "Submit Rating" button click
+document.getElementById('submit-rating').addEventListener('click', function () {
+    const review = document.getElementById('review-text').value;
+    if (selectedRating === 0) {
+        alert('Please select a rating before submitting.');
+    } else {
+        // Process or save the review and rating
+        alert(`Thank you for your feedback! Rating: ${selectedRating} stars, Review: ${review}`);
+        // Redirect to the thank-you page after submission
+        document.getElementById('rating-page').style.display = 'none';
+        document.getElementById('thank-you-page').style.display = 'flex';
     }
+});
 
-    // Enable feedback buttons when a rating is selected
-    function enableFeedbackButtons() {
-        submitRatingButton.disabled = false;
-        submitFeedbackButton.disabled = false;
-        goBackButton.disabled = false;
-        skipFeedbackButton.disabled = false;
-    }
+// Handle "Submit Feedback" button click
+document.getElementById('submit-feedback-btn').addEventListener('click', function () {
+    // Redirect to the thank-you page with a feedback message
+    document.getElementById('rating-page').style.display = 'none';
+    document.getElementById('thank-you-page').style.display = 'flex';
+});
 
-    // Handle "Submit Rating" button click
-    submitRatingButton.addEventListener("click", function () {
-        alert(`Rating submitted: ${selectedRating} star(s)`);
-        showThankYouPage();
-    });
+// Handle "Go Back to Chatbot" button click
+document.getElementById('go-back-btn').addEventListener('click', function () {
+    // Hide rating page and show the chatbot page again
+    document.getElementById('rating-page').style.display = 'none';
+    document.querySelector('.chat-container').style.display = 'block';
+});
 
-    // Handle "Submit Feedback" button click
-    submitFeedbackButton.addEventListener("click", function () {
-        alert("Feedback submitted.");
-        showThankYouPage();
-    });
-
-    // Handle "Go Back" button click
-    goBackButton.addEventListener("click", function () {
-        showChatbotPage();
-    });
-
-    // Handle "Skip Feedback" button click
-    skipFeedbackButton.addEventListener("click", function () {
-        showChatbotPage();
-    });
-
-    // Handle "Send" button click (for sending messages)
-    sendButton.addEventListener("click", function () {
-        const userMessage = document.getElementById("user-input").value;
-        if (userMessage) {
-            alert(`Message sent: ${userMessage}`);
-            // You can add logic here to send the message to the chatbot or process it
-            document.getElementById("user-input").value = ''; // Clear input field after sending
-        } else {
-            alert("Please enter a message before sending.");
-        }
-    });
-
-    // Handle "Stop Voice" button click
-    stopVoiceButton.addEventListener("click", function () {
-        alert("Voice input has been stopped.");
-        // Add logic here to stop speech input if you are using speech recognition
-    });
-
-    // Handle "End Conversation" button click
-    endConversationButton.addEventListener("click", function () {
-        alert("Ending conversation.");
-        // You can reset the chatbot's state or hide the chatbot window
-        showThankYouPage(); // This will end the conversation and show the thank you page
-    });
-
-    // Show the Thank You page after rating/feedback submission
-    function showThankYouPage() {
-        document.getElementById("rating-page").style.display = "none";
-        document.getElementById("thank-you-page").style.display = "flex";
-    }
-
-    // Show the Chatbot page when going back from the rating page
-    function showChatbotPage() {
-        document.getElementById("rating-page").style.display = "none";
-        document.getElementById("chat-container").style.display = "flex";
-    }
+// Handle "Skip Feedback" button click
+document.getElementById('skip-feedback-btn').addEventListener('click', function () {
+    // Redirect to a simple "Thank You" page
+    document.getElementById('rating-page').style.display = 'none';
+    document.getElementById('thank-you-page').style.display = 'flex';
 });
