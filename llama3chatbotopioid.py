@@ -1,22 +1,24 @@
 import os
 import requests
 import pdfplumber
-from flask import Flask, request, jsonify, render_template, session
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 from collections import deque
+import time
 import asyncio
 import aiohttp
+from difflib import SequenceMatcher  # NEW: Added for follow-up question checking
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
-app.secret_key = os.environ.get("SECRET_KEY", "super_secret_key")
 
 LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions").strip()
 REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
 
-# --- PDF Functions ---
+conversation_history = []
+
 def extract_text_from_pdf(pdf_paths):
     text = ""
     with pdfplumber.open(pdf_paths) as pdf:
@@ -37,7 +39,6 @@ def read_pdfs_in_folder(folder_path):
 
 pdf_text = read_pdfs_in_folder('pdfs')
 
-# --- Relevant Topics ---
 relevant_topics = [
     "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin",
     "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium",
@@ -46,11 +47,10 @@ relevant_topics = [
     "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication",
     "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
     "medication-assistanted treatment", "medication assistanted treatment", "MAT", "opioid epidemic", "teen",
-    "dangers", "genetic", "environmental factors", "pain mangement", "socioeconomic factors", "consequences", "adult", "death",
+    "dangers", "genetic", "environmental factors", "pain management", "socioeconomic factors", "consequences", "adult", "death",
     "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS"
 ]
 
-# --- Crawler ---
 def load_urls_from_file(file_path):
     urls = []
     if os.path.exists(file_path):
@@ -59,11 +59,13 @@ def load_urls_from_file(file_path):
     return urls
 
 URLS_FILE_PATH = os.path.join(os.path.dirname(__file__), "data", "urls.txt")
+
 URLS = load_urls_from_file(URLS_FILE_PATH)
 
 async def fetch_url(session, url, visited, base_domain, text_data, queue):
     if url in visited:
         return
+
     visited.add(url)
 
     try:
@@ -72,17 +74,23 @@ async def fetch_url(session, url, visited, base_domain, text_data, queue):
                 return
 
             soup = BeautifulSoup(await response.text(), "html.parser")
+
+            # NEW: Filter pages to keep only opioid-related content
             page_text = soup.get_text().lower()
             if not any(keyword in page_text for keyword in relevant_topics):
                 return
 
+            # Extract text from tags
             for tag in soup.find_all(["p", "h1", "h2", "h3", "li"]):
                 text_data.append(tag.get_text() + "\n")
 
+            # Extract links for further crawling
             for link_tag in soup.find_all("a", href=True):
                 href = link_tag['href']
                 full_url = urljoin(url, href)
                 link_domain = urlparse(full_url).netloc
+
+                # MODIFIED: Allow crawling all subdomains of the base domain
                 if base_domain in link_domain and full_url not in visited:
                     queue.append(full_url)
 
@@ -101,7 +109,7 @@ async def crawl_and_extract_text(base_urls, max_pages=5):
         while queue and len(visited) < max_pages:
             url = queue.popleft()
             tasks.append(fetch_url(session, url, visited, urlparse(url).netloc, text_data, queue))
-            if len(tasks) >= 10:
+            if len(tasks) >= 10:  # Limit concurrent requests
                 await asyncio.gather(*tasks)
                 tasks = []
 
@@ -112,24 +120,36 @@ async def crawl_and_extract_text(base_urls, max_pages=5):
 
 def update_urls_and_crawl():
     updated_urls = load_urls_from_file(URLS_FILE_PATH)
-    return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))
+    return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))  # Same limit for the updated crawl
 
-# Crawl once on startup
-crawled_text = update_urls_and_crawl()
+# NEW: Check if the current question is a related follow-up to the previous one
+def is_follow_up_question(current_question, previous_question, threshold=0.6):
+    """Check if the current question is a related follow-up to the previous one."""
+    similarity = SequenceMatcher(None, current_question.lower(), previous_question.lower()).ratio()
+    return similarity >= threshold
 
-# --- Core Chat Logic ---
+# MODIFIED: Updated to allow relevant follow-up questions
 def is_question_relevant(question):
-    return any(topic.lower() in question.lower() for topic in relevant_topics)
+    """Checks if the question contains opioid-related keywords or is a relevant follow-up."""
+    if any(topic.lower() in question.lower() for topic in relevant_topics):
+        return True
+
+    # Check if the last user question was relevant and the current one is a follow-up
+    if conversation_history and conversation_history[-1]["role"] == "user":
+        previous_question = conversation_history[-1]["content"]
+        if is_follow_up_question(question, previous_question):
+            return True
+
+    return False
 
 def get_llama3_response(question):
-    conversation_history = session.get("conversation_history", [])
     conversation_history.append({"role": "user", "content": question})
 
-    combined_text = pdf_text + "\n\n" + crawled_text
-    max_turns = 20  # Expanded memory: 20 user + assistant exchanges (40 messages)
-    trimmed_history = conversation_history[-(max_turns * 2):]
+    combined_text = pdf_text + "\n\n" + update_urls_and_crawl()
 
-    messages = [{"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}] + trimmed_history
+    messages = [
+        {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
+    ] + conversation_history[-5:]
 
     headers = {
         "Authorization": f"Bearer {REN_API_KEY}",
@@ -152,8 +172,6 @@ def get_llama3_response(question):
         response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
         conversation_history.append({"role": "assistant", "content": response_text})
 
-        session["conversation_history"] = conversation_history  # Save memory
-
         return format_response(response_text)
 
     except requests.exceptions.RequestException as e:
@@ -164,10 +182,9 @@ def format_response(response_text, for_voice=False):
     formatted_text = response_text.strip().replace("brbr", "")
     return formatted_text.replace("<br>", " ").replace("\n", " ") if for_voice else formatted_text.replace("\n", "<br>")
 
-# --- Flask Routes ---
 @app.route("/")
 def index():
-    intro_message = "Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!"
+    intro_message = "🤖 Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!"
     return render_template("index.html", intro_message=intro_message)
 
 @app.route("/ask", methods=["POST"])
@@ -200,11 +217,6 @@ def voice_response():
         clean_voice_response = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
     return jsonify({"answer": clean_voice_response})
-
-@app.route("/reset", methods=["POST"])
-def reset_memory():
-    session.pop("conversation_history", None)
-    return jsonify({"message": "Conversation memory has been cleared."})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
