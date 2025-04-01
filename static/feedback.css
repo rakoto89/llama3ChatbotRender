@@ -27,49 +27,36 @@ body {
     color: #666;
 }
 
-/* Emoji Rating Section */
+/* Emoji Rating Styling */
 .emoji-rating {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
-    margin: 20px 0;
+    margin-bottom: 10px;
 }
 
 .emoji-rating label {
     display: flex;
     align-items: center;
-    gap: 10px;
     cursor: pointer;
     font-size: 20px;
-    background: #f9f9f9;
-    padding: 10px;
-    border-radius: 20px;
-    width: 80%;
-    justify-content: center;
-    transition: background 0.3s, transform 0.2s;
-    border: 2px solid transparent;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: background 0.3s;
+    width: 100%;
 }
 
 .emoji-rating input {
     display: none;
 }
 
-.emoji-rating label span {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-/* Hover and Selection Effects */
-.emoji-rating label:hover {
-    background: #e0e0e0;
-}
-
-.emoji-rating input:checked + label {
-    background: #d1e7fd;
-    border: 2px solid #007bff;
-    transform: scale(1.05);
+/* Highlight selected rating */
+.emoji-rating input:checked + span {
+    background-color: gold;
+    color: black;
+    font-weight: bold;
+    padding: 5px;
+    border-radius: 5px;
 }
 
 /* Textarea Styling */
@@ -133,4 +120,5 @@ button {
     font-size: 18px;
     font-weight: bold;
     margin-top: 15px;
+    display: none;
 }
