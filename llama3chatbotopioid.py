@@ -1,4 +1,4 @@
-import os 
+import os
 import requests
 import pdfplumber
 from flask import Flask, request, jsonify, render_template
@@ -10,8 +10,6 @@ import time
 import asyncio
 import aiohttp
 from difflib import SequenceMatcher
-import json
-from datetime import datetime
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
@@ -122,7 +120,7 @@ def update_urls_and_crawl():
     return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))
 
 def is_question_relevant(question):
-    """Checks if the question contains opioid-related keywords or is a relevant follow-up."""
+    """Checks if the question contains opioid-related keywords or is a relevant follow-up.""" 
     
     pronouns = ['it', 'they', 'this', 'that']
     # Check for relevant topics
@@ -230,50 +228,26 @@ def voice_response():
 
     return jsonify({"answer": clean_voice_response})
 
-# ✅ New Route to Display Feedback Page
-@app.route("/feedback")
-def feedback_page():
-    return render_template("feedback.html")
+# Feedback Route to Collect Feedback
+feedback_list = []
 
-# ✅ New Route to Handle Feedback Submission
-@app.route("/submit-feedback", methods=["POST"])
+@app.route("/feedback", methods=["POST"])
 def submit_feedback():
-    rating = request.form.get("rating")
-    comments = request.form.get("comments", "").strip()
+    data = request.json
+    user_feedback = data.get("feedback", "").strip()
 
-    if not rating or not rating.isdigit() or int(rating) < 1 or int(rating) > 5:
-        return jsonify({"error": "Invalid rating"}), 400
+    if not user_feedback:
+        return jsonify({"message": "Feedback cannot be empty."})
 
-    feedback_data = {
-        "timestamp": datetime.now().isoformat(),
-        "rating": int(rating),
-        "comments": comments,
-        "user_id": os.urandom(16).hex()  # Generate anonymous user ID
-    }
+    # Store feedback (in memory here)
+    feedback_list.append(user_feedback)
 
-    feedback_folder = os.path.join(os.path.dirname(__file__), "data")
-    feedback_file = os.path.join(feedback_folder, "feedback.json")
+    return jsonify({"message": "Thank you for your feedback!"})
 
-    if not os.path.exists(feedback_folder):
-        os.makedirs(feedback_folder)
-
-    try:
-        if os.path.exists(feedback_file):
-            with open(feedback_file, "r") as f:
-                feedback_list = json.load(f)
-        else:
-            feedback_list = []
-
-        feedback_list.append(feedback_data)
-
-        with open(feedback_file, "w") as f:
-            json.dump(feedback_list, f, indent=4)
-
-        return jsonify({"success": "Feedback submitted successfully!"}), 200
-
-    except Exception as e:
-        print(f"Error saving feedback: {e}")
-        return jsonify({"error": "Could not save feedback."}), 500
+# View Feedback Route to Retrieve Feedback
+@app.route("/view_feedback", methods=["GET"])
+def view_feedback():
+    return jsonify({"feedback": feedback_list})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
