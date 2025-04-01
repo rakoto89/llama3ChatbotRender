@@ -32,16 +32,16 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Return to Chatbot Page
     document.getElementById("return-chatbot").addEventListener("click", function() {
-        window.location.href = "https://llama2chatbotrender.onrender.com/";  // Keep your original URL
+        window.location.href = "/";  // Redirect to the chatbot (index route)
     });
 
     // Skip Feedback & Redirect
     document.getElementById("skip-feedback").addEventListener("click", function() {
-        window.location.href = "https://llama2chatbotrender.onrender.com/";  // Keep your original URL
+        window.location.href = "/";  // Redirect to the chatbot (index route)
     });
 
     // Send Feedback Button (Optional for clarity, since it submits the form)
-    document.getElementById("send-feedback").addEventListener("click", function() {
+    document.getElementById("send-feedback")?.addEventListener("click", function() {
         document.getElementById("feedback-form").submit();  // Trigger the form submission manually if needed
     });
 });
