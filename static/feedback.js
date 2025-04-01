@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function() {
         .catch(error => console.error("Error:", error));
     };
 
-    // Redirect to Chatbot Page
+    // Return to Chatbot Page
     document.getElementById("return-chatbot").addEventListener("click", function() {
         window.location.href = "/chatbot";  // Update this URL to match your chatbot route
     });
@@ -38,5 +38,10 @@ document.addEventListener("DOMContentLoaded", function() {
     // Skip Feedback & Redirect
     document.getElementById("skip-feedback").addEventListener("click", function() {
         window.location.href = "/chatbot";  // Update this URL to match your chatbot route
+    });
+
+    // Send Feedback Button (Optional for clarity, since it submits the form)
+    document.getElementById("send-feedback").addEventListener("click", function() {
+        document.getElementById("feedback-form").submit();  // Trigger the form submission manually if needed
     });
 });
