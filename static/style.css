@@ -173,13 +173,23 @@ button {
     margin-bottom: 15px;
 }
 
-/* Star Styling */
-#stars span {
-    font-size: 30px;
-    cursor: pointer;
-    color: #ccc;
-    margin: 0 5px;
-    transition: color 0.3s;
+/* Star Styling - default to white */
+.stars label {
+   font-size: 30px;
+   color: white;
+   cursor: pointer;
+   transition: color 0.2s;
+}
+
+/* Hide radio buttons */
+.stars input[type="radio"] {
+   display: none;
+}
+
+/* On hover, show temporary preview of gold stars */
+.stars label:hover,
+.stars label:hover ~ label {
+   color: gold;
 }
 
 /* Review Textbox */
