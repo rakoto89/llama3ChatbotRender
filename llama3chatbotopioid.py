@@ -123,18 +123,14 @@ def is_question_relevant(question):
     """Checks if the question contains opioid-related keywords or is a relevant follow-up.""" 
     
     pronouns = ['it', 'they', 'this', 'that']
-    # Check for relevant topics
     if any(topic.lower() in question.lower() for topic in relevant_topics):
         return True
 
-    # Check if pronouns are used and try to find the context
     for pronoun in pronouns:
         if pronoun in question.lower():
-            # Look up the last topic if this is a pronoun reference
             if conversation_context.get("last_topic"):
                 return True
 
-    # Allow follow-up questions based on similarity with the last question
     if conversation_history:
         prev_interaction = conversation_history[-1]["content"]
         similarity_ratio = SequenceMatcher(None, prev_interaction.lower(), question.lower()).ratio()
@@ -239,7 +235,6 @@ def submit_feedback():
     if not user_feedback:
         return jsonify({"message": "Feedback cannot be empty."})
 
-    # Store feedback (in memory here)
     feedback_list.append(user_feedback)
 
     return jsonify({"message": "Thank you for your feedback!"})
