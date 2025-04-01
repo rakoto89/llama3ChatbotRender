@@ -52,7 +52,7 @@ body {
 
 /* Highlight selected rating */
 .emoji-rating input:checked + span {
-    background-color: gold;
+    background-color: rgba(173, 216, 230, 0.5); /* Light blue with 50% transparency */
     color: black;
     font-weight: bold;
     padding: 5px;
