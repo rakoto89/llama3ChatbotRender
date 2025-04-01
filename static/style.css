@@ -202,6 +202,18 @@ button {
     height: 150px; /* Increase height */
 }
 
+/* Center the feedback text box */
+#review-text {
+    display: block;
+    margin: 20px auto; /* Center horizontally and add vertical spacing */
+    width: 60%; /* Set appropriate width */
+    height: 150px; /* Set height */
+    border: 1px solid #ccc; /* Optional: border for clarity */
+    border-radius: 5px; /* Optional: rounded corners */
+    padding: 10px; /* Optional: spacing inside the box */
+    background: white; /* Optional: set background color */
+}
+
 /* Align feedback buttons properly */
 #feedback-modal button {
     display: block;
