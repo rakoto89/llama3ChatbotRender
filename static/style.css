@@ -197,7 +197,7 @@ button {
 #review-text {
     display: block;
     margin: 0 auto; /* Center horizontally */
-    width: 90%; /* Increase width */
+    width: 180%; /* Increase width */
     height: 150px; /* Increase height */
 }
 
