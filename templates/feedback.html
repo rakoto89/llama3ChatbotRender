@@ -4,7 +4,7 @@
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>Rate your experience</title>
-   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+   <link rel="stylesheet" href="{{ url_for('static', filename='feedback.css') }}">
 </head>
 <body>
    <div class="feedback-container">
@@ -13,20 +13,17 @@
            <p>We highly value your feedback! Rate your experience and provide us with your valuable feedback.</p>
 
            <form id="feedback-form" method="POST" action="/submit-feedback">
-               <!-- Star Rating Section -->
-               <div class="center">
-                   <div class="stars">
-                       <input type="radio" id="star5" name="rate" value="5"><label for="star5">⭐</label>
-                       <input type="radio" id="star4" name="rate" value="4"><label for="star4">⭐</label>
-                       <input type="radio" id="star3" name="rate" value="3"><label for="star3">⭐</label>
-                       <input type="radio" id="star2" name="rate" value="2"><label for="star2">⭐</label>
-                       <input type="radio" id="star1" name="rate" value="1"><label for="star1">⭐</label>
-                   </div>
-               </div>
-
                <!-- Text Box for Additional Comments -->
-               <label for="comments" class="comments-label">Tell us about your experience!</label>
                <textarea id="comments" name="comments" rows="4" placeholder="Write your feedback here..."></textarea>
+
+               <!-- Star Rating Section -->
+               <div class="center stars">
+                   <input type="radio" id="star5" name="rate" value="5"><label for="star5">⭐</label>
+                   <input type="radio" id="star4" name="rate" value="4"><label for="star4">⭐</label>
+                   <input type="radio" id="star3" name="rate" value="3"><label for="star3">⭐</label>
+                   <input type="radio" id="star2" name="rate" value="2"><label for="star2">⭐</label>
+                   <input type="radio" id="star1" name="rate" value="1"><label for="star1">⭐</label>
+               </div>
 
                <!-- Button Section -->
                <div class="button-container">
@@ -74,21 +71,6 @@
        // Skip Feedback Button
        document.getElementById("skip-feedback").addEventListener("click", () => {
            window.location.href = "/";
-       });
-
-       // Custom Star Rating Script
-       const starInputs = document.querySelectorAll('.stars input[type="radio"]');
-       starInputs.forEach(input => {
-           input.addEventListener('change', () => {
-               const allLabels = [...input.parentElement.querySelectorAll('label')].reverse();
-               let found = false;
-               allLabels.forEach(label => {
-                   if (input.id === label.getAttribute('for')) {
-                       found = true;
-                   }
-                   label.style.color = found ? 'gold' : 'white';
-               });
-           });
        });
    </script>
 </body>
