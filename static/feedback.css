@@ -1,0 +1,114 @@
+/* General Page Styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.feedback-container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 400px;
+}
+
+.feedback-card h1 {
+    color: #333;
+}
+
+.feedback-card p {
+    font-size: 14px;
+    color: #666;
+}
+
+/* Star Rating Styling */
+.stars {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    font-size: 30px;
+    cursor: pointer;
+}
+
+.stars input {
+    display: none;
+}
+
+.stars label {
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.stars input:checked ~ label {
+    color: gold;
+}
+
+/* Textarea Styling */
+textarea {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin-top: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    resize: none;
+}
+
+/* Buttons Styling */
+.button-container {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+button {
+    padding: 10px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-submit {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-submit:hover {
+    background-color: #218838;
+}
+
+.btn-return {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-return:hover {
+    background-color: #0056b3;
+}
+
+.btn-skip {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-skip:hover {
+    background-color: #c82333;
+}
+
+/* Success Message */
+#success-message {
+    color: #28a745;
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 15px;
+}
+
