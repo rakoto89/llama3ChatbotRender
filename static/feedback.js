@@ -1,33 +1,51 @@
 document.addEventListener("DOMContentLoaded", function () {
-  const form = document.getElementById("feedback-form");
-  const successMessage = document.getElementById("success-message");
+    const form = document.getElementById("feedback-form");
+    const successMessage = document.getElementById("success-message");
+    const returnChatbotButton = document.getElementById("return-chatbot");
+    const skipFeedbackButton = document.getElementById("skip-feedback");
 
-  form.onsubmit = function (event) {
-    event.preventDefault();
+    let selectedRating = 0; // Default rating
 
-    const formData = new FormData(form);
-
-    fetch("/feedback", {
-      method: "POST",
-      body: formData
-    })
-    .then(response => response.text())
-    .then(data => {
-      successMessage.style.display = "block";
-      form.reset();
-    })
-    .catch(error => {
-      console.error("Submission failed:", error);
+    // Capture rating selection
+    document.querySelectorAll("input[name='rate']").forEach(radio => {
+        radio.addEventListener("change", function () {
+            selectedRating = this.value;
+        });
     });
-  };
 
-  // Redirect to chatbot
-  document.getElementById("return-chatbot").onclick = function () {
-    window.location.href = "/chatbot"; // Replace with your actual chatbot route
-  };
+    // Handle form submission
+    if (form) {
+        form.onsubmit = function (event) {
+            event.preventDefault();
 
-  // Skip feedback and go to chatbot
-  document.getElementById("skip-feedback").onclick = function () {
-    window.location.href = "/chatbot"; // Or a different skip route if needed
-  };
+            const formData = new FormData(form);
+
+            fetch("/feedback", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                successMessage.style.display = "block";
+                form.reset();
+            })
+            .catch(error => {
+                console.error("Submission failed:", error);
+            });
+        };
+    }
+
+    // Redirect to chatbot
+    if (returnChatbotButton) {
+        returnChatbotButton.onclick = function () {
+            window.location.href = "/chatbot";
+        };
+    }
+
+    // Skip feedback and go to chatbot
+    if (skipFeedbackButton) {
+        skipFeedbackButton.onclick = function () {
+            window.location.href = "/chatbot";
+        };
+    }
 });
