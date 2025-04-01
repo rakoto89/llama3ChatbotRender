@@ -5,6 +5,7 @@
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>Rate your experience</title>
    <link rel="stylesheet" href="{{ url_for('static', filename='feedback.css') }}">
+   <script src="{{ url_for('static', filename='feedback.js') }}" defer></script> <!-- Link to feedback.js -->
 </head>
 <body>
    <div class="feedback-container">
@@ -40,55 +41,5 @@
            </div>
        </div>
    </div>
-
-   <script>
-       // Handle Feedback Form Submission
-       document.getElementById("feedback-form").onsubmit = function(event) {
-           event.preventDefault();
-
-           const formData = new FormData(event.target);
-
-           fetch("/feedback", {
-               method: "POST",
-               body: formData,
-           })
-           .then(response => {
-               if (response.ok) {
-                   document.getElementById("feedback-form").style.display = "none";
-                   document.getElementById("success-message").style.display = "block";
-               } else {
-                   alert("Error submitting feedback. Please try again.");
-               }
-           })
-           .catch(() => {
-               alert("An error occurred. Please check your connection.");
-           });
-       };
-
-       // Return to Chatbot Button
-       document.getElementById("return-chatbot").addEventListener("click", () => {
-           window.location.href = "/";
-       });
-
-       // Skip Feedback Button
-       document.getElementById("skip-feedback").addEventListener("click", () => {
-           window.location.href = "/";
-       });
-
-       // Custom Star Rating Script
-       const starInputs = document.querySelectorAll('.stars input[type="radio"]');
-       starInputs.forEach(input => {
-           input.addEventListener('change', () => {
-               const allLabels = [...input.parentElement.querySelectorAll('label')].reverse();
-               let found = false;
-               allLabels.forEach(label => {
-                   if (input.id === label.getAttribute('for')) {
-                       found = true;
-                   }
-                   label.style.color = found ? 'gold' : 'black';
-               });
-           });
-       });
-   </script>
 </body>
 </html>
