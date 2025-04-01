@@ -197,6 +197,8 @@ button {
 #review-text {
     display: block;
     margin: 0 auto; /* Center horizontally */
+    width: 90%; /* Increase width */
+    height: 150px; /* Increase height */
 }
 
 /* Align feedback buttons properly */
