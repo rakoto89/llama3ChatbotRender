@@ -1,7 +1,7 @@
 import os
 import requests
 import pdfplumber
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, render_template, redirect, url_for
 from flask_cors import CORS
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
@@ -227,19 +227,16 @@ def voice_response():
 # Feedback Route to Collect Feedback
 feedback_list = []
 
-@app.route("/feedback", methods=["POST"])
-def submit_feedback():
-    data = request.json
-    user_feedback = data.get("feedback", "").strip()
+@app.route("/feedback", methods=["GET", "POST"])
+def feedback():
+    if request.method == "POST":
+        feedback_text = request.form.get("feedback")
+        if feedback_text:
+            feedback_list.append(feedback_text)
+            return render_template("feedback.html", success=True)
 
-    if not user_feedback:
-        return jsonify({"message": "Feedback cannot be empty."})
+    return render_template("feedback.html", success=False)
 
-    feedback_list.append(user_feedback)
-
-    return jsonify({"message": "Thank you for your feedback!"})
-
-# View Feedback Route to Retrieve Feedback
 @app.route("/view_feedback", methods=["GET"])
 def view_feedback():
     return jsonify({"feedback": feedback_list})
