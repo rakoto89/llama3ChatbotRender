@@ -1,7 +1,7 @@
 /* General body styling */
 body {
     font-family: Arial, sans-serif;
-    background: linear-gradient(to bottom, #fffde8, #fff9c4, #fff59d, #ffeb3b, #ffca28); /* Gradient to mimic the image */
+    background: linear-gradient(to bottom, #fffde8, #fff9c4, #fff59d, #ffeb3b, #ffca28);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -9,216 +9,119 @@ body {
     margin: 0;
 }
 
+/* Feedback container */
+.feedback-container {
+    text-align: center;
+}
+
+/* Feedback card styling */
+.feedback-card {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 500px;
+}
+
 /* Title styling */
 h1 {
-    font-size: 30px; /* Size of the header */
-    font-weight: bold;
-    color: black;
-    text-align: center;
-    margin-top: 10px; /* Reduced margin to move the header up */
-}
-
-/* Bowie State Logo styling */
-.top-right-image {
-    position: absolute;
-    top: 10px;
-    left: 10px; /* Logo at the top-left */
-    width: 80px; /* Increased width for clarity */
-    height: auto; /* Maintain aspect ratio */
-    border-radius: 0; /* No circular shape to prevent distortion */
-}
-
-/* Updated: No box around chat and no header background */
-.chat-container {
-    width: auto; /* Full width with no fixed container */
-    background: transparent; /* No background to remove box */
-    border-radius: 0; /* No rounded corners */
-    box-shadow: none; /* Remove shadow */
-    text-align: center;
-    overflow: visible;
-    padding-top: 20px; /* Optional spacing for better alignment */
-}
-
-/* Chat header with no background */
-.chat-header {
-    background: transparent; /* No background */
-    color: black; /* Text in black */
-    padding: 15px 0; /* Space at the top and bottom */
-    font-size: 22px; /* Increased font size */
-    font-weight: bold;
-    text-align: center;
-}
-
-/* Chat box with no background */
-.chat-box {
-    height: 400px; /* Keep height */
-    overflow-y: auto;
-    padding: 15px;
-    background: transparent; /* No background */
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-    border: none; /* Remove any borders */
-}
-
-/* Bot message style */
-.bot-message {
-    background: black;
-    color: white;
-    padding: 15px; /* Increased padding */
-    border-radius: 10px;
-    margin: 8px 0; /* Increased margin */
-    max-width: 80%;
-    align-self: flex-start;
-    word-wrap: break-word;
-}
-
-/* User message style */
-.user-message {
-    background: #d3d3d3; /* Lighter gray */
-    color: black;
-    padding: 15px; /* Increased padding */
-    border-radius: 10px;
-    margin: 8px 0; /* Increased margin */
-    max-width: 80%;
-    align-self: flex-end;
-    word-wrap: break-word;
-}
-
-/* Input and button container */
-.input-container {
-    display: flex;
-    padding: 15px; /* Increased padding */
-    background: transparent; /* No background */
-}
-
-/* Input field with white background and black text */
-input {
-    flex: 1;
-    padding: 10px; /* Increased padding */
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background: white; /* Updated to white background */
-    color: black; /* Text set to black */
-}
-
-/* Button styles with no background */
-button {
-    margin-left: 10px; /* Increased margin */
-    padding: 10px 15px; /* Increased padding */
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-    background: transparent; /* No background */
-    color: white; /* Text color set to white */
-}
-
-/* Send button */
-#send-btn {
-    background: green; /* Green background */
-    color: white; /* White text */
-    border: 1px solid green;
-}
-
-/* Voice button */
-#voice-btn {
-    background: blue; /* Blue background */
-    color: white; /* White text */
-    border: 1px solid blue;
-}
-
-/* Stop button */
-#stop-btn {
-    background: red; /* Red background */
-    color: white; /* White text */
-    border: 1px solid red;
-}
-
-/* End Chat button */
-#end-btn {
-    background: gray; /* Gray background */
-    color: white; /* White text */
-    border: 1px solid gray;
-    margin-left: 10px; /* Same margin as other buttons */
-    padding: 10px 15px; /* Matching padding */
-    border-radius: 5px; /* Rounded corners */
-    cursor: pointer;
-}
-
-/* Feedback Modal */
-#feedback-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    color: black;
-}
-
-/* Title inside Feedback Card */
-#feedback-modal h3 {
     font-size: 24px;
     font-weight: bold;
-    margin-bottom: 15px;
-    color: #333; /* Darker text for contrast */
+    margin-bottom: 10px;
 }
 
-/* Star Rating Container */
-#stars {
-    margin-bottom: 15px;
+/* Paragraph styling */
+p {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 20px;
 }
 
-/* Star Styling - default to white */
-.stars label {
-   font-size: 30px;
-   color: white;
-   cursor: pointer;
-   transition: color 0.2s;
-}
-
-/* Hide radio buttons */
-.stars input[type="radio"] {
-   display: none;
-}
-
-/* On hover, show temporary preview of gold stars */
-.stars label:hover,
-.stars label:hover ~ label {
-   color: gold;
-}
-
-/* Review Textbox */
-#review-text {
+/* Text area */
+textarea {
     width: 100%;
     height: 100px;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+/* Star Rating Centered */
+.center {
+    display: flex;
+    justify-content: center;
     margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+/* Star Styling */
+.stars label {
+    font-size: 30px;
+    color: #d3d3d3;
+    cursor: pointer;
+    transition: color 0.2s;
+    margin: 0 5px;
+}
+
+/* Hide radio buttons */
+.stars input[type="radio"] {
+    display: none;
+}
+
+/* Highlight stars when selected */
+.stars input[type="radio"]:checked ~ label {
+    color: gold;
+}
+
+/* Button container */
+.button-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-evenly;
+}
+
+/* Button styles */
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
     font-size: 14px;
 }
 
-/* Feedback Buttons */
-#feedback-modal button {
-    background: #4CAF50; /* Green background */
+/* Send Feedback button */
+.btn-submit {
+    background: #4CAF50;
     color: white;
-    padding: 10px 20px;
-    border: none;
-    cursor: pointer;
-    border-radius: 8px;
-    margin-top: 10px;
 }
 
-/* Add emoji support */
+/* Return to Chatbot button */
+.btn-return {
+    background: #2196F3;
+    color: white;
+}
+
+/* Skip Feedback button */
+.btn-skip {
+    background: #FF9800;
+    color: white;
+}
+
+/* Success message */
+#success-message {
+    margin-top: 20px;
+    font-size: 16px;
+    color: green;
+}
+
+/* Bot message with emoji */
 .bot-message::before {
-    content: "🤖 "; /* Robot emoji */
+    content: "🤖 "; /* Bot emoji */
 }
 
+/* User message with emoji */
 .user-message::before {
     content: "👤 "; /* User emoji */
 }
