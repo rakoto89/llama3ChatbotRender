@@ -1,51 +1,47 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const form = document.getElementById("feedback-form");
-    const successMessage = document.getElementById("success-message");
-    const returnChatbotButton = document.getElementById("return-chatbot");
-    const skipFeedbackButton = document.getElementById("skip-feedback");
+document.addEventListener("DOMContentLoaded", function() {
+    // Handle Feedback Form Submission
+    document.getElementById("feedback-form").onsubmit = function(event) {
+        event.preventDefault();
 
-    let selectedRating = 0; // Default rating
+        // Get selected rating
+        const selectedRating = document.querySelector('input[name="rate"]:checked');
+        if (!selectedRating) {
+            alert("Please select a rating before submitting.");
+            return;
+        }
 
-    // Capture rating selection
-    document.querySelectorAll("input[name='rate']").forEach(radio => {
-        radio.addEventListener("change", function () {
-            selectedRating = this.value;
-        });
+        // Get rating value and comments
+        const ratingValue = selectedRating.value;
+        const comments = document.getElementById("comments").value;
+
+        const formData = new FormData();
+        formData.append("rate", ratingValue);
+        formData.append("comments", comments);
+
+        fetch("/feedback", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById("success-message").style.display = "block";
+            document.getElementById("feedback-form").reset(); // Reset form after submission
+        })
+        .catch(error => console.error("Error:", error));
+    };
+
+    // Return to Chatbot Page
+    document.getElementById("return-chatbot").addEventListener("click", function() {
+        window.location.href = "https://llama2chatbotrender.onrender.com/";  // Keep your original URL
     });
 
-    // Handle form submission
-    if (form) {
-        form.onsubmit = function (event) {
-            event.preventDefault();
+    // Skip Feedback & Redirect
+    document.getElementById("skip-feedback").addEventListener("click", function() {
+        window.location.href = "https://llama2chatbotrender.onrender.com/";  // Keep your original URL
+    });
 
-            const formData = new FormData(form);
-
-            fetch("/feedback", {
-                method: "POST",
-                body: formData
-            })
-            .then(response => response.text())
-            .then(data => {
-                successMessage.style.display = "block";
-                form.reset();
-            })
-            .catch(error => {
-                console.error("Submission failed:", error);
-            });
-        };
-    }
-
-    // Redirect to chatbot
-    if (returnChatbotButton) {
-        returnChatbotButton.onclick = function () {
-            window.location.href = "/chatbot";
-        };
-    }
-
-    // Skip feedback and go to chatbot
-    if (skipFeedbackButton) {
-        skipFeedbackButton.onclick = function () {
-            window.location.href = "/chatbot";
-        };
-    }
+    // Send Feedback Button (Optional for clarity, since it submits the form)
+    document.getElementById("send-feedback").addEventListener("click", function() {
+        document.getElementById("feedback-form").submit();  // Trigger the form submission manually if needed
+    });
 });
