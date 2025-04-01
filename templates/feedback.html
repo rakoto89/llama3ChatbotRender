@@ -3,34 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot Feedback</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Rate your experience</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/feedback.css') }}">
 </head>
 <body>
-    <div class="container">
-        <h1>Chatbot Feedback</h1>
-        <form id="feedback-form" method="POST" action="/submit-feedback">
-            <label for="rating">Rate the Chatbot:</label>
-            <div class="rating">
-                <input type="radio" id="star5" name="rating" value="5"><label for="star5">⭐</label>
-                <input type="radio" id="star4" name="rating" value="4"><label for="star4">⭐</label>
-                <input type="radio" id="star3" name="rating" value="3"><label for="star3">⭐</label>
-                <input type="radio" id="star2" name="rating" value="2"><label for="star2">⭐</label>
-                <input type="radio" id="star1" name="rating" value="1"><label for="star1">⭐</label>
+    <div class="feedback-container">
+        <div class="feedback-card">
+            <h1>Rate your experience</h1>
+            <p>We highly value your feedback! Rate your experience and provide us with your valuable feedback.</p>
+
+            <form id="feedback-form" method="POST" action="/submit-feedback">
+                <!-- Star Rating Section -->
+                <div class="rating">
+                    <input type="radio" id="star5" name="rating" value="5"><label for="star5">⭐</label>
+                    <input type="radio" id="star4" name="rating" value="4"><label for="star4">⭐</label>
+                    <input type="radio" id="star3" name="rating" value="3"><label for="star3">⭐</label>
+                    <input type="radio" id="star2" name="rating" value="2"><label for="star2">⭐</label>
+                    <input type="radio" id="star1" name="rating" value="1"><label for="star1">⭐</label>
+                </div>
+
+                <!-- Text Box for Additional Comments -->
+                <label for="comments" class="comments-label">Tell us about your experience!</label>
+                <textarea id="comments" name="comments" rows="4" placeholder="Write your feedback here..."></textarea>
+
+                <!-- Button Section -->
+                <div class="button-container">
+                    <button type="submit" class="btn-submit">✅ Send Feedback</button>
+                    <button type="button" id="return-chatbot" class="btn-return">🔄 Return to Chatbot</button>
+                    <button type="button" id="skip-feedback" class="btn-skip">⏩ Skip Feedback</button>
+                </div>
+            </form>
+
+            <div id="success-message" style="display: none;">
+                <p>Thank you for your feedback! 🙌</p>
             </div>
-
-            <label for="comments">Any additional comments:</label>
-            <textarea id="comments" name="comments" rows="4" placeholder="Optional..."></textarea>
-
-            <button type="submit">Submit Feedback</button>
-        </form>
-
-        <div id="success-message" style="display: none;">
-            <p>Thank you for your feedback! 🙌</p>
         </div>
     </div>
 
     <script>
+        // Handle Feedback Form Submission
         document.getElementById("feedback-form").onsubmit = function(event) {
             event.preventDefault(); // Prevent page reload
 
@@ -52,6 +63,16 @@
                 alert("An error occurred. Please check your connection.");
             });
         };
+
+        // Return to Chatbot Button
+        document.getElementById("return-chatbot").addEventListener("click", () => {
+            window.location.href = "/";
+        });
+
+        // Skip Feedback Button
+        document.getElementById("skip-feedback").addEventListener("click", () => {
+            window.location.href = "/";
+        });
     </script>
 </body>
 </html>
