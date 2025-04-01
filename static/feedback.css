@@ -49,6 +49,12 @@ body {
     color: gold;
 }
 
+/* Hover effect */
+.stars label:hover,
+.stars label:hover ~ label {
+    color: gold;
+}
+
 /* Textarea Styling */
 textarea {
     width: calc(100% - 20px);
@@ -111,4 +117,3 @@ button {
     font-weight: bold;
     margin-top: 15px;
 }
-
