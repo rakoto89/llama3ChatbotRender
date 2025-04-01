@@ -160,16 +160,6 @@ button {
     color: black;
 }
 
-/* Square Box with White and Light Blue Ombre */
-#feedback-card {
-    background: linear-gradient(to bottom, #ffffff, #b3e5fc); /* White to Baby Blue Gradient */
-    padding: 30px;
-    width: 400px;
-    border-radius: 12px; /* Rounded corners for a modern look */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Subtle shadow for depth */
-    text-align: center;
-}
-
 /* Title inside Feedback Card */
 #feedback-modal h3 {
     font-size: 24px;
@@ -183,19 +173,23 @@ button {
     margin-bottom: 15px;
 }
 
-/* Star Styling */
-#stars span {
-    font-size: 30px;
-    cursor: pointer;
-    color: #ccc;
-    margin: 0 5px;
-    transition: color 0.3s;
+/* Star Styling - default to white */
+.stars label {
+   font-size: 30px;
+   color: white;
+   cursor: pointer;
+   transition: color 0.2s;
 }
 
-/* Highlight stars when selected */
-#stars span:hover,
-#stars span.active {
-    color: gold;
+/* Hide radio buttons */
+.stars input[type="radio"] {
+   display: none;
+}
+
+/* On hover, show temporary preview of gold stars */
+.stars label:hover,
+.stars label:hover ~ label {
+   color: gold;
 }
 
 /* Review Textbox */
