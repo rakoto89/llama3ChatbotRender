@@ -27,32 +27,49 @@ body {
     color: #666;
 }
 
-/* Star Rating Styling */
-.stars {
+/* Emoji Rating Section */
+.emoji-rating {
     display: flex;
-    justify-content: center;
-    gap: 5px;
-    font-size: 30px;
-    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin: 20px 0;
 }
 
-.stars input {
+.emoji-rating label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 20px;
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 20px;
+    width: 80%;
+    justify-content: center;
+    transition: background 0.3s, transform 0.2s;
+    border: 2px solid transparent;
+}
+
+.emoji-rating input {
     display: none;
 }
 
-.stars label {
-    cursor: pointer;
-    transition: color 0.3s;
+.emoji-rating label span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
-.stars input:checked ~ label {
-    color: gold;
+/* Hover and Selection Effects */
+.emoji-rating label:hover {
+    background: #e0e0e0;
 }
 
-/* Hover effect */
-.stars label:hover,
-.stars label:hover ~ label {
-    color: gold;
+.emoji-rating input:checked + label {
+    background: #d1e7fd;
+    border: 2px solid #007bff;
+    transform: scale(1.05);
 }
 
 /* Textarea Styling */
