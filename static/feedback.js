@@ -1,30 +1,20 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // Get all the star labels and input elements
-    const starLabels = document.querySelectorAll('.stars label');
-    const starInputs = document.querySelectorAll('.stars input');
-    
-    // Hover effect - make stars gold when hovering
-    starLabels.forEach((label, index) => {
-        label.addEventListener('mouseover', function() {
-            for (let i = 0; i <= index; i++) {
-                starLabels[i].style.color = 'gold';
-            }
-        });
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("JavaScript loaded!");
 
-        label.addEventListener('mouseout', function() {
-            starLabels.forEach(label => {
-                label.style.color = 'black'; // Reset color when not hovering
-            });
+    // Select all star inputs and labels
+    const stars = document.querySelectorAll(".stars input");
+    const labels = document.querySelectorAll(".stars label");
+
+    stars.forEach(star => {
+        star.addEventListener("change", function () {
+            console.log(`You selected ${this.value} stars`);
+            highlightStars(this.value);
         });
     });
 
-    // Make the selected rating stick when clicked
-    starInputs.forEach(input => {
-        input.addEventListener('change', function() {
-            const selectedValue = input.value;
-            for (let i = 0; i < starLabels.length; i++) {
-                starLabels[i].style.color = (i < selectedValue) ? 'gold' : 'black';
-            }
+    function highlightStars(value) {
+        labels.forEach((label, index) => {
+            label.style.color = (index < value) ? "gold" : "black";
         });
-    });
+    }
 });
