@@ -171,18 +171,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     voiceBtn.addEventListener("click", () => {
-        voiceBtn.disabled = true;
-        voiceMessage(userInput.value, false);
-        voiceTimeout(() => sendBtn.disabled = false, 700);
         usingVoice = true;
         appendMessage("bot", "Listening...");
     });
 
     stopBtn.addEventListener("click", stopSpeaking);
-        stopBtn.disabled = true;
-        stopMessage(userInput.value, false);
-        stopTimeout(() => sendBtn.disabled = false, 700);
-    }); // ✅ Corrected closing bracket
 
     sendBtn.addEventListener("click", () => {
         sendBtn.disabled = true;
@@ -192,10 +185,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     endBtn.addEventListener("click", () => {
         window.location.href = "/feedback";
-        endBtn.disabled = true;
-        sendMessage(userInput.value, false);
-        setTimeout(() => sendBtn.disabled = false, 700);
-    }); // ✅ Corrected closing bracket
+    });
 
     userInput.addEventListener("keypress", function (event) {
         if (event.key === "Enter") {
