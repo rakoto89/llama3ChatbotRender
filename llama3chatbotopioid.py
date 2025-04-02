@@ -1,12 +1,11 @@
 import os
 import requests
 import pdfplumber
-from flask import Flask, request, render_template, redirect, url_for
+from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 from collections import deque
-import time
 import asyncio
 import aiohttp
 from difflib import SequenceMatcher
@@ -20,6 +19,8 @@ REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
 conversation_history = []
 conversation_context = {}
 
+MAX_HISTORY = 10  # Limit the conversation history to the last 10 exchanges
+
 def extract_text_from_pdf(pdf_paths):
     text = ""
     with pdfplumber.open(pdf_paths) as pdf:
@@ -31,11 +32,14 @@ def extract_text_from_pdf(pdf_paths):
 
 def read_pdfs_in_folder(folder_path):
     concatenated_text = ''
-    for filename in os.listdir(folder_path):
-        if filename.endswith('.pdf'):
-            pdf_path = os.path.join(folder_path, filename)
-            pdf_text = extract_text_from_pdf(pdf_path)
-            concatenated_text += pdf_text + '\n\n'
+    if os.path.exists(folder_path):
+        for filename in os.listdir(folder_path):
+            if filename.endswith('.pdf'):
+                pdf_path = os.path.join(folder_path, filename)
+                pdf_text = extract_text_from_pdf(pdf_path)
+                concatenated_text += pdf_text + '\n\n'
+    else:
+        print("Warning: 'pdfs' folder not found. Skipping PDF extraction.")
     return concatenated_text
 
 pdf_text = read_pdfs_in_folder('pdfs')
@@ -53,14 +57,15 @@ relevant_topics = [
 ]
 
 def load_urls_from_file(file_path):
+    if not os.path.exists(file_path):
+        print(f"Warning: URL file '{file_path}' not found. No URLs will be crawled.")
+        return []
     urls = []
-    if os.path.exists(file_path):
-        with open(file_path, "r") as f:
-            urls = [line.strip() for line in f if line.strip()]
+    with open(file_path, "r") as f:
+        urls = [line.strip() for line in f if line.strip()]
     return urls
 
 URLS_FILE_PATH = os.path.join(os.path.dirname(__file__), "data", "urls.txt")
-
 URLS = load_urls_from_file(URLS_FILE_PATH)
 
 async def fetch_url(session, url, visited, base_domain, text_data, queue):
@@ -121,35 +126,32 @@ def update_urls_and_crawl():
 
 def is_question_relevant(question):
     """Checks if the question contains opioid-related keywords or is a relevant follow-up.""" 
-    
-    pronouns = ['it', 'they', 'this', 'that']
-    if any(topic.lower() in question.lower() for topic in relevant_topics):
+    question_words = set(question.lower().split())
+    relevant_words = set(relevant_topics)
+    if question_words & relevant_words:
         return True
 
-    for pronoun in pronouns:
-        if pronoun in question.lower():
-            if conversation_context.get("last_topic"):
-                return True
-
-    if conversation_history:
-        prev_interaction = conversation_history[-1]["content"]
-        similarity_ratio = SequenceMatcher(None, prev_interaction.lower(), question.lower()).ratio()
-        
-        follow_up_triggers = ["What more", "Anything else", "What other things", "Is there anything more", "Any other thing", "Does that", "Anybody", "Anyone in particular", "is it", "what about", "other", "anymore", "what else", "more", "different", "anything else", "anyone else", "anything else", "others", "too"]
-        if similarity_ratio >= 0.5 or any(trigger in question.lower() for trigger in follow_up_triggers):
-            return True
+    pronouns = {'it', 'they', 'this', 'that'}
+    if pronouns & question_words and conversation_context.get("last_topic"):
+        return True
 
     return False
 
 def update_conversation_context(question):
     """Update the conversation context with the last topic mentioned."""
     keywords = [keyword for keyword in relevant_topics if keyword in question.lower()]
-    if keywords:
+    if keywords and conversation_context.get('last_topic') != keywords[-1]:
         conversation_context['last_topic'] = keywords[-1]
+
+def update_conversation_history(role, content):
+    """Update the conversation history and maintain a limit."""
+    conversation_history.append({"role": role, "content": content})
+    if len(conversation_history) > MAX_HISTORY:
+        conversation_history.pop(0)
 
 def get_llama3_response(question):
     update_conversation_context(question)
-    conversation_history.append({"role": "user", "content": question})
+    update_conversation_history("user", question)
 
     combined_text = pdf_text + "\n\n" + update_urls_and_crawl()
 
@@ -165,24 +167,26 @@ def get_llama3_response(question):
     try:
         response = requests.post(
             LLAMA3_ENDPOINT,
-            json={
-                "model": "meta-llama/llama-3.1-8b-instruct:free",
-                "messages": messages
-            },
+            json={"model": "meta-llama/llama-3.1-8b-instruct:free", "messages": messages},
             headers=headers,
             timeout=30
         )
-
         response.raise_for_status()
         data = response.json()
-        response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
-        conversation_history.append({"role": "assistant", "content": response_text})
+
+        if "choices" not in data or not data["choices"]:
+            return "I'm sorry, I couldn't understand your question. Please try again."
+
+        response_text = data["choices"][0].get("message", {}).get("content", "No response").replace("*", "")
+        update_conversation_history("assistant", response_text)
 
         return format_response(response_text)
 
+    except requests.exceptions.Timeout:
+        return "ERROR: The request to the Llama 3 server timed out. Please try again."
     except requests.exceptions.RequestException as e:
         app.logger.error(f"Llama 3 API error: {str(e)}")
-        return f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"
+        return f"ERROR: Unable to connect to the AI server. Details: {str(e)}"
 
 def format_response(response_text, for_voice=False):
     formatted_text = response_text.strip().replace("brbr", "")
