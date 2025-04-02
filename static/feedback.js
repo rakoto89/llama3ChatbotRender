@@ -10,9 +10,10 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     // Speak when tabbing to each star rating
-    document.querySelectorAll('input[name="emoji-rating"]').forEach(function(radio) {
-        radio.addEventListener("focus", function() {
-            speak("first row 5 stars second row 4 stars third row 3 stars fourth row 2 stars fifth row 1 star");
+    document.querySelectorAll('.emoji-rating label').forEach(function(label) {
+        label.addEventListener("focus", function() {
+            const ratingText = this.textContent.trim().split(" ").pop(); // Extract "5 stars", "4 stars", etc.
+            speak(ratingText);
         });
     });
 
