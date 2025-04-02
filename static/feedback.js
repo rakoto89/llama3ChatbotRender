@@ -1,4 +1,41 @@
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function() { 
+    function speak(text) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        speechSynthesis.speak(utterance);
+    }
+
+    // Speak when tabbing to "Rate your experience" heading
+    document.getElementById("rate-experience").addEventListener("focus", function() {
+        speak("Rate your experience");
+    });
+
+    // Speak when tabbing to each star rating
+    document.querySelectorAll('input[name="rate"]').forEach(function(radio) {
+        radio.addEventListener("focus", function() {
+            speak(this.nextElementSibling.textContent.trim());
+        });
+    });
+
+    // Speak when tabbing to the feedback textarea
+    document.getElementById("comments").addEventListener("focus", function() {
+        speak("Write your feedback here");
+    });
+
+    // Speak when tabbing to "Send Feedback"
+    document.getElementById("send-feedback").addEventListener("focus", function() {
+        speak("Send Feedback");
+    });
+
+    // Speak when tabbing to "Return to Chatbot"
+    document.getElementById("return-chatbot").addEventListener("focus", function() {
+        speak("Return to Chatbot");
+    });
+
+    // Speak when tabbing to "Exit"
+    document.getElementById("skip-feedback").addEventListener("focus", function() {
+        speak("Exit");
+    });
+
     // Handle Feedback Form Submission
     document.getElementById("feedback-form").onsubmit = function(event) {
         event.preventDefault();
@@ -40,7 +77,7 @@ document.addEventListener("DOMContentLoaded", function() {
         window.location.href = "https://www.bowiestate.edu/";  // Keep your original URL
     });
 
-    // Send Feedback Button (Optional for clarity, since it submits the form)
+    // Optional: Fix for "Send Feedback" button if needed
     document.getElementById("send-feedback").addEventListener("click", function() {
         document.getElementById("feedback-form").submit();  // Trigger the form submission manually if needed
     });
