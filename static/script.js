@@ -199,4 +199,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Listen for the Tab key to speak the name of the focused element
     userInput.addEventListener("keydown", handleTabKey);
+    voiceBtn.addEventListener("keydown", handleTabKey);
+    stopBtn.addEventListener("keydown", handleTabKey);
+    endBtn.addEventListener("keydown", handleTabKey);
 });
