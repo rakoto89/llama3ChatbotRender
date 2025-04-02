@@ -1,7 +1,7 @@
 import os
 import requests
 import pdfplumber
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, jsonify, redirect, url_for
 from flask_cors import CORS
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
@@ -16,10 +16,6 @@ CORS(app)
 
 LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions").strip()
 REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
-
-# Check API endpoint and key for debugging
-print(f"LLAMA3_ENDPOINT: {LLAMA3_ENDPOINT}")
-print(f"REN_API_KEY: {REN_API_KEY}")
 
 conversation_history = []
 conversation_context = {}
@@ -124,8 +120,7 @@ def update_urls_and_crawl():
     return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))
 
 def is_question_relevant(question):
-    """Checks if the question contains opioid-related keywords or is a relevant follow-up."""
-    
+    """Checks if the question contains opioid-related keywords or is a relevant follow-up.""" 
     pronouns = ['it', 'they', 'this', 'that']
     if any(topic.lower() in question.lower() for topic in relevant_topics):
         return True
@@ -138,7 +133,7 @@ def is_question_relevant(question):
     if conversation_history:
         prev_interaction = conversation_history[-1]["content"]
         similarity_ratio = SequenceMatcher(None, prev_interaction.lower(), question.lower()).ratio()
-        
+
         follow_up_triggers = ["What more", "Anything else", "What other things", "Is there anything more", "Any other thing", "Does that", "Anybody", "Anyone in particular", "is it", "what about", "other", "anymore", "what else", "more", "different", "anything else", "anyone else", "anything else", "others", "too"]
         if similarity_ratio >= 0.5 or any(trigger in question.lower() for trigger in follow_up_triggers):
             return True
@@ -146,7 +141,7 @@ def is_question_relevant(question):
     return False
 
 def update_conversation_context(question):
-    """Update the conversation context with the last topic mentioned."""
+    """Update the conversation context with the last topic mentioned.""" 
     keywords = [keyword for keyword in relevant_topics if keyword in question.lower()]
     if keywords:
         conversation_context['last_topic'] = keywords[-1]
@@ -179,8 +174,6 @@ def get_llama3_response(question):
 
         response.raise_for_status()
         data = response.json()
-        print("API Response:", data)  # Debugging API response
-        
         response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
         conversation_history.append({"role": "assistant", "content": response_text})
 
@@ -193,6 +186,11 @@ def get_llama3_response(question):
 def format_response(response_text, for_voice=False):
     formatted_text = response_text.strip().replace("brbr", "")
     return formatted_text.replace("<br>", " ").replace("\n", " ") if for_voice else formatted_text.replace("\n", "<br>")
+
+@app.route("/")
+def index():
+    intro_message = "🤖 Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!"
+    return render_template("index.html", intro_message=intro_message)
 
 @app.route("/ask", methods=["POST"])
 def ask():
@@ -208,6 +206,39 @@ def ask():
         answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
     return jsonify({"answer": answer})
+
+@app.route("/voice", methods=["POST"])
+def voice_response():
+    data = request.json
+    user_question = data.get("question", "").strip()
+
+    if not user_question:
+        return jsonify({"answer": "Please ask a valid question."})
+
+    if is_question_relevant(user_question):
+        answer = get_llama3_response(user_question)
+        clean_voice_response = format_response(answer, for_voice=True)
+    else:
+        clean_voice_response = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
+
+    return jsonify({"answer": clean_voice_response})
+
+# Feedback Route to Collect Feedback
+feedback_list = []
+
+@app.route("/feedback", methods=["GET", "POST"])
+def feedback():
+    if request.method == "POST":
+        feedback_text = request.form.get("feedback")
+        if feedback_text:
+            feedback_list.append(feedback_text)
+            return render_template("feedback.html", success=True)
+
+    return render_template("feedback.html", success=False)
+
+@app.route("/view_feedback", methods=["GET"])
+def view_feedback():
+    return jsonify({"feedback": feedback_list})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
