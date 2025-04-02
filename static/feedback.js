@@ -1,54 +1,50 @@
-document.addEventListener("DOMContentLoaded", function() { 
-    function speak(text) {
+document.addEventListener("DOMContentLoaded", function() {
+    function speakText(text) {
         const utterance = new SpeechSynthesisUtterance(text);
         speechSynthesis.speak(utterance);
     }
 
-    // Speak when tabbing to "Rate your experience" heading
+    // Speak when "Rate your experience" is focused
     document.getElementById("rate-experience").addEventListener("focus", function() {
-        speak("Rate your experience");
+        speakText("Rate your experience");
     });
 
-    // Speak when tabbing to each star rating
-    document.querySelectorAll('.emoji-rating label').forEach(function(label) {
-        label.addEventListener("focus", function() {
-            const ratingText = this.textContent.trim().split(" ").pop(); // Extract "5 stars", "4 stars", etc.
-            speak(ratingText);
+    // Speak when tabbing through each star rating row
+    document.querySelectorAll(".rating-row").forEach(row => {
+        row.addEventListener("focus", function() {
+            const ratingValue = row.querySelector("input").value;
+            speakText(`${ratingValue} stars`);
         });
     });
 
-    // Speak when tabbing to the feedback textarea
+    // Speak when "Write your feedback here" textarea is focused
     document.getElementById("comments").addEventListener("focus", function() {
-        speak("Write your feedback here");
+        speakText("Write your feedback here");
     });
 
-    // Speak when tabbing to "Send Feedback"
+    // Speak when tabbing through buttons
     document.getElementById("send-feedback").addEventListener("focus", function() {
-        speak("Send Feedback");
+        speakText("Send Feedback");
     });
 
-    // Speak when tabbing to "Return to Chatbot"
     document.getElementById("return-chatbot").addEventListener("focus", function() {
-        speak("Return to Chatbot");
+        speakText("Return to Chatbot");
     });
 
-    // Speak when tabbing to "Exit"
     document.getElementById("skip-feedback").addEventListener("focus", function() {
-        speak("Exit");
+        speakText("Exit");
     });
 
     // Handle Feedback Form Submission
     document.getElementById("feedback-form").onsubmit = function(event) {
         event.preventDefault();
 
-        // Get selected rating
         const selectedRating = document.querySelector('input[name="rate"]:checked');
         if (!selectedRating) {
             alert("Please select a rating before submitting.");
             return;
         }
 
-        // Get rating value and comments
         const ratingValue = selectedRating.value;
         const comments = document.getElementById("comments").value;
 
@@ -63,23 +59,18 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(response => response.text())
         .then(data => {
             document.getElementById("success-message").style.display = "block";
-            document.getElementById("feedback-form").reset(); // Reset form after submission
+            document.getElementById("feedback-form").reset();
         })
         .catch(error => console.error("Error:", error));
     };
 
     // Return to Chatbot Page
     document.getElementById("return-chatbot").addEventListener("click", function() {
-        window.location.href = "https://llama2chatbotrender.onrender.com/";  // Keep your original URL
+        window.location.href = "https://llama2chatbotrender.onrender.com/";
     });
 
     // Skip Feedback & Redirect
     document.getElementById("skip-feedback").addEventListener("click", function() {
-        window.location.href = "https://www.bowiestate.edu/";  // Keep your original URL
-    });
-
-    // Optional: Fix for "Send Feedback" button if needed
-    document.getElementById("send-feedback").addEventListener("click", function() {
-        document.getElementById("feedback-form").submit();  // Trigger the form submission manually if needed
+        window.location.href = "https://www.bowiestate.edu/";
     });
 });
