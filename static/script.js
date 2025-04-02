@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () { 
+document.addEventListener("DOMContentLoaded", function () {
     const chatBox = document.getElementById("chat-box");
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
@@ -11,8 +11,6 @@ document.addEventListener("DOMContentLoaded", function () {
     let usingVoice = false;
     const synth = window.speechSynthesis;
     let silenceTimeout; // Silence timeout to prevent quick response
-
-    const clickedButtons = {}; // Track clicked buttons
 
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
@@ -150,7 +148,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 text = "End chat button.";    
             }
 
-            if (text && !clickedButtons[element.id]) {
+            if (text) {
                 let utterance = new SpeechSynthesisUtterance(text);
                 utterance.rate = 0.9;
                 synth.speak(utterance);
@@ -158,6 +156,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // Handle Tab key to navigate between elements and speak the name
     function handleTabKey(event) {
         if (event.key === "Tab") {
             event.preventDefault();
@@ -168,31 +167,27 @@ document.addEventListener("DOMContentLoaded", function () {
             let nextElement = elements[nextIndex];
             nextElement.focus();
             
-            setTimeout(() => speakElementText(nextElement), 200);
+            setTimeout(() => {
+                speakElementText(nextElement); // Speak the name of the next focused element
+            }, 200);
         }
     }
 
     voiceBtn.addEventListener("click", () => {
         usingVoice = true;
         appendMessage("bot", "Listening...");
-        clickedButtons["voice-btn"] = true; // Mark the button as clicked
     });
 
-    stopBtn.addEventListener("click", () => {
-        stopSpeaking();
-        clickedButtons["stop-btn"] = true; // Mark the button as clicked
-    });
+    stopBtn.addEventListener("click", stopSpeaking);
 
     sendBtn.addEventListener("click", () => {
         sendBtn.disabled = true;
         sendMessage(userInput.value, false);
         setTimeout(() => sendBtn.disabled = false, 700);
-        clickedButtons["send-btn"] = true; // Mark the button as clicked
     }); // ✅ Corrected closing bracket
 
     endBtn.addEventListener("click", () => {
         window.location.href = "/feedback";
-        clickedButtons["end-btn"] = true; // Mark the button as clicked
     });
 
     userInput.addEventListener("keypress", function (event) {
@@ -202,8 +197,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    // Listen for the Tab key to speak the name of the focused element
     userInput.addEventListener("keydown", handleTabKey);
-    voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));
-    stopBtn.addEventListener("focus", () => speakElementText(stopBtn));
-    endBtn.addEventListener("focus", () => speakElementText(endBtn));
 });
