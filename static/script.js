@@ -194,8 +194,3 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    userInput.addEventListener("keydown", handleTabKey);
-    voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));
-    stopBtn.addEventListener("focus", () => speakElementText(stopBtn));
-    endBtn.addEventListener("focus", () => speakElementText(endBtn));
-});
