@@ -10,7 +10,8 @@ document.addEventListener("DOMContentLoaded", function () {
     let isSpeaking = false;
     let usingVoice = false;
     const synth = window.speechSynthesis;
-    let silenceTimeout;
+    let silenceTimeout; // Silence timeout to prevent quick response
+    let isButtonClicked = false; // Flag to prevent speech on button clicks
 
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
@@ -21,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
         
         if (sender === "bot" && usingVoice && message === "Listening...") {
             speakResponse(message, () => {
-                playBeep();
+                playBeep(); // Play beep after saying "Listening..."
                 startVoiceRecognition();
             });
         }
@@ -67,9 +68,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function speakResponse(text, callback) {
-        if ("speechSynthesis" in window) {
-            const cleanText = text.replace(/<br\s*\/?>/g, " "); 
-            if (cleanText.trim() === "") return; 
+        if ("speechSynthesis" in window && !isButtonClicked) { // Check if button clicked
+            // Remove <br> tags only for speech
+            const cleanText = text.replace(/<br\s*\/?>/g, " "); // Replaces <br> with a space
+
+            if (cleanText.trim() === "") return; // Skip if the text is empty after removing <br>
 
             const utterance = new SpeechSynthesisUtterance(cleanText);
             utterance.onend = () => {
@@ -91,19 +94,20 @@ document.addEventListener("DOMContentLoaded", function () {
     function startVoiceRecognition() {
         if ("webkitSpeechRecognition" in window) {
             recognition = new webkitSpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = false;
+            recognition.continuous = true; // Continuous listening
+            recognition.interimResults = false; // Final results only
             recognition.lang = "en-US";
 
             recognition.onresult = (event) => {
-                clearTimeout(silenceTimeout);
+                clearTimeout(silenceTimeout); // Clear any pending timeout
                 const transcript = event.results[event.results.length - 1][0].transcript;
 
+                // Wait for 1.5 seconds after the last spoken word before sending
                 silenceTimeout = setTimeout(() => {
                     sendMessage(transcript, true);
                     recognition.stop();
                     usingVoice = false;
-                }, 1500);
+                }, 1500); // Delay for 1.5 seconds
             };
 
             recognition.onerror = () => {
@@ -112,7 +116,7 @@ document.addEventListener("DOMContentLoaded", function () {
             };
 
             recognition.onend = () => {
-                clearTimeout(silenceTimeout);
+                clearTimeout(silenceTimeout); // Clear any pending timeout
                 if (usingVoice) {
                     appendMessage("bot", "Voice input ended. Please try again.");
                     usingVoice = false;
@@ -131,8 +135,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function speakElementText(element) {
-        if ("speechSynthesis" in window) {
+        if ("speechSynthesis" in window && !isButtonClicked) { // Check if button clicked
             let text = "";
+
             if (element.id === "send-btn") {
                 text = "Send button.";
             } else if (element.id === "voice-btn") {
@@ -165,27 +170,32 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // ✅ Buttons announce themselves when focused (via Tab) but stay silent when clicked
-    sendBtn.addEventListener("focus", () => speakElementText(sendBtn));
-    voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));
-    stopBtn.addEventListener("focus", () => speakElementText(stopBtn));
-    endBtn.addEventListener("focus", () => speakElementText(endBtn));
+    voiceBtn.addEventListener("click", () => {
+        isButtonClicked = true; // Prevent speaking when clicked
+        usingVoice = true;
+        appendMessage("bot", "Listening...");
+        startVoiceRecognition();
+        setTimeout(() => { isButtonClicked = false; }, 500); // Allow speech on other buttons after a delay
+    });
+
+    stopBtn.addEventListener("click", () => {
+        isButtonClicked = true; // Prevent speaking when clicked
+        stopSpeaking();
+        setTimeout(() => { isButtonClicked = false; }, 500); // Allow speech on other buttons after a delay
+    });
 
     sendBtn.addEventListener("click", () => {
+        isButtonClicked = true; // Prevent speaking when clicked
         sendBtn.disabled = true;
         sendMessage(userInput.value, false);
         setTimeout(() => sendBtn.disabled = false, 700);
+        setTimeout(() => { isButtonClicked = false; }, 500); // Allow speech on other buttons after a delay
     });
-
-    voiceBtn.addEventListener("click", () => {
-        usingVoice = true;
-        appendMessage("bot", "Listening...");
-    });
-
-    stopBtn.addEventListener("click", stopSpeaking);
 
     endBtn.addEventListener("click", () => {
+        isButtonClicked = true; // Prevent speaking when clicked
         window.location.href = "/feedback";
+        setTimeout(() => { isButtonClicked = false; }, 500); // Allow speech on other buttons after a delay
     });
 
     userInput.addEventListener("keypress", function (event) {
@@ -196,4 +206,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     userInput.addEventListener("keydown", handleTabKey);
+    voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));
+    stopBtn.addEventListener("focus", () => speakElementText(stopBtn));
+    endBtn.addEventListener("focus", () => speakElementText(endBtn));
 });
