@@ -1,16 +1,16 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () { 
     const chatBox = document.getElementById("chat-box");
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
     const stopBtn = document.getElementById("stop-btn");
     const endBtn = document.getElementById("end-btn");
-    
+
     let recognition;
     let isSpeaking = false;
     let usingVoice = false;
     const synth = window.speechSynthesis;
-    let silenceTimeout; // Silence timeout to prevent quick response
+    let silenceTimeout;
 
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
@@ -18,10 +18,10 @@ document.addEventListener("DOMContentLoaded", function () {
         msgDiv.innerHTML = message;
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
-        
+
         if (sender === "bot" && usingVoice && message === "Listening...") {
             speakResponse(message, () => {
-                playBeep(); // Play beep after saying "Listening..."
+                playBeep();
                 startVoiceRecognition();
             });
         }
@@ -66,13 +66,11 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // ✅ Updated speakResponse() to ignore <br> only
     function speakResponse(text, callback) {
         if ("speechSynthesis" in window) {
-            // Remove <br> tags only for speech
-            const cleanText = text.replace(/<br\s*\/?>/g, " "); // Replaces <br> with a space
+            const cleanText = text.replace(/<br\s*\/?>/g, " "); 
 
-            if (cleanText.trim() === "") return; // Skip if the text is empty after removing <br>
+            if (cleanText.trim() === "") return;
 
             const utterance = new SpeechSynthesisUtterance(cleanText);
             utterance.onend = () => {
@@ -94,20 +92,19 @@ document.addEventListener("DOMContentLoaded", function () {
     function startVoiceRecognition() {
         if ("webkitSpeechRecognition" in window) {
             recognition = new webkitSpeechRecognition();
-            recognition.continuous = true; // Continuous listening
-            recognition.interimResults = false; // Final results only
+            recognition.continuous = true;
+            recognition.interimResults = false;
             recognition.lang = "en-US";
 
             recognition.onresult = (event) => {
-                clearTimeout(silenceTimeout); // Clear any pending timeout
+                clearTimeout(silenceTimeout);
                 const transcript = event.results[event.results.length - 1][0].transcript;
 
-                // Wait for 1.5 seconds after the last spoken word before sending
                 silenceTimeout = setTimeout(() => {
                     sendMessage(transcript, true);
                     recognition.stop();
                     usingVoice = false;
-                }, 1500); // Delay for 1.5 seconds
+                }, 1500);
             };
 
             recognition.onerror = () => {
@@ -116,7 +113,7 @@ document.addEventListener("DOMContentLoaded", function () {
             };
 
             recognition.onend = () => {
-                clearTimeout(silenceTimeout); // Clear any pending timeout
+                clearTimeout(silenceTimeout);
                 if (usingVoice) {
                     appendMessage("bot", "Voice input ended. Please try again.");
                     usingVoice = false;
@@ -156,7 +153,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Handle Tab key to navigate between elements and speak the name
     function handleTabKey(event) {
         if (event.key === "Tab") {
             event.preventDefault();
@@ -168,7 +164,7 @@ document.addEventListener("DOMContentLoaded", function () {
             nextElement.focus();
             
             setTimeout(() => {
-                speakElementText(nextElement); // Speak the name of the next focused element
+                speakElementText(nextElement);
             }, 200);
         }
     }
@@ -184,7 +180,7 @@ document.addEventListener("DOMContentLoaded", function () {
         sendBtn.disabled = true;
         sendMessage(userInput.value, false);
         setTimeout(() => sendBtn.disabled = false, 700);
-    }); // ✅ Corrected closing bracket
+    });
 
     endBtn.addEventListener("click", () => {
         window.location.href = "/feedback";
@@ -197,9 +193,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Listen for the Tab key to speak the name of the focused element
-    userInput.addEventListener("keydown", handleTabKey);
-    voiceBtn.addEventListener("keydown", handleTabKey);
-    stopBtn.addEventListener("keydown", handleTabKey);
-    endBtn.addEventListener("keydown", handleTabKey);
+    // Attach the handleTabKey to all focusable elements
+    [userInput, sendBtn, voiceBtn, stopBtn, endBtn].forEach(element => {
+        element.addEventListener("keydown", handleTabKey);
+    });
 });
