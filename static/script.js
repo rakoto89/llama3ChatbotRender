@@ -165,17 +165,17 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // ✅ Buttons announce themselves when focused but stay silent when clicked
+    // ✅ Buttons announce themselves when focused (via Tab) but stay silent when clicked
     sendBtn.addEventListener("focus", () => speakElementText(sendBtn));
+    voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));
+    stopBtn.addEventListener("focus", () => speakElementText(stopBtn));
+    endBtn.addEventListener("focus", () => speakElementText(endBtn));
+
     sendBtn.addEventListener("click", () => {
         sendBtn.disabled = true;
         sendMessage(userInput.value, false);
         setTimeout(() => sendBtn.disabled = false, 700);
     });
-
-    voiceBtn.addEventListener("focus", () => speakElementText(voiceBtn));
-    stopBtn.addEventListener("focus", () => speakElementText(stopBtn));
-    endBtn.addEventListener("focus", () => speakElementText(endBtn));
 
     voiceBtn.addEventListener("click", () => {
         usingVoice = true;
