@@ -11,7 +11,6 @@ document.addEventListener("DOMContentLoaded", function () {
     let usingVoice = false;
     const synth = window.speechSynthesis;
     let silenceTimeout; // Silence timeout to prevent quick response
-    let isButtonClicked = false; // Flag to prevent speech on button clicks
 
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
@@ -67,8 +66,9 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // ✅ Updated speakResponse() to ignore <br> only
     function speakResponse(text, callback) {
-        if ("speechSynthesis" in window && !isButtonClicked) { // Check if button clicked
+        if ("speechSynthesis" in window) {
             // Remove <br> tags only for speech
             const cleanText = text.replace(/<br\s*\/?>/g, " "); // Replaces <br> with a space
 
@@ -135,7 +135,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function speakElementText(element) {
-        if ("speechSynthesis" in window && !isButtonClicked) { // Check if button clicked
+        if ("speechSynthesis" in window) {
             let text = "";
 
             if (element.id === "send-btn") {
@@ -171,32 +171,31 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     voiceBtn.addEventListener("click", () => {
-        isButtonClicked = true; // Prevent speaking when clicked
+        voiceBtn.disabled = true;
+        voiceMessage(userInput.value, false);
+        voiceTimeout(() => sendBtn.disabled = false, 700);
         usingVoice = true;
         appendMessage("bot", "Listening...");
-        startVoiceRecognition();
-        setTimeout(() => { isButtonClicked = false; }, 500); // Allow speech on other buttons after a delay
     });
 
-    stopBtn.addEventListener("click", () => {
-        isButtonClicked = true; // Prevent speaking when clicked
-        stopSpeaking();
-        setTimeout(() => { isButtonClicked = false; }, 500); // Allow speech on other buttons after a delay
-    });
+    stopBtn.addEventListener("click", stopSpeaking);
+        stopBtn.disabled = true;
+        stopMessage(userInput.value, false);
+        stopTimeout(() => sendBtn.disabled = false, 700);
+    }); // ✅ Corrected closing bracket
 
     sendBtn.addEventListener("click", () => {
-        isButtonClicked = true; // Prevent speaking when clicked
         sendBtn.disabled = true;
         sendMessage(userInput.value, false);
         setTimeout(() => sendBtn.disabled = false, 700);
-        setTimeout(() => { isButtonClicked = false; }, 500); // Allow speech on other buttons after a delay
-    });
+    }); // ✅ Corrected closing bracket
 
     endBtn.addEventListener("click", () => {
-        isButtonClicked = true; // Prevent speaking when clicked
         window.location.href = "/feedback";
-        setTimeout(() => { isButtonClicked = false; }, 500); // Allow speech on other buttons after a delay
-    });
+        endBtn.disabled = true;
+        sendMessage(userInput.value, false);
+        setTimeout(() => sendBtn.disabled = false, 700);
+    }); // ✅ Corrected closing bracket
 
     userInput.addEventListener("keypress", function (event) {
         if (event.key === "Enter") {
