@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Return to Chatbot Page
     document.getElementById("return-chatbot").addEventListener("click", function() {
-        window.location.href = "https://llama2chatbotrender.onrender.com/";  // Keep your original URL
+        window.location.href = "https://www.bowiestate.edu/";  // Keep your original URL
     });
 
     // Skip Feedback & Redirect
