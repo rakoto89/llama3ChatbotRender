@@ -17,6 +17,11 @@ document.addEventListener("DOMContentLoaded", function() {
     // Elements that should speak only when tabbed to
     const elementsWithSpeech = {
         "rate-experience": "Rate your experience",
+        "rating-5": "5 stars",
+        "rating-4": "4 stars",
+        "rating-3": "3 stars",
+        "rating-2": "2 stars",
+        "rating-1": "1 star"
         "comments": "Write your feedback here",
         "send-feedback": "Send Feedback",
         "return-chatbot": "Return to Chatbot",
