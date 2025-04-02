@@ -12,6 +12,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const synth = window.speechSynthesis;
     let silenceTimeout; // Silence timeout to prevent quick response
 
+    const clickedButtons = {}; // Track clicked buttons
+
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
         msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
@@ -148,7 +150,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 text = "End chat button.";    
             }
 
-            if (text) {
+            if (text && !clickedButtons[element.id]) {
                 let utterance = new SpeechSynthesisUtterance(text);
                 utterance.rate = 0.9;
                 synth.speak(utterance);
@@ -173,18 +175,24 @@ document.addEventListener("DOMContentLoaded", function () {
     voiceBtn.addEventListener("click", () => {
         usingVoice = true;
         appendMessage("bot", "Listening...");
+        clickedButtons["voice-btn"] = true; // Mark the button as clicked
     });
 
-    stopBtn.addEventListener("click", stopSpeaking);
+    stopBtn.addEventListener("click", () => {
+        stopSpeaking();
+        clickedButtons["stop-btn"] = true; // Mark the button as clicked
+    });
 
     sendBtn.addEventListener("click", () => {
         sendBtn.disabled = true;
         sendMessage(userInput.value, false);
         setTimeout(() => sendBtn.disabled = false, 700);
+        clickedButtons["send-btn"] = true; // Mark the button as clicked
     }); // ✅ Corrected closing bracket
 
     endBtn.addEventListener("click", () => {
         window.location.href = "/feedback";
+        clickedButtons["end-btn"] = true; // Mark the button as clicked
     });
 
     userInput.addEventListener("keypress", function (event) {
