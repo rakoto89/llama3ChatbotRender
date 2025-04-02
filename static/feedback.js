@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // Speak when tabbing to each star rating
     document.querySelectorAll('input[name="emoji-rating"]').forEach(function(radio) {
         radio.addEventListener("focus", function() {
-            speak(this.nextElementSibling.textContent.trim());
+            speak("first row 5 stars second row 4 stars third row 3 stars fourth row 2 stars fifth row 1 star");
         });
     });
 
