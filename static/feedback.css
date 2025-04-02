@@ -1,12 +1,22 @@
 /* General Page Styling */
 body {
     font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+    background: linear-gradient(to bottom, #fffde8, #fff9c4, #fff59d, #ffeb3b, #ffca28);
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
     margin: 0;
+}
+
+/* Bowie State Logo styling */
+.top-right-image {
+    position: absolute;
+    top: 10px;
+    left: 10px; /* Logo at the top-left */
+    width: 80px; /* Increased width for clarity */
+    height: auto; /* Maintain aspect ratio */
+    border-radius: 0; /* No circular shape to prevent distortion */
 }
 
 .feedback-container {
