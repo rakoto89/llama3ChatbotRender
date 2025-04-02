@@ -38,8 +38,10 @@ document.addEventListener("DOMContentLoaded", function() {
     document.querySelectorAll(".rating-row").forEach(row => {
         row.addEventListener("keydown", function(event) {
             if (event.key === "Tab") {
-                const ratingValue = row.querySelector("input").value;
-                speakText(${ratingValue} stars);
+                const ratingInput = row.querySelector("input");
+                if (ratingInput) {
+                    speakText(`${ratingInput.value} stars`);
+                }
             }
         });
         row.addEventListener("click", preventClickSpeech);
