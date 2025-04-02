@@ -183,6 +183,13 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     endBtn.addEventListener("click", () => {
+        // Stop any ongoing speech before ending the chat
+        if (isSpeaking) {
+            synth.cancel();
+            isSpeaking = false;
+        }
+    
+        // Redirect to the feedback page
         window.location.href = "/feedback";
     });
 
