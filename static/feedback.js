@@ -9,11 +9,10 @@ document.addEventListener("DOMContentLoaded", function() {
         speak("Rate your experience");
     });
 
-    // Speak when tabbing to each star rating
-    document.querySelectorAll('.emoji-rating label').forEach(function(label) {
-        label.addEventListener("focus", function() {
-            const ratingText = this.textContent.trim().split(" ").pop(); // Extract "5 stars", "4 stars", etc.
-            speak(ratingText);
+    // Speak when tabbing to each individual star rating
+    document.querySelectorAll('.emoji-rating input').forEach(function(input) {
+        input.addEventListener("focus", function() {
+            speak(this.value + " stars");
         });
     });
 
