@@ -1,11 +1,12 @@
 import os
 import requests
 import pdfplumber
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 from collections import deque
+import time
 import asyncio
 import aiohttp
 from difflib import SequenceMatcher
@@ -19,8 +20,6 @@ REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
 conversation_history = []
 conversation_context = {}
 
-MAX_HISTORY = 10  # Limit the conversation history to the last 10 exchanges
-
 def extract_text_from_pdf(pdf_paths):
     text = ""
     with pdfplumber.open(pdf_paths) as pdf:
@@ -32,14 +31,11 @@ def extract_text_from_pdf(pdf_paths):
 
 def read_pdfs_in_folder(folder_path):
     concatenated_text = ''
-    if os.path.exists(folder_path):
-        for filename in os.listdir(folder_path):
-            if filename.endswith('.pdf'):
-                pdf_path = os.path.join(folder_path, filename)
-                pdf_text = extract_text_from_pdf(pdf_path)
-                concatenated_text += pdf_text + '\n\n'
-    else:
-        print("Warning: 'pdfs' folder not found. Skipping PDF extraction.")
+    for filename in os.listdir(folder_path):
+        if filename.endswith('.pdf'):
+            pdf_path = os.path.join(folder_path, filename)
+            pdf_text = extract_text_from_pdf(pdf_path)
+            concatenated_text += pdf_text + '\n\n'
     return concatenated_text
 
 pdf_text = read_pdfs_in_folder('pdfs')
@@ -57,15 +53,14 @@ relevant_topics = [
 ]
 
 def load_urls_from_file(file_path):
-    if not os.path.exists(file_path):
-        print(f"Warning: URL file '{file_path}' not found. No URLs will be crawled.")
-        return []
     urls = []
-    with open(file_path, "r") as f:
-        urls = [line.strip() for line in f if line.strip()]
+    if os.path.exists(file_path):
+        with open(file_path, "r") as f:
+            urls = [line.strip() for line in f if line.strip()]
     return urls
 
 URLS_FILE_PATH = os.path.join(os.path.dirname(__file__), "data", "urls.txt")
+
 URLS = load_urls_from_file(URLS_FILE_PATH)
 
 async def fetch_url(session, url, visited, base_domain, text_data, queue):
@@ -125,33 +120,40 @@ def update_urls_and_crawl():
     return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))
 
 def is_question_relevant(question):
-    """Checks if the question contains opioid-related keywords or is a relevant follow-up.""" 
-    question_words = set(question.lower().split())
-    relevant_words = set(relevant_topics)
-    if question_words & relevant_words:
+    """Checks if the question contains opioid-related keywords or is a relevant follow-up."""
+    
+    pronouns = ['it', 'they', 'this', 'that']
+    # Check for relevant topics
+    if any(topic.lower() in question.lower() for topic in relevant_topics):
         return True
 
-    pronouns = {'it', 'they', 'this', 'that'}
-    if pronouns & question_words and conversation_context.get("last_topic"):
-        return True
+    # Check if pronouns are used and try to find the context
+    for pronoun in pronouns:
+        if pronoun in question.lower():
+            # Look up the last topic if this is a pronoun reference
+            if conversation_context.get("last_topic"):
+                return True
+
+    # Allow follow-up questions based on similarity with the last question
+    if conversation_history:
+        prev_interaction = conversation_history[-1]["content"]
+        similarity_ratio = SequenceMatcher(None, prev_interaction.lower(), question.lower()).ratio()
+        
+        follow_up_triggers = ["What more", "Anything else", "What other things", "Is there anything more", "Any other thing", "Does that", "Anybody", "Anyone in particular", "is it", "what about", "other", "anymore", "what else", "more", "different", "anything else", "anyone else", "anything else", "others", "too"]
+        if similarity_ratio >= 0.5 or any(trigger in question.lower() for trigger in follow_up_triggers):
+            return True
 
     return False
 
 def update_conversation_context(question):
     """Update the conversation context with the last topic mentioned."""
     keywords = [keyword for keyword in relevant_topics if keyword in question.lower()]
-    if keywords and conversation_context.get('last_topic') != keywords[-1]:
+    if keywords:
         conversation_context['last_topic'] = keywords[-1]
-
-def update_conversation_history(role, content):
-    """Update the conversation history and maintain a limit."""
-    conversation_history.append({"role": role, "content": content})
-    if len(conversation_history) > MAX_HISTORY:
-        conversation_history.pop(0)
 
 def get_llama3_response(question):
     update_conversation_context(question)
-    update_conversation_history("user", question)
+    conversation_history.append({"role": "user", "content": question})
 
     combined_text = pdf_text + "\n\n" + update_urls_and_crawl()
 
@@ -167,26 +169,24 @@ def get_llama3_response(question):
     try:
         response = requests.post(
             LLAMA3_ENDPOINT,
-            json={"model": "meta-llama/llama-3.1-8b-instruct:free", "messages": messages},
+            json={
+                "model": "meta-llama/llama-3.1-8b-instruct:free",
+                "messages": messages
+            },
             headers=headers,
             timeout=30
         )
+
         response.raise_for_status()
         data = response.json()
-
-        if "choices" not in data or not data["choices"]:
-            return "I'm sorry, I couldn't understand your question. Please try again."
-
-        response_text = data["choices"][0].get("message", {}).get("content", "No response").replace("*", "")
-        update_conversation_history("assistant", response_text)
+        response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
+        conversation_history.append({"role": "assistant", "content": response_text})
 
         return format_response(response_text)
 
-    except requests.exceptions.Timeout:
-        return "ERROR: The request to the Llama 3 server timed out. Please try again."
     except requests.exceptions.RequestException as e:
         app.logger.error(f"Llama 3 API error: {str(e)}")
-        return f"ERROR: Unable to connect to the AI server. Details: {str(e)}"
+        return f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"
 
 def format_response(response_text, for_voice=False):
     formatted_text = response_text.strip().replace("brbr", "")
@@ -227,23 +227,6 @@ def voice_response():
         clean_voice_response = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
     return jsonify({"answer": clean_voice_response})
-
-# Feedback Route to Collect Feedback
-feedback_list = []
-
-@app.route("/feedback", methods=["GET", "POST"])
-def feedback():
-    if request.method == "POST":
-        feedback_text = request.form.get("feedback")
-        if feedback_text:
-            feedback_list.append(feedback_text)
-            return render_template("feedback.html", success=True)
-
-    return render_template("feedback.html", success=False)
-
-@app.route("/view_feedback", methods=["GET"])
-def view_feedback():
-    return jsonify({"feedback": feedback_list})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
