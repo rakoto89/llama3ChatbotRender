@@ -1,7 +1,7 @@
 import os
 import requests
 import pdfplumber
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
@@ -16,6 +16,10 @@ CORS(app)
 
 LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions").strip()
 REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
+
+# Check API endpoint and key for debugging
+print(f"LLAMA3_ENDPOINT: {LLAMA3_ENDPOINT}")
+print(f"REN_API_KEY: {REN_API_KEY}")
 
 conversation_history = []
 conversation_context = {}
@@ -123,18 +127,14 @@ def is_question_relevant(question):
     """Checks if the question contains opioid-related keywords or is a relevant follow-up."""
     
     pronouns = ['it', 'they', 'this', 'that']
-    # Check for relevant topics
     if any(topic.lower() in question.lower() for topic in relevant_topics):
         return True
 
-    # Check if pronouns are used and try to find the context
     for pronoun in pronouns:
         if pronoun in question.lower():
-            # Look up the last topic if this is a pronoun reference
             if conversation_context.get("last_topic"):
                 return True
 
-    # Allow follow-up questions based on similarity with the last question
     if conversation_history:
         prev_interaction = conversation_history[-1]["content"]
         similarity_ratio = SequenceMatcher(None, prev_interaction.lower(), question.lower()).ratio()
@@ -179,6 +179,8 @@ def get_llama3_response(question):
 
         response.raise_for_status()
         data = response.json()
+        print("API Response:", data)  # Debugging API response
+        
         response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
         conversation_history.append({"role": "assistant", "content": response_text})
 
@@ -191,11 +193,6 @@ def get_llama3_response(question):
 def format_response(response_text, for_voice=False):
     formatted_text = response_text.strip().replace("brbr", "")
     return formatted_text.replace("<br>", " ").replace("\n", " ") if for_voice else formatted_text.replace("\n", "<br>")
-
-@app.route("/")
-def index():
-    intro_message = "🤖 Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!"
-    return render_template("index.html", intro_message=intro_message)
 
 @app.route("/ask", methods=["POST"])
 def ask():
@@ -211,22 +208,6 @@ def ask():
         answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
     return jsonify({"answer": answer})
-
-@app.route("/voice", methods=["POST"])
-def voice_response():
-    data = request.json
-    user_question = data.get("question", "").strip()
-
-    if not user_question:
-        return jsonify({"answer": "Please ask a valid question."})
-
-    if is_question_relevant(user_question):
-        answer = get_llama3_response(user_question)
-        clean_voice_response = format_response(answer, for_voice=True)
-    else:
-        clean_voice_response = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
-
-    return jsonify({"answer": clean_voice_response})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
