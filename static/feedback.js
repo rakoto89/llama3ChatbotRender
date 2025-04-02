@@ -4,35 +4,45 @@ document.addEventListener("DOMContentLoaded", function() {
         speechSynthesis.speak(utterance);
     }
 
-    // Speak when "Rate your experience" is focused
-    document.getElementById("rate-experience").addEventListener("focus", function() {
-        speakText("Rate your experience");
+    function handleTabFocus(event, text) {
+        if (event.key === "Tab") {
+            speakText(text);
+        }
+    }
+
+    function preventClickSpeech(event) {
+        event.stopPropagation(); // Stops the click event from triggering speech
+    }
+
+    // Elements that should speak only when tabbed to
+    const elementsWithSpeech = {
+        "rate-experience": "Rate your experience",
+        "comments": "Write your feedback here",
+        "send-feedback": "Send Feedback",
+        "return-chatbot": "Return to Chatbot",
+        "skip-feedback": "Exit"
+    };
+
+    // Add keydown event (for Tab navigation) and click event (to prevent speech)
+    Object.keys(elementsWithSpeech).forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener("keydown", function(event) {
+                handleTabFocus(event, elementsWithSpeech[id]);
+            });
+            element.addEventListener("click", preventClickSpeech);
+        }
     });
 
-    // Speak when tabbing through each star rating row
+    // Special case: Star rating rows
     document.querySelectorAll(".rating-row").forEach(row => {
-        row.addEventListener("focus", function() {
-            const ratingValue = row.querySelector("input").value;
-            speakText(`${ratingValue} stars`);
+        row.addEventListener("keydown", function(event) {
+            if (event.key === "Tab") {
+                const ratingValue = row.querySelector("input").value;
+                speakText(`${ratingValue} stars`);
+            }
         });
-    });
-
-    // Speak when "Write your feedback here" textarea is focused
-    document.getElementById("comments").addEventListener("focus", function() {
-        speakText("Write your feedback here");
-    });
-
-    // Speak when tabbing through buttons
-    document.getElementById("send-feedback").addEventListener("focus", function() {
-        speakText("Send Feedback");
-    });
-
-    document.getElementById("return-chatbot").addEventListener("focus", function() {
-        speakText("Return to Chatbot");
-    });
-
-    document.getElementById("skip-feedback").addEventListener("focus", function() {
-        speakText("Exit");
+        row.addEventListener("click", preventClickSpeech);
     });
 
     // Handle Feedback Form Submission
