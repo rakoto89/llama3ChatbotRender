@@ -7,12 +7,6 @@ document.addEventListener("DOMContentLoaded", function() {
     // Speak when "Rate your experience" is focused
     document.getElementById("rate-experience").addEventListener("focus", function() {
         speakText("Rate your experience");
-
-document.getElementById("rate-experience").addEventListener("focus", function() {
-    let rateExperience = this; 
-    rateExperience.disabled = true; 
-    speakText("Rate your experience");
-    setTimeout(() => rateExperience.disabled = false, 700);
     });
 
     // Speak when tabbing through each star rating row
