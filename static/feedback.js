@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     // Speak when tabbing to each star rating
-    document.querySelectorAll('input[name="rate"]').forEach(function(radio) {
+    document.querySelectorAll('input[name="emoji-rating"]').forEach(function(radio) {
         radio.addEventListener("focus", function() {
             speak(this.nextElementSibling.textContent.trim());
         });
