@@ -102,6 +102,9 @@ document.addEventListener("DOMContentLoaded", function () {
           exitButton.style.borderRadius = "5px";
           exitButton.style.marginTop = "20px";
           exitButton.style.display = "block";
+          exitButton.style.margin = "20px auto"; // ✅ Center the button
+          exitButton.style.textAlign = "center";
+          exitButton.style.width = "fit-content"; // ✅ Prevents button from stretching too much
 
           // Add event listener to make the Exit button speak "Exit" when tabbed
           exitButton.addEventListener("focus", () => {
