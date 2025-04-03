@@ -99,9 +99,10 @@ h1 {
 /* Input field with white background and black text */
 input {
     flex: 1;
-    padding: 10px; /* Increased padding */
+    padding: 14px 18px; /* Increased padding */
+    font size: 18px;
     border: 1px solid #ccc;
-    border-radius: 5px;
+    border-radius: 6px;
     background: white; /* Updated to white background */
     color: black; /* Text set to black */
 }
