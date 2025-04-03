@@ -52,24 +52,22 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Handle sending feedback to the backend
+  // Handle sending feedback to the backend using FormData
   const sendFeedbackBtn = document.getElementById("send-feedback");
   if (sendFeedbackBtn) {
     sendFeedbackBtn.addEventListener("click", function () {
       const selectedRating = document.querySelector("input[name='rating']:checked")?.value || "No rating";
       const comments = document.getElementById("comments")?.value.trim() || "No comments";
 
-      const feedbackData = {
-        rating: selectedRating,
-        comments: comments
-      };
+      // Create FormData object
+      const formData = new FormData();
+      formData.append("rating", selectedRating);
+      formData.append("comments", comments);
 
+      // Send feedback using fetch and FormData
       fetch("/submit-feedback", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(feedbackData),
+        body: formData,
       })
         .then((response) => response.json())
         .then((data) => {
