@@ -78,7 +78,38 @@ document.addEventListener("DOMContentLoaded", function () {
           const successMessage = document.getElementById("success-message");
           successMessage.style.display = "block";
           successMessage.setAttribute("tabindex", "0"); // Make it tabbable
+             }
+          });
+          
+          // Dynamically create and add Exit button
+          const exitButton = document.createElement("button");
+          exitButton.textContent = "Exit";
+          exitButton.id = "skip-feedback";
+          exitButton.tabIndex = "0";
+          exitButton.style.backgroundColor = "red";
+          exitButton.style.color = "white";
+          exitButton.style.padding = "10px 20px";
+          exitButton.style.border = "none";
+          exitButton.style.cursor = "pointer";
+          exitButton.style.fontSize = "16px";
+          exitButton.style.borderRadius = "5px";
+          exitButton.style.marginTop = "20px";
+          exitButton.style.display = "block";
 
+          // Add event listener to make the Exit button speak "Exit" when tabbed
+          exitButton.addEventListener("focus", () => {
+            if (lastInteractionWasKeyboard) {
+              speak("Exit");
+            }
+          });
+
+          // Redirect to Bowie State when Exit button is clicked
+          exitButton.addEventListener("click", function () {
+            window.location.href = "https://www.bowiestate.edu";
+          });
+
+          // Append the Exit button below the thank-you message
+          successMessage.appendChild(exitButton);
           // Confetti burst
           confetti({
             particleCount: 150,
