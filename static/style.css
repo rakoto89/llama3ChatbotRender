@@ -45,12 +45,15 @@ h1 {
 
 /* Chat header with no background */
 .chat-header {
-    background: transparent; /* No background */
-    color: black; /* Text in black */
-    padding: 15px 0; /* Space at the top and bottom */
-    font-size: 22px; /* Increased font size */
-    font-weight: bold;
-    text-align: center;
+  font-size: 50px;
+  font-weight: bold;
+  color: black;
+  text-align: center;
+  margin-top: 10px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 /* Chat box with no background */
