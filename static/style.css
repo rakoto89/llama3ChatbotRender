@@ -71,6 +71,8 @@ h1 {
     max-width: 80%;
     align-self: flex-start;
     word-wrap: break-word;
+
+    font-size: 30px;
 }
 
 /* User message style */
