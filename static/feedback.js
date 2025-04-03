@@ -19,12 +19,11 @@ document.addEventListener("DOMContentLoaded", function () {
     window.speechSynthesis.speak(utterance);
   };
 
-  // Handle tab navigation and speech
+  // Handle tab navigation speech
   const tabbableElements = document.querySelectorAll('[tabindex="0"]');
   tabbableElements.forEach((el) => {
     el.addEventListener("focus", () => {
-      // Let auto-focused thank-you still speak
-      if (!lastInteractionWasKeyboard && el.id !== "thank-you") return;
+      if (!lastInteractionWasKeyboard) return;
 
       let text = "";
 
@@ -42,8 +41,6 @@ document.addEventListener("DOMContentLoaded", function () {
         text = "Return to Chatbot";
       } else if (el.id === "skip-feedback") {
         text = "Exit";
-      } else if (el.id === "thank-you") {
-        text = "Thank you for your feedback!";
       }
 
       if (text) speak(text);
@@ -72,7 +69,7 @@ document.addEventListener("DOMContentLoaded", function () {
     })
       .then((response) => {
         if (response.ok) {
-          // Hide form and intro
+          // Hide form & text
           document.getElementById("feedback-form").style.display = "none";
           document.getElementById("rate-experience").style.display = "none";
           document.getElementById("rate-description").style.display = "none";
@@ -80,10 +77,7 @@ document.addEventListener("DOMContentLoaded", function () {
           // Show thank-you message
           document.getElementById("success-message").style.display = "block";
 
-          // Auto-focus thank-you for speech
-          document.getElementById("thank-you").focus();
-
-          // Confetti celebration
+          // Confetti burst
           confetti({
             particleCount: 150,
             spread: 70,
