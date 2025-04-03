@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", function () {
           document.getElementById("rate-description").style.display = "none";
 
           // Show thank-you message
-          document.getElementById("success-message").style.color = "block";
+          document.getElementById("success-message").style.display = "block";
 
           // Confetti burst
           confetti({
