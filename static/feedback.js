@@ -111,8 +111,13 @@ document.addEventListener("DOMContentLoaded", function () {
           exitButton.addEventListener("focus", () => {
             if (lastInteractionWasKeyboard) {
               speak("Exit"); // ✅ Exit button now speaks "Exit" when tabbed
-            }
-          });
+              
+        // Add event listener to make the "Thank you for your feedback!" message speak when tabbed
+        successMessage.addEventListener("focus", () => {
+          if (lastInteractionWasKeyboard) {
+            speak("Thank you for your feedback!"); // ✅ Thank-you message now speaks when tabbed
+  }
+});
 
           // Confetti burst
           confetti({
