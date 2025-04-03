@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
     lastInteractionWasKeyboard = false;
   });
 
-  // Speak helper function
+  // Speak function
   const speak = (text) => {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
@@ -41,6 +41,8 @@ document.addEventListener("DOMContentLoaded", function () {
         text = "Return to Chatbot";
       } else if (el.id === "skip-feedback") {
         text = "Exit";
+      } else if (el.id === "success-message") {
+        text = "Thank you for your feedback!";
       }
 
       if (text) speak(text);
@@ -77,10 +79,15 @@ document.addEventListener("DOMContentLoaded", function () {
           // Show thank-you message
           const successMessage = document.getElementById("success-message");
           successMessage.style.display = "block";
-          successMessage.setAttribute("tabindex", "0"); // Make it tabbable
-             }
+          successMessage.tabIndex = "0"; // Make it focusable for accessibility
+
+          // Speak "Thank you for your feedback!" when tabbed
+          successMessage.addEventListener("focus", () => {
+            if (lastInteractionWasKeyboard) {
+              speak("Thank you for your feedback!");
+            }
           });
-          
+
           // Dynamically create and add Exit button
           const exitButton = document.createElement("button");
           exitButton.textContent = "Exit";
@@ -110,15 +117,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
           // Append the Exit button below the thank-you message
           successMessage.appendChild(exitButton);
+
           // Confetti burst
           confetti({
             particleCount: 150,
             spread: 70,
             origin: { y: 0.6 }
           });
-
-          // Set focus to the thank-you message so it speaks when feedback is submitted
-          successMessage.focus();
         } else {
           alert("There was an error submitting your feedback.");
         }
@@ -131,26 +136,5 @@ document.addEventListener("DOMContentLoaded", function () {
   // Redirect buttons
   document.getElementById("return-chatbot").addEventListener("click", function () {
     window.location.href = "https://llama2chatbotrender.onrender.com/";
-  });
-
-  document.getElementById("skip-feedback").addEventListener("click", function () {
-    window.location.href = "https://www.bowiestate.edu";
-  });
-
-  // Add event listener to make the exit button speak "Exit" when tabbed
-  const exitButton = document.getElementById("skip-feedback");
-  exitButton.addEventListener("focus", () => {
-    if (lastInteractionWasKeyboard) {
-      speak("Exit");
-    }
-  });
-
-  // Add event listener to make "Thank you for your feedback!" message speak "Thank you for your feedback" when tabbed
-  const successMessage = document.getElementById("success-message");
-  successMessage.setAttribute("tabindex", "0"); // Make the message tabbable
-  successMessage.addEventListener("focus", () => {
-    if (lastInteractionWasKeyboard) {
-      speak("Thank you for your feedback");
-    }
   });
 });
