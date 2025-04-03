@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const value = input ? input.value : null;
         text = value ? `${value} star${value === "1" ? "" : "s"}` : "Rating option";
       } else if (el.id === "comments") {
-        text = "Write your feedback here. Type your thoughts or experience.";
+        text = "Write your feedback here";
       } else if (el.id === "send-feedback") {
         text = "Send Feedback";
       } else if (el.id === "return-chatbot") {
