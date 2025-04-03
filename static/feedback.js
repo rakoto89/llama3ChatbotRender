@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
     lastInteractionWasKeyboard = false;
   });
 
-  // Speak helper
+  // Speak helper function
   const speak = (text) => {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
@@ -41,10 +41,6 @@ document.addEventListener("DOMContentLoaded", function () {
         text = "Return to Chatbot";
       } else if (el.id === "skip-feedback") {
         text = "Exit";
-      } else if (el.id === "success-message") {
-        text = "Thank you for your feedback!"; // ✅ Now it will say this when tabbed
-      } else if (el.id === "exit-feedback") {
-        text = "Exit"; // ✅ Exit button now speaks "Exit" when tabbed
       }
 
       if (text) speak(text);
@@ -81,43 +77,7 @@ document.addEventListener("DOMContentLoaded", function () {
           // Show thank-you message
           const successMessage = document.getElementById("success-message");
           successMessage.style.display = "block";
-          successMessage.setAttribute("tabindex", "0"); // ✅ Ensure it's tabbable
-          successMessage.focus(); // ✅ Move focus so it can be read when tabbing
-
-          // Create exit button
-          const exitButton = document.createElement("button");
-          exitButton.textContent = "Exit";
-          exitButton.id = "exit-feedback";
-          exitButton.classList.add("btn-exit");
-          exitButton.setAttribute("tabindex", "0"); // ✅ Ensure it's tabbable
-          exitButton.style.backgroundColor = "#d9534f"; // ✅ Red color like before
-          exitButton.style.color = "white";
-          exitButton.style.padding = "10px 15px";
-          exitButton.style.border = "none";
-          exitButton.style.borderRadius = "5px";
-          exitButton.style.cursor = "pointer";
-          exitButton.style.marginTop = "15px";
-          exitButton.style.fontSize = "16px";
-
-          // Redirect on click
-          exitButton.addEventListener("click", function () {
-            window.location.href = "https://www.bowiestate.edu";
-          });
-
-          // Append exit button below the success message
-          successMessage.appendChild(exitButton);
-
-          // Add event listener to make the exit button speak "Exit" when tabbed
-          exitButton.addEventListener("focus", () => {
-            if (lastInteractionWasKeyboard) {
-              speak("Exit"); // ✅ Exit button now speaks "Exit" when tabbed
-              
-        // Add event listener to make the "Thank you for your feedback!" message speak when tabbed
-        successMessage.addEventListener("focus", () => {
-          if (lastInteractionWasKeyboard) {
-            speak("Thank you for your feedback!"); // ✅ Thank-you message now speaks when tabbed
-  }
-});
+          successMessage.setAttribute("tabindex", "0"); // Make it tabbable
 
           // Confetti burst
           confetti({
@@ -125,6 +85,9 @@ document.addEventListener("DOMContentLoaded", function () {
             spread: 70,
             origin: { y: 0.6 }
           });
+
+          // Set focus to the thank-you message so it speaks when feedback is submitted
+          successMessage.focus();
         } else {
           alert("There was an error submitting your feedback.");
         }
@@ -141,5 +104,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.getElementById("skip-feedback").addEventListener("click", function () {
     window.location.href = "https://www.bowiestate.edu";
+  });
+
+  // Add event listener to make the exit button speak "Exit" when tabbed
+  const exitButton = document.getElementById("skip-feedback");
+  exitButton.addEventListener("focus", () => {
+    if (lastInteractionWasKeyboard) {
+      speak("Exit");
+    }
+  });
+
+  // Add event listener to make "Thank you for your feedback!" message speak "Thank you for your feedback" when tabbed
+  const successMessage = document.getElementById("success-message");
+  successMessage.setAttribute("tabindex", "0"); // Make the message tabbable
+  successMessage.addEventListener("focus", () => {
+    if (lastInteractionWasKeyboard) {
+      speak("Thank you for your feedback");
+    }
   });
 });
