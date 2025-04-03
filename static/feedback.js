@@ -44,6 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
       } else if (el.id === "thank-you") {
         text = "Thank you for your feedback!";
       }
+      
       if (text) speak(text);
     });
   });
