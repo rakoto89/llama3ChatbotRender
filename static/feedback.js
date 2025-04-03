@@ -57,11 +57,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Redirect Return to Chatbot to APMA
   document.getElementById("return-chatbot").addEventListener("click", function () {
-    window.location.href = "https://www.apma.org";
+    window.location.href = "https://llama2chatbotrender.onrender.com";
   });
 
   // Redirect Exit to MSN
   document.getElementById("skip-feedback").addEventListener("click", function () {
-    window.location.href = "https://www.msn.com";
+    window.location.href = "https://www.bowiestate.edu/";
   });
-});
+
+ // Optional: Fix for "Send Feedback" button if needed                                                   
+  document.getElementById("send-feedback").addEventListener("click", function() {
+      document.getElementById("feedback-form").submit();  // Trigger the form submission manually if needed
+ });
+
+
