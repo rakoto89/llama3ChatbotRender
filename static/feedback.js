@@ -12,13 +12,14 @@ document.addEventListener("DOMContentLoaded", function () {
     lastInteractionWasKeyboard = false;
   });
 
-  // Speak text on tab focus
+  // Speak helper
   const speak = (text) => {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     window.speechSynthesis.speak(utterance);
   };
 
+  // Handle tab navigation speech
   const tabbableElements = document.querySelectorAll('[tabindex="0"]');
   tabbableElements.forEach((el) => {
     el.addEventListener("focus", () => {
@@ -33,7 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const value = input ? input.value : null;
         text = value ? `${value} star${value === "1" ? "" : "s"}` : "Rating option";
       } else if (el.id === "comments") {
-        text = "Write your feedback here";
+        text = "Write your feedback here. Type your thoughts or experience.";
       } else if (el.id === "send-feedback") {
         text = "Send Feedback";
       } else if (el.id === "return-chatbot") {
@@ -68,8 +69,20 @@ document.addEventListener("DOMContentLoaded", function () {
     })
       .then((response) => {
         if (response.ok) {
+          // Hide form & text
           document.getElementById("feedback-form").style.display = "none";
+          document.getElementById("rate-experience").style.display = "none";
+          document.getElementById("rate-description").style.display = "none";
+
+          // Show thank-you message
           document.getElementById("success-message").style.display = "block";
+
+          // Confetti burst
+          confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
         } else {
           alert("There was an error submitting your feedback.");
         }
@@ -79,12 +92,11 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   });
 
-  // Redirect: Return to Chatbot
+  // Redirect buttons
   document.getElementById("return-chatbot").addEventListener("click", function () {
     window.location.href = "https://llama2chatbotrender.onrender.com/";
   });
 
-  // Redirect: Exit
   document.getElementById("skip-feedback").addEventListener("click", function () {
     window.location.href = "https://www.bowiestate.edu";
   });
