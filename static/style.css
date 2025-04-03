@@ -46,8 +46,12 @@ h1 {
     padding: 15px 0; /* Space at the top and bottom */
     font-size: 40px; /* Increased font size */
     font-weight: bold;
-    text-align: center;
-    margin-left: -50px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    margin-left: -20px;
 }
 
 /* Chat box with no background */
