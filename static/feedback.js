@@ -42,9 +42,9 @@ document.addEventListener("DOMContentLoaded", function () {
       } else if (el.id === "skip-feedback") {
         text = "Exit";
       } else if (el.id === "success-message") {
-        text = "Thank you for your feedback!";
+        text = "Thank you for your feedback!"; // ✅ Now it will say this when tabbed
       } else if (el.id === "exit-feedback") {
-        text = "Exit Feedback Page";
+        text = "Exit";  // ✅ Updated to say "Exit" instead of "Exit Feedback Page"
       }
 
       if (text) speak(text);
@@ -81,16 +81,16 @@ document.addEventListener("DOMContentLoaded", function () {
           // Show thank-you message
           const successMessage = document.getElementById("success-message");
           successMessage.style.display = "block";
-          successMessage.setAttribute("tabindex", "0"); // Ensure it's tabbable
-          successMessage.focus(); // Move focus so it can be read when tabbing
+          successMessage.setAttribute("tabindex", "0"); // ✅ Ensure it's tabbable
+          successMessage.focus(); // ✅ Move focus so it can be read when tabbing
 
           // Create exit button
           const exitButton = document.createElement("button");
-          exitButton.textContent = "Exit Feedback Page";
+          exitButton.textContent = "Exit";
           exitButton.id = "exit-feedback";
           exitButton.classList.add("btn-exit");
           exitButton.setAttribute("tabindex", "0");
-          exitButton.style.backgroundColor = "#d9534f"; // Red color like before
+          exitButton.style.backgroundColor = "#d9534f"; // ✅ Red color like before
           exitButton.style.color = "white";
           exitButton.style.padding = "10px 15px";
           exitButton.style.border = "none";
