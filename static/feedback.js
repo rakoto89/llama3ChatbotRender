@@ -41,6 +41,10 @@ document.addEventListener("DOMContentLoaded", function () {
         text = "Return to Chatbot";
       } else if (el.id === "skip-feedback") {
         text = "Exit";
+      } else if (el.id === "success-message") {
+        text = "Thank you for your feedback!";
+      } else if (el.id === "exit-feedback") {
+        text = "Exit Feedback Page";
       }
 
       if (text) speak(text);
@@ -75,7 +79,33 @@ document.addEventListener("DOMContentLoaded", function () {
           document.getElementById("rate-description").style.display = "none";
 
           // Show thank-you message
-          document.getElementById("success-message").style.display = "block";
+          const successMessage = document.getElementById("success-message");
+          successMessage.style.display = "block";
+          successMessage.setAttribute("tabindex", "0"); // Ensure it's tabbable
+          successMessage.focus(); // Move focus so it can be read when tabbing
+
+          // Create exit button
+          const exitButton = document.createElement("button");
+          exitButton.textContent = "Exit Feedback Page";
+          exitButton.id = "exit-feedback";
+          exitButton.classList.add("btn-exit");
+          exitButton.setAttribute("tabindex", "0");
+          exitButton.style.backgroundColor = "#d9534f"; // Red color like before
+          exitButton.style.color = "white";
+          exitButton.style.padding = "10px 15px";
+          exitButton.style.border = "none";
+          exitButton.style.borderRadius = "5px";
+          exitButton.style.cursor = "pointer";
+          exitButton.style.marginTop = "15px";
+          exitButton.style.fontSize = "16px";
+
+          // Redirect on click
+          exitButton.addEventListener("click", function () {
+            window.location.href = "https://www.bowiestate.edu";
+          });
+
+          // Append exit button below the success message
+          successMessage.appendChild(exitButton);
 
           // Confetti burst
           confetti({
