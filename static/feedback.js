@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
   let lastInteractionWasKeyboard = false;
 
-  // Detect Tab navigation
+  // Detect Tab vs Mouse
   window.addEventListener("keydown", (e) => {
     if (e.key === "Tab") {
       lastInteractionWasKeyboard = true;
@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
     lastInteractionWasKeyboard = false;
   });
 
+  // Speak text on tab focus
   const speak = (text) => {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
@@ -45,7 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Submit feedback using FormData to match Flask
+  // Handle form submission
   document.getElementById("send-feedback").addEventListener("click", function (e) {
     e.preventDefault();
 
