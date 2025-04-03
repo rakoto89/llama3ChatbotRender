@@ -19,10 +19,11 @@ document.addEventListener("DOMContentLoaded", function () {
     window.speechSynthesis.speak(utterance);
   };
 
-  // Handle tab navigation speech
+  // Handle tab navigation and speech
   const tabbableElements = document.querySelectorAll('[tabindex="0"]');
   tabbableElements.forEach((el) => {
     el.addEventListener("focus", () => {
+      // Let auto-focused thank-you still speak
       if (!lastInteractionWasKeyboard && el.id !== "thank-you") return;
 
       let text = "";
@@ -34,7 +35,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const value = input ? input.value : null;
         text = value ? `${value} star${value === "1" ? "" : "s"}` : "Rating option";
       } else if (el.id === "comments") {
-        text = "Write your feedback here";
+        text = "Write your feedback here. Type your thoughts or experience.";
       } else if (el.id === "send-feedback") {
         text = "Send Feedback";
       } else if (el.id === "return-chatbot") {
@@ -44,7 +45,7 @@ document.addEventListener("DOMContentLoaded", function () {
       } else if (el.id === "thank-you") {
         text = "Thank you for your feedback!";
       }
-      
+
       if (text) speak(text);
     });
   });
@@ -71,7 +72,7 @@ document.addEventListener("DOMContentLoaded", function () {
     })
       .then((response) => {
         if (response.ok) {
-          // Hide form & text
+          // Hide form and intro
           document.getElementById("feedback-form").style.display = "none";
           document.getElementById("rate-experience").style.display = "none";
           document.getElementById("rate-description").style.display = "none";
@@ -79,7 +80,10 @@ document.addEventListener("DOMContentLoaded", function () {
           // Show thank-you message
           document.getElementById("success-message").style.display = "block";
 
-          // Confetti burst
+          // Auto-focus thank-you for speech
+          document.getElementById("thank-you").focus();
+
+          // Confetti celebration
           confetti({
             particleCount: 150,
             spread: 70,
