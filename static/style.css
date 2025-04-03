@@ -11,15 +11,11 @@ body {
 
 /* Title styling */
 h1 {
-    font-size: 100px; /* Increased size */
+    font-size: 30px; /* Size of the header */
     font-weight: bold;
     color: black;
     text-align: center;
-    margin-top: 10px; /* Keeps the header slightly up */
-    width: 100%; /* Ensures full width */
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    margin-top: 10px; /* Reduced margin to move the header up */
 }
 
 /* Bowie State Logo styling */
@@ -45,15 +41,12 @@ h1 {
 
 /* Chat header with no background */
 .chat-header {
-  font-size: 50px;
-  font-weight: bold;
-  color: black;
-  text-align: center;
-  margin-top: 10px;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    background: transparent; /* No background */
+    color: black; /* Text in black */
+    padding: 15px 0; /* Space at the top and bottom */
+    font-size: 22px; /* Increased font size */
+    font-weight: bold;
+    text-align: center;
 }
 
 /* Chat box with no background */
