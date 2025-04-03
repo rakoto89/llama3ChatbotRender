@@ -1,97 +1,67 @@
 document.addEventListener("DOMContentLoaded", function () {
-
   let lastInteractionWasKeyboard = false;
 
- 
-
-  // Detect Tab key navigation
-
+  // Detect if user used Tab (keyboard)
   window.addEventListener("keydown", (e) => {
-
     if (e.key === "Tab") {
-
       lastInteractionWasKeyboard = true;
-
     }
-
   });
 
- 
-
-  // Detect mouse interaction
-
+  // Detect if user used mouse
   window.addEventListener("mousedown", () => {
-
     lastInteractionWasKeyboard = false;
-
   });
 
- 
-
+  // Speak text aloud
   const speak = (text) => {
-
-    window.speechSynthesis.cancel(); // Stop any current speech
-
+    window.speechSynthesis.cancel(); // Stop ongoing speech
     const utterance = new SpeechSynthesisUtterance(text);
-
     window.speechSynthesis.speak(utterance);
-
   };
 
- 
-
+  // Get all elements with tabindex="0"
   const tabbableElements = document.querySelectorAll('[tabindex="0"]');
 
- 
-
   tabbableElements.forEach((el) => {
-
     el.addEventListener("focus", () => {
-
       if (!lastInteractionWasKeyboard) return;
-
- 
 
       let text = "";
 
- 
-
-      // Match specific elements from your HTML
-
       if (el.id === "rate-experience") {
-
         text = "Rate your experience";
-
       } else if (el.classList.contains("rating-row")) {
+        const input = el.querySelector("input[type='radio']");
+        const value = input ? input.value : null;
 
-        const labelSpan = el.querySelector("label span");
-
-        text = labelSpan ? labelSpan.innerText : "Rating option";
-
+        // Speak "5 stars", "4 stars", etc.
+        if (value) {
+          text = `${value} star${value === "1" ? "" : "s"}`;
+        } else {
+          text = "Rating option";
+        }
       } else if (el.id === "comments") {
-
         text = "Write your feedback here";
-
       } else if (el.id === "send-feedback") {
-
         text = "Send Feedback";
-
       } else if (el.id === "return-chatbot") {
-
         text = "Return to Chatbot";
-
       } else if (el.id === "skip-feedback") {
-
         text = "Exit";
-
       }
 
- 
-
       if (text) speak(text);
-
     });
-
   });
 
+  // Redirect Return to Chatbot to APMA
+  document.getElementById("return-chatbot").addEventListener("click", function () {
+    window.location.href = "https://www.apma.org";
+  });
+
+  // Redirect Exit to MSN
+  document.getElementById("skip-feedback").addEventListener("click", function () {
+    window.location.href = "https://www.msn.com";
+  });
 });
