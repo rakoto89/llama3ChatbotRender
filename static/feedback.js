@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", function () {
         method: "POST",
         body: formData,
       })
-        .then((response) => response.json())
+        .then((response) => response.text())
         .then((data) => {
           alert(data.message); // Display confirmation message
         })
