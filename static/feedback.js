@@ -54,6 +54,40 @@ document.addEventListener("DOMContentLoaded", function () {
       if (text) speak(text);
     });
   });
+  // Handle feedback form submission
+  document.getElementById("send-feedback").addEventListener("click", function () {
+    const rating = document.querySelector('input[name="rating"]:checked'); // Get selected rating
+    const feedback = document.getElementById("comments").value; // Get feedback text
+
+    if (rating && feedback) {
+      const feedbackData = {
+        rating: rating.value,
+        feedback: feedback
+      };
+
+      fetch("/feedback", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(feedbackData)
+      })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          // Provide a success message to the user
+          alert("Thank you for your feedback!");
+        } else {
+          alert("There was an error submitting your feedback.");
+        }
+      })
+      .catch((error) => {
+        alert("An error occurred. Please try again later.");
+      });
+    } else {
+      alert("Please provide a rating and feedback before submitting.");
+    }
+  });
 
   // Redirect Return to Chatbot to APMA
   document.getElementById("return-chatbot").addEventListener("click", function () {
