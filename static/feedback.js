@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
         text = "Exit";
       }
 
-      else if (el.id == "thank you") {
+      else if (el.id === "thank you") {
         text = "Thank you for your feedback!";
       }
       
