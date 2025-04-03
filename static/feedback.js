@@ -41,12 +41,9 @@ document.addEventListener("DOMContentLoaded", function () {
         text = "Return to Chatbot";
       } else if (el.id === "skip-feedback") {
         text = "Exit";
-      }
-
-      else if (el.id === "thank you") {
+      } else if (el.id === "thank you") {
         text = "Thank you for your feedback!";
       }
-      
       if (text) speak(text);
     });
   });
