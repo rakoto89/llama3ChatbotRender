@@ -7,8 +7,8 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='feedback.css') }}">
 </head>
 <body>
-    <!-- Add the Bowie State Logo here -->
-    <img src="{{ url_for('static', filename='images/bowie_state_logo.png') }}" alt="Bowie State Logo" class="top-right-image">
+  <!-- Add the Bowie State Logo here -->
+  <img src="{{ url_for('static', filename='images/bowie_state_logo.png') }}" alt="Bowie State Logo" class="top-right-image">
   
   <div class="feedback-container">
     <div class="feedback-card">
@@ -35,7 +35,14 @@
           </div>
         </div>
 
-        <textarea id="comments" name="feedback" ...></textarea>
+        <!-- Textarea for written feedback -->
+        <textarea 
+          id="comments" 
+          name="feedback" 
+          rows="4" 
+          placeholder="Write your feedback here..." 
+          tabindex="0"
+        ></textarea>
 
         <div class="button-container">
           <button type="submit" class="btn-submit" id="send-feedback" tabindex="0">Send Feedback</button>
