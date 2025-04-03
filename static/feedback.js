@@ -1,28 +1,24 @@
 document.addEventListener("DOMContentLoaded", function () {
   let lastInteractionWasKeyboard = false;
 
-  // Detect if user used Tab (keyboard)
+  // Detect Tab navigation
   window.addEventListener("keydown", (e) => {
     if (e.key === "Tab") {
       lastInteractionWasKeyboard = true;
     }
   });
 
-  // Detect if user used mouse
   window.addEventListener("mousedown", () => {
     lastInteractionWasKeyboard = false;
   });
 
-  // Speak text aloud
   const speak = (text) => {
-    window.speechSynthesis.cancel(); // Stop ongoing speech
+    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     window.speechSynthesis.speak(utterance);
   };
 
-  // Get all elements with tabindex="0"
   const tabbableElements = document.querySelectorAll('[tabindex="0"]');
-
   tabbableElements.forEach((el) => {
     el.addEventListener("focus", () => {
       if (!lastInteractionWasKeyboard) return;
@@ -34,13 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
       } else if (el.classList.contains("rating-row")) {
         const input = el.querySelector("input[type='radio']");
         const value = input ? input.value : null;
-
-        // Speak "5 stars", "4 stars", etc.
-        if (value) {
-          text = `${value} star${value === "1" ? "" : "s"}`;
-        } else {
-          text = "Rating option";
-        }
+        text = value ? `${value} star${value === "1" ? "" : "s"}` : "Rating option";
       } else if (el.id === "comments") {
         text = "Write your feedback here";
       } else if (el.id === "send-feedback") {
@@ -55,29 +45,30 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Handle feedback form submission
-  document.getElementById("send-feedback").addEventListener("click", function () {
-    const rating = document.querySelector('input[name="rating"]:checked'); // Get selected rating
-    const feedbackElement = document.getElementById("comments"); // Get feedback text element
-    const feedback = feedbackElement ? feedbackElement.value.trim() : ""; // Ensure feedback is not empty
+  // Submit feedback using FormData to match Flask
+  document.getElementById("send-feedback").addEventListener("click", function (e) {
+    e.preventDefault();
 
-    if (rating && feedback) {
-      const feedbackData = {
-        rating: rating.value,
-        feedback: feedback
-      };
+    const rating = document.querySelector('input[name="rate"]:checked');
+    const feedback = document.getElementById("comments").value.trim();
 
-      fetch("/feedback", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(feedbackData)
-      })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          alert("Thank you for your feedback!");
+    if (!rating || !feedback) {
+      alert("Please select a rating and write your feedback.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("rate", rating.value);
+    formData.append("feedback", feedback);
+
+    fetch("/feedback", {
+      method: "POST",
+      body: formData
+    })
+      .then((response) => {
+        if (response.ok) {
+          document.getElementById("feedback-form").style.display = "none";
+          document.getElementById("success-message").style.display = "block";
         } else {
           alert("There was an error submitting your feedback.");
         }
@@ -85,17 +76,13 @@ document.addEventListener("DOMContentLoaded", function () {
       .catch(() => {
         alert("An error occurred. Please try again later.");
       });
-    } else {
-      alert("Please provide a rating and feedback before submitting.");
-    }
   });
 
-  // Redirect Return to Chatbot to APMA
+  // Redirect buttons
   document.getElementById("return-chatbot").addEventListener("click", function () {
     window.location.href = "https://llama2chatbotrender.onrender.com/";
   });
 
-  // Redirect Exit to MSN
   document.getElementById("skip-feedback").addEventListener("click", function () {
     window.location.href = "https://www.bowiestate.edu";
   });
