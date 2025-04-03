@@ -64,10 +64,6 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("skip-feedback").addEventListener("click", function () {
     window.location.href = "https://www.bowiestate.edu/";
   });
-
- // Optional: Fix for "Send Feedback" button if needed                                                   
-  document.getElementById("send-feedback").addEventListener("click", function() {
-      document.getElementById("feedback-form").submit();  // Trigger the form submission manually if needed
- });
+});
 
 
