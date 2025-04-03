@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", function () {
       formData.append("comments", comments);
 
       // Send feedback using fetch and FormData
-      fetch("/submit-feedback", {
+      fetch("/feedback", {
         method: "POST",
         body: formData,
       })
