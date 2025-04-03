@@ -56,11 +56,10 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   // Handle feedback form submission
-  document.getElementById("send-feedback").addEventListener("click", function (event) {
-    event.preventDefault(); // Prevent form from submitting the default way
-
+  document.getElementById("send-feedback").addEventListener("click", function () {
     const rating = document.querySelector('input[name="rating"]:checked'); // Get selected rating
-    const feedback = document.getElementById("comments").value; // Get feedback text
+    const feedbackElement = document.getElementById("comments"); // Get feedback text element
+    const feedback = feedbackElement ? feedbackElement.value.trim() : ""; // Ensure feedback is not empty
 
     if (rating && feedback) {
       const feedbackData = {
@@ -75,18 +74,15 @@ document.addEventListener("DOMContentLoaded", function () {
         },
         body: JSON.stringify(feedbackData)
       })
-      .then((response) => response.json())  // Expecting a JSON response from the server
+      .then((response) => response.json())
       .then((data) => {
         if (data.success) {
-          // Provide a success message to the user
           alert("Thank you for your feedback!");
-          document.getElementById("comments").value = ""; // Clear feedback
-          document.querySelectorAll('input[name="rating"]').forEach(radio => radio.checked = false); // Uncheck ratings
         } else {
           alert("There was an error submitting your feedback.");
         }
       })
-      .catch((error) => {
+      .catch(() => {
         alert("An error occurred. Please try again later.");
       });
     } else {
