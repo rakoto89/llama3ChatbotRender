@@ -41,6 +41,7 @@ body {
 /* Emoji Rating Styling */
 .emoji-rating {
     display: flex;
+    font-size: 15px;
     flex-direction: column;
     align-items: center;
     margin-bottom: 10px;
