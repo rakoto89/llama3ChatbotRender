@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const tabbableElements = document.querySelectorAll('[tabindex="0"]');
   tabbableElements.forEach((el) => {
     el.addEventListener("focus", () => {
-      if (!lastInteractionWasKeyboard) return;
+      if (!lastInteractionWasKeyboard && el.id !== "thank-you") return;
 
       let text = "";
 
