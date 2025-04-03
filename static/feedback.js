@@ -140,4 +140,8 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("return-chatbot").addEventListener("click", function () {
     window.location.href = "https://llama2chatbotrender.onrender.com/";
   });
-});
+  
+  document.getElementById("skip-feedback").addEventListener("click", function () {
+    window.location.href = "https://www.bowiestate.edu";
+  });
+});  
