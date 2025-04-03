@@ -26,6 +26,7 @@ body {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     text-align: center;
     width: 400px;
+    font-family: Arial, sans-serif;
 }
 
 .feedback-card h1 {
