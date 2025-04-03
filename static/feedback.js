@@ -15,7 +15,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Speak text aloud
   const speak = (text) => {
-    if (!text) return;
     window.speechSynthesis.cancel(); // Stop ongoing speech
     const utterance = new SpeechSynthesisUtterance(text);
     window.speechSynthesis.speak(utterance);
@@ -33,11 +32,15 @@ document.addEventListener("DOMContentLoaded", function () {
       if (el.id === "rate-experience") {
         text = "Rate your experience";
       } else if (el.classList.contains("rating-row")) {
-        const input = el.querySelector("input[type='radio']:checked");
-        const value = input?.value || "";
+        const input = el.querySelector("input[type='radio']");
+        const value = input ? input.value : null;
 
         // Speak "5 stars", "4 stars", etc.
-        text = value ? `${value} star${value === "1" ? "" : "s"}` : "Rating option";
+        if (value) {
+          text = `${value} star${value === "1" ? "" : "s"}`;
+        } else {
+          text = "Rating option";
+        }
       } else if (el.id === "comments") {
         text = "Write your feedback here";
       } else if (el.id === "send-feedback") {
@@ -48,51 +51,17 @@ document.addEventListener("DOMContentLoaded", function () {
         text = "Exit";
       }
 
-      speak(text);
+      if (text) speak(text);
     });
   });
 
-  // Handle sending feedback to the backend using FormData
-  const sendFeedbackBtn = document.getElementById("send-feedback");
-  if (sendFeedbackBtn) {
-    sendFeedbackBtn.addEventListener("click", function () {
-      const selectedRating = document.querySelector("input[name='rating']:checked")?.value || "No rating";
-      const comments = document.getElementById("comments")?.value.trim() || "No comments";
+  // Redirect Return to Chatbot to APMA
+  document.getElementById("return-chatbot").addEventListener("click", function () {
+    window.location.href = "https://llama2chatbotrender.onrender.com/";
+  });
 
-      // Create FormData object
-      const formData = new FormData();
-      formData.append("rating", selectedRating);
-      formData.append("comments", comments);
-
-      // Send feedback using fetch and FormData
-      fetch("/feedback", {
-        method: "POST",
-        body: formData,
-      })
-        .then((response) => response.text())
-        .then((data) => {
-          alert(data.message); // Display confirmation message
-        })
-        .catch((error) => {
-          console.error("Error submitting feedback:", error);
-          alert("An error occurred while submitting feedback.");
-        });
-    });
-  }
-
-  // Redirect "Return to Chatbot" to APMA
-  const returnChatbotBtn = document.getElementById("return-chatbot");
-  if (returnChatbotBtn) {
-    returnChatbotBtn.addEventListener("click", function () {
-      window.location.href = "https://llama2chatbotrender.onrender.com";
-    });
-  }
-
-  // Redirect "Exit" to MSN
-  const skipFeedbackBtn = document.getElementById("skip-feedback");
-  if (skipFeedbackBtn) {
-    skipFeedbackBtn.addEventListener("click", function () {
-      window.location.href = "https://www.bowiestate.edu/";
-    });
-  }
+  // Redirect Exit to MSN
+  document.getElementById("skip-feedback").addEventListener("click", function () {
+    window.location.href = "https://www.bowiestate.edu";
+  });
 });
