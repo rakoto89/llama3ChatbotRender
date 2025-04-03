@@ -44,7 +44,7 @@ h1 {
     background: transparent; /* No background */
     color: black; /* Text in black */
     padding: 15px 0; /* Space at the top and bottom */
-    font-size: 50px; /* Increased font size */
+    font-size: 35px; /* Increased font size */
     font-weight: bold;
     text-align: center;
 }
