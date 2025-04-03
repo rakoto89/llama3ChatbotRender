@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
       } else if (el.id === "success-message") {
         text = "Thank you for your feedback!"; // ✅ Now it will say this when tabbed
       } else if (el.id === "exit-feedback") {
-        text = "Exit";  // ✅ Updated to say "Exit" instead of "Exit Feedback Page"
+        text = "Exit"; // ✅ Exit button now speaks "Exit" when tabbed
       }
 
       if (text) speak(text);
@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", function () {
           exitButton.textContent = "Exit";
           exitButton.id = "exit-feedback";
           exitButton.classList.add("btn-exit");
-          exitButton.setAttribute("tabindex", "0");
+          exitButton.setAttribute("tabindex", "0"); // ✅ Ensure it's tabbable
           exitButton.style.backgroundColor = "#d9534f"; // ✅ Red color like before
           exitButton.style.color = "white";
           exitButton.style.padding = "10px 15px";
@@ -106,6 +106,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
           // Append exit button below the success message
           successMessage.appendChild(exitButton);
+
+          // Add event listener to make the exit button speak "Exit" when tabbed
+          exitButton.addEventListener("focus", () => {
+            if (lastInteractionWasKeyboard) {
+              speak("Exit"); // ✅ Exit button now speaks "Exit" when tabbed
+            }
+          });
 
           // Confetti burst
           confetti({
