@@ -10,7 +10,8 @@ import time
 import asyncio
 import aiohttp
 from difflib import SequenceMatcher
-import json  # Added for saving feedback
+import json
+import threading
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
@@ -21,6 +22,7 @@ REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
 conversation_history = []
 conversation_context = {}
 
+# ==== PDF Extraction ====
 def extract_text_from_pdf(pdf_paths):
     text = ""
     with pdfplumber.open(pdf_paths) as pdf:
@@ -41,6 +43,7 @@ def read_pdfs_in_folder(folder_path):
 
 pdf_text = read_pdfs_in_folder('pdfs')
 
+# ==== Keywords ====
 relevant_topics = [
     "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin",
     "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium",
@@ -53,6 +56,7 @@ relevant_topics = [
     "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", "brands", "treatment programs"
 ]
 
+# ==== URL Loading ====
 def load_urls_from_file(file_path):
     urls = []
     if os.path.exists(file_path):
@@ -61,13 +65,12 @@ def load_urls_from_file(file_path):
     return urls
 
 URLS_FILE_PATH = os.path.join(os.path.dirname(__file__), "data", "urls.txt")
-
 URLS = load_urls_from_file(URLS_FILE_PATH)
 
+# ==== Async Crawler ====
 async def fetch_url(session, url, visited, base_domain, text_data, queue):
     if url in visited:
         return
-
     visited.add(url)
 
     try:
@@ -93,7 +96,6 @@ async def fetch_url(session, url, visited, base_domain, text_data, queue):
                     queue.append(full_url)
 
             await asyncio.sleep(0.5)
-
     except Exception as e:
         print(f"Error crawling {url}: {e}")
 
@@ -116,28 +118,32 @@ async def crawl_and_extract_text(base_urls, max_pages=5):
 
     return ''.join(text_data).strip()
 
-def update_urls_and_crawl():
-    updated_urls = load_urls_from_file(URLS_FILE_PATH)
-    return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))
+# ==== Background Crawling ====
+latest_crawled_text = ""
 
+def background_crawl():
+    global latest_crawled_text
+    updated_urls = load_urls_from_file(URLS_FILE_PATH)
+    latest_crawled_text = asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))
+    app.logger.info("Background crawl finished.")
+
+# Run crawl at startup
+threading.Thread(target=background_crawl, daemon=True).start()
+
+# ==== Relevance & Context ====
 def is_question_relevant(question):
     pronouns = ['it', 'they', 'this', 'that']
     if any(topic.lower() in question.lower() for topic in relevant_topics):
         return True
-
     for pronoun in pronouns:
-        if pronoun in question.lower():
-            if conversation_context.get("last_topic"):
-                return True
-
+        if pronoun in question.lower() and conversation_context.get("last_topic"):
+            return True
     if conversation_history:
         prev_interaction = conversation_history[-1]["content"]
         similarity_ratio = SequenceMatcher(None, prev_interaction.lower(), question.lower()).ratio()
-
-        follow_up_triggers = ["What more", "Anything else", "What other things", "Is there anything more", "Any other thing", "Does that", "Anybody", "Anyone in particular", "is it", "what about", "other", "anymore", "what else", "more", "different", "anything else", "anyone else", "anything else", "others", "too"]
-        if similarity_ratio >= 0.5 or any(trigger in question.lower() for trigger in follow_up_triggers):
+        triggers = ["what else", "anything else", "other", "too", "more"]
+        if similarity_ratio >= 0.5 or any(trigger in question.lower() for trigger in triggers):
             return True
-
     return False
 
 def update_conversation_context(question):
@@ -145,11 +151,12 @@ def update_conversation_context(question):
     if keywords:
         conversation_context['last_topic'] = keywords[-1]
 
+# ==== Llama 3 Call ====
 def get_llama3_response(question):
     update_conversation_context(question)
     conversation_history.append({"role": "user", "content": question})
 
-    combined_text = pdf_text + "\n\n" + update_urls_and_crawl()
+    combined_text = (pdf_text + "\n\n" + latest_crawled_text)[:5000]
 
     messages = [
         {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
@@ -161,6 +168,7 @@ def get_llama3_response(question):
     }
 
     try:
+        app.logger.info(f"Sending request to Llama 3 with {len(messages)} messages")
         response = requests.post(
             LLAMA3_ENDPOINT,
             json={
@@ -170,6 +178,8 @@ def get_llama3_response(question):
             headers=headers,
             timeout=30
         )
+        app.logger.info(f"Status: {response.status_code}")
+        app.logger.info(f"Body: {response.text}")
 
         response.raise_for_status()
         data = response.json()
@@ -186,6 +196,7 @@ def format_response(response_text, for_voice=False):
     formatted_text = response_text.strip().replace("brbr", "")
     return formatted_text.replace("<br>", " ").replace("\n", " ") if for_voice else formatted_text.replace("\n", "<br>")
 
+# ==== Routes ====
 @app.route("/")
 def index():
     intro_message = "🤖 Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!"
@@ -195,39 +206,31 @@ def index():
 def ask():
     data = request.json
     user_question = data.get("question", "").strip()
-
     if not user_question:
         return jsonify({"answer": "Please ask a valid question."})
-
     if is_question_relevant(user_question):
         answer = get_llama3_response(user_question)
     else:
         answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
-
     return jsonify({"answer": answer})
 
 @app.route("/voice", methods=["POST"])
 def voice_response():
     data = request.json
     user_question = data.get("question", "").strip()
-
     if not user_question:
         return jsonify({"answer": "Please ask a valid question."})
-
     if is_question_relevant(user_question):
         answer = get_llama3_response(user_question)
         clean_voice_response = format_response(answer, for_voice=True)
     else:
         clean_voice_response = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
-
     return jsonify({"answer": clean_voice_response})
 
-# ====== Feedback Persistence and Protection ======
-
+# ==== Feedback ====
 FEEDBACK_FILE = os.path.join(os.path.dirname(__file__), "data", "feedback.json")
 FEEDBACK_SECRET_KEY = os.environ.get("FEEDBACK_SECRET_KEY", "cDehbkli9985112sdnyyyeraqdmmopquip112!!")
 
-# Load feedback from file if it exists
 if os.path.exists(FEEDBACK_FILE):
     with open(FEEDBACK_FILE, "r") as f:
         try:
@@ -243,15 +246,11 @@ def feedback():
         feedback_text = request.form.get("feedback")
         rating = request.form.get("rate")
         if feedback_text or rating:
-            feedback_entry = {
-                "feedback": feedback_text,
-                "rating": rating
-            }
+            feedback_entry = {"feedback": feedback_text, "rating": rating}
             feedback_list.append(feedback_entry)
             with open(FEEDBACK_FILE, "w") as f:
                 json.dump(feedback_list, f, indent=2)
             return render_template("feedback.html", success=True)
-
     return render_template("feedback.html", success=False)
 
 @app.route("/view_feedback", methods=["GET"])
@@ -261,6 +260,7 @@ def view_feedback():
         return jsonify({"error": "Unauthorized access"}), 401
     return jsonify({"feedback": feedback_list})
 
+# ==== App Entrypoint ====
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
