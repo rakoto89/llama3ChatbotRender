@@ -241,6 +241,7 @@ else:
 def feedback():
     if request.method == "POST":
         feedback_text = request.form.get("feedback")
+        rating = request.form.get("rate")
         if feedback_text:
             feedback_list.append(feedback_text)
             with open(FEEDBACK_FILE, "w") as f:
