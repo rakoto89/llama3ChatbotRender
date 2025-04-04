@@ -32,31 +32,16 @@ def extract_text_from_pdf(pdf_paths):
                 text += extracted_text + "\n"
     return text.strip()
 
-# ==== PDF Chunk Indexing (Option B) ====
-pdf_chunks = []
-
-def chunk_pdf_text(text, chunk_size=800):
-    return [text[i:i+chunk_size] for i in range(0, len(text), chunk_size)]
-
-def index_pdf_chunks(folder_path):
-    global pdf_chunks
+def read_pdfs_in_folder(folder_path):
+    concatenated_text = ''
     for filename in os.listdir(folder_path):
         if filename.endswith('.pdf'):
             pdf_path = os.path.join(folder_path, filename)
-            full_text = extract_text_from_pdf(pdf_path)
-            chunks = chunk_pdf_text(full_text)
-            pdf_chunks.extend(chunks)
+            pdf_text = extract_text_from_pdf(pdf_path)
+            concatenated_text += pdf_text + '\n\n'
+    return concatenated_text
 
-index_pdf_chunks('pdfs')
-
-def find_relevant_chunks(question, max_chunks=5):
-    matches = []
-    for chunk in pdf_chunks:
-        score = SequenceMatcher(None, chunk.lower(), question.lower()).ratio()
-        matches.append((score, chunk))
-    matches.sort(reverse=True, key=lambda x: x[0])
-    top_chunks = [chunk for score, chunk in matches[:max_chunks]]
-    return '\n'.join(top_chunks)
+pdf_text = read_pdfs_in_folder('pdfs')
 
 # ==== Keywords ====
 relevant_topics = [
@@ -147,8 +132,12 @@ threading.Thread(target=background_crawl, daemon=True).start()
 
 # ==== Relevance & Context ====
 def is_question_relevant(question):
+    pronouns = ['it', 'they', 'this', 'that']
     if any(topic.lower() in question.lower() for topic in relevant_topics):
         return True
+    for pronoun in pronouns:
+        if pronoun in question.lower() and conversation_context.get("last_topic"):
+            return True
     if conversation_history:
         prev_interaction = conversation_history[-1]["content"]
         similarity_ratio = SequenceMatcher(None, prev_interaction.lower(), question.lower()).ratio()
@@ -162,13 +151,12 @@ def update_conversation_context(question):
     if keywords:
         conversation_context['last_topic'] = keywords[-1]
 
-# ==== Llama 3 Call with Chunked PDF Support ====
+# ==== Llama 3 Call ====
 def get_llama3_response(question):
     update_conversation_context(question)
     conversation_history.append({"role": "user", "content": question})
 
-    relevant_pdf_chunks = find_relevant_chunks(question, max_chunks=5)
-    combined_text = (relevant_pdf_chunks + "\n\n" + latest_crawled_text)[:5000]
+    combined_text = (pdf_text + "\n\n" + latest_crawled_text)[:5000]
 
     messages = [
         {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
@@ -198,17 +186,21 @@ def get_llama3_response(question):
         response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
         conversation_history.append({"role": "assistant", "content": response_text})
 
-        return response_text.replace("\n", "<br>")
+        return format_response(response_text)
 
     except requests.exceptions.RequestException as e:
         app.logger.error(f"Llama 3 API error: {str(e)}")
         return f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"
 
+def format_response(response_text, for_voice=False):
+    formatted_text = response_text.strip().replace("brbr", "")
+    return formatted_text.replace("<br>", " ").replace("\n", " ") if for_voice else formatted_text.replace("\n", "<br>")
 
-# ==== Flask App Entrypoint ====
+# ==== Routes ====
 @app.route("/")
 def index():
-    return "Opioid Awareness Chatbot is running."
+    intro_message = "🤖 Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!"
+    return render_template("index.html", intro_message=intro_message)
 
 @app.route("/ask", methods=["POST"])
 def ask():
@@ -222,6 +214,53 @@ def ask():
         answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
     return jsonify({"answer": answer})
 
+@app.route("/voice", methods=["POST"])
+def voice_response():
+    data = request.json
+    user_question = data.get("question", "").strip()
+    if not user_question:
+        return jsonify({"answer": "Please ask a valid question."})
+    if is_question_relevant(user_question):
+        answer = get_llama3_response(user_question)
+        clean_voice_response = format_response(answer, for_voice=True)
+    else:
+        clean_voice_response = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
+    return jsonify({"answer": clean_voice_response})
+
+# ==== Feedback ====
+FEEDBACK_FILE = os.path.join(os.path.dirname(__file__), "data", "feedback.json")
+FEEDBACK_SECRET_KEY = os.environ.get("FEEDBACK_SECRET_KEY", "cDehbkli9985112sdnyyyeraqdmmopquip112!!")
+
+if os.path.exists(FEEDBACK_FILE):
+    with open(FEEDBACK_FILE, "r") as f:
+        try:
+            feedback_list = json.load(f)
+        except json.JSONDecodeError:
+            feedback_list = []
+else:
+    feedback_list = []
+
+@app.route("/feedback", methods=["GET", "POST"])
+def feedback():
+    if request.method == "POST":
+        feedback_text = request.form.get("feedback")
+        rating = request.form.get("rate")
+        if feedback_text or rating:
+            feedback_entry = {"feedback": feedback_text, "rating": rating}
+            feedback_list.append(feedback_entry)
+            with open(FEEDBACK_FILE, "w") as f:
+                json.dump(feedback_list, f, indent=2)
+            return render_template("feedback.html", success=True)
+    return render_template("feedback.html", success=False)
+
+@app.route("/view_feedback", methods=["GET"])
+def view_feedback():
+    key = request.args.get("key", "")
+    if key != FEEDBACK_SECRET_KEY:
+        return jsonify({"error": "Unauthorized access"}), 401
+    return jsonify({"feedback": feedback_list})
+
+# ==== App Entrypoint ====
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
