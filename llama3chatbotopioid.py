@@ -161,6 +161,7 @@ def get_llama3_response(question):
     }
 
     try:
+        # Send request to the Llama 3 API
         response = requests.post(
             LLAMA3_ENDPOINT,
             json={
@@ -171,14 +172,24 @@ def get_llama3_response(question):
             timeout=30
         )
 
+        # Check if the response status is successful
         response.raise_for_status()
-        data = response.json()
-        response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
-        conversation_history.append({"role": "assistant", "content": response_text})
 
-        return format_response(response_text)
+        # Parse the response JSON
+        data = response.json()
+
+        # Check for the 'choices' field and return the response content
+        if data.get("choices"):
+            response_text = data["choices"][0].get("message", {}).get("content", "No response").replace("*", "")
+            conversation_history.append({"role": "assistant", "content": response_text})
+            return format_response(response_text)
+        else:
+            # Handle case where no 'choices' are returned
+            app.logger.error(f"Llama 3 API response missing 'choices': {data}")
+            return "Sorry, there was an issue processing your request. Please try again."
 
     except requests.exceptions.RequestException as e:
+        # Log any request errors
         app.logger.error(f"Llama 3 API error: {str(e)}")
         return f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"
 
@@ -241,13 +252,8 @@ else:
 def feedback():
     if request.method == "POST":
         feedback_text = request.form.get("feedback")
-        rating = request.form.get("rate")
-        if feedback_text or rating:
-            feedback_entry = {
-                "feedback": feedback_text,
-                "rating": rating
-            }
-            feedback_list.append(feedback_entry)
+        if feedback_text:
+            feedback_list.append(feedback_text)
             with open(FEEDBACK_FILE, "w") as f:
                 json.dump(feedback_list, f, indent=2)
             return render_template("feedback.html", success=True)
