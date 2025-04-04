@@ -53,7 +53,7 @@ relevant_topics = [
     "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
     "medication-assisted treatment", "medication assistantedtreatment", "MAT", "opioid epidemic", "teen",
     "dangers", "genetic", "environmental factors", "pain management", "socioeconomic factors", "consequences", "adult", "death",
-    "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", "brands", "treatment programs", "medication"
+    "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", "brands", "treatment programs"
 ]
 
 # ==== URL Loading ====
@@ -132,6 +132,12 @@ threading.Thread(target=background_crawl, daemon=True).start()
 
 # ==== Relevance & Context ====
 def is_question_relevant(question):
+    pronouns = ['it', 'they', 'this', 'that']
+    if any(topic.lower() in question.lower() for topic in relevant_topics):
+        return True
+    for pronoun in pronouns:
+        if pronoun in question.lower() and conversation_context.get("last_topic"):
+            return True
     if conversation_history:
         prev_interaction = conversation_history[-1]["content"]
         similarity_ratio = SequenceMatcher(None, prev_interaction.lower(), question.lower()).ratio()
