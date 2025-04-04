@@ -10,6 +10,7 @@ import time
 import asyncio
 import aiohttp
 from difflib import SequenceMatcher
+import json  # Added for saving feedback
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
@@ -47,7 +48,7 @@ relevant_topics = [
     "support", "support for opioid addiction", "drug use", "email", "campus", "phone number",
     "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication",
     "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
-    "medication-assisted treatment", "medication assistanted treatment", "MAT", "opioid epidemic", "teen",
+    "medication-assisted treatment", "medication assistantedtreatment", "MAT", "opioid epidemic", "teen",
     "dangers", "genetic", "environmental factors", "pain management", "socioeconomic factors", "consequences", "adult", "death",
     "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", "brands", "treatment programs"
 ]
@@ -120,7 +121,6 @@ def update_urls_and_crawl():
     return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))
 
 def is_question_relevant(question):
-    """Checks if the question contains opioid-related keywords or is a relevant follow-up.""" 
     pronouns = ['it', 'they', 'this', 'that']
     if any(topic.lower() in question.lower() for topic in relevant_topics):
         return True
@@ -141,7 +141,6 @@ def is_question_relevant(question):
     return False
 
 def update_conversation_context(question):
-    """Update the conversation context with the last topic mentioned.""" 
     keywords = [keyword for keyword in relevant_topics if keyword in question.lower()]
     if keywords:
         conversation_context['last_topic'] = keywords[-1]
@@ -223,8 +222,20 @@ def voice_response():
 
     return jsonify({"answer": clean_voice_response})
 
-# Feedback Route to Collect Feedback
-feedback_list = []
+# ====== Feedback Persistence and Protection ======
+
+FEEDBACK_FILE = os.path.join(os.path.dirname(__file__), "data", "feedback.json")
+FEEDBACK_SECRET_KEY = os.environ.get("FEEDBACK_SECRET_KEY", "cDehbkli9985112sdnyyyeraqdmmopquip112!!")
+
+# Load feedback from file if it exists
+if os.path.exists(FEEDBACK_FILE):
+    with open(FEEDBACK_FILE, "r") as f:
+        try:
+            feedback_list = json.load(f)
+        except json.JSONDecodeError:
+            feedback_list = []
+else:
+    feedback_list = []
 
 @app.route("/feedback", methods=["GET", "POST"])
 def feedback():
@@ -232,12 +243,17 @@ def feedback():
         feedback_text = request.form.get("feedback")
         if feedback_text:
             feedback_list.append(feedback_text)
+            with open(FEEDBACK_FILE, "w") as f:
+                json.dump(feedback_list, f, indent=2)
             return render_template("feedback.html", success=True)
 
     return render_template("feedback.html", success=False)
 
 @app.route("/view_feedback", methods=["GET"])
 def view_feedback():
+    key = request.args.get("key", "")
+    if key != FEEDBACK_SECRET_KEY:
+        return jsonify({"error": "Unauthorized access"}), 401
     return jsonify({"feedback": feedback_list})
 
 if __name__ == "__main__":
