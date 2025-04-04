@@ -132,12 +132,8 @@ threading.Thread(target=background_crawl, daemon=True).start()
 
 # ==== Relevance & Context ====
 def is_question_relevant(question):
-    pronouns = ['it', 'they', 'this', 'that']
     if any(topic.lower() in question.lower() for topic in relevant_topics):
         return True
-    for pronoun in pronouns:
-        if pronoun in question.lower() and conversation_context.get("last_topic"):
-            return True
     if conversation_history:
         prev_interaction = conversation_history[-1]["content"]
         similarity_ratio = SequenceMatcher(None, prev_interaction.lower(), question.lower()).ratio()
@@ -199,7 +195,7 @@ def format_response(response_text, for_voice=False):
 # ==== Routes ====
 @app.route("/")
 def index():
-    intro_message = "🤖 Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!"
+    intro_message = "ðŸ¤– Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!"
     return render_template("index.html", intro_message=intro_message)
 
 @app.route("/ask", methods=["POST"])
