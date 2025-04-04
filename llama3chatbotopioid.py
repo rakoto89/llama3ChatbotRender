@@ -158,6 +158,11 @@ def get_llama3_response(question):
         {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
     ] + conversation_history[-5:]
 
+    # === Conversation Memory Debugging ===
+    app.logger.info("Conversation History (last 5):")
+    for msg in messages:
+        app.logger.info(json.dumps(msg, indent=2))
+
     headers = {
         "Authorization": f"Bearer {REN_API_KEY}",
         "Content-Type": "application/json"
@@ -205,6 +210,9 @@ def ask():
     if not user_question:
         return jsonify({"answer": "Please ask a valid question."})
     if is_question_relevant(user_question):
+        # You can test memory by asking:
+        # Q1: "What is naloxone?"
+        # Q2: "Where can I get it?" — chatbot should remember "it" refers to naloxone
         answer = get_llama3_response(user_question)
     else:
         answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
