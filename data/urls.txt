@@ -1,13 +1,14 @@
-https://www.cdc.gov/
-https://www.ncdhhs.gov/
-https://www.ncdhhs.gov/
-https://www.cdc.gov/
-https://www.who.int/
-https://www.kff.org/
-https://ncfrp.org/
-https://www.fcc.gov/
-https://www.nih.gov/
-https://www.shadac.org/
-https://www.naccho.org/
-https://www.ncbi.nlm.nih.gov/
+https://www.cdc.gov/opioids
+https://www.ncdhhs.gov/opioids
+https://www.who.int/news-room/fact-sheets/detail/opioid-overdose/
+https://www.kff.org/other/state-indicator/opioid-overdose-deaths/
+https://www.kff.org/other/state-indicator/opioid-overdose-deaths-by-raceethnicity/
+https://www.kff.org/other/state-indicator/opioid-overdose-deaths-by-age-group/
+https://www.kff.org/other/state-indicator/opioid-overdose-deaths-by-sex/
+https://www.kff.org/other/state-indicator/opioid-overdose-death-rates/
+https://ncfrp.org/center-resources/quick-looks/opioid-related-deaths-in-children-ages-1-to-17/
+https://www.fcc.gov/reports-research/maps/connect2health/focus-on-opioids.html
+https://www.nih.gov/news-events/opioids-digital-press-kit
+https://www.shadac.org/opioid-epidemic-united-states
+
 
