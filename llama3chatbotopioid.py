@@ -147,6 +147,25 @@ def update_conversation_context(question):
     if keywords:
         conversation_context['last_topic'] = keywords[-1]
 
+# ==== Related History Extractor ====
+def get_recent_related_history(limit=3):
+    related = []
+    count = 0
+
+    for i in range(len(conversation_history) - 2, -1, -2):
+        if count >= limit:
+            break
+        user_msg = conversation_history[i]
+        assistant_msg = conversation_history[i + 1] if i + 1 < len(conversation_history) else None
+        if any(topic in user_msg["content"].lower() for topic in relevant_topics):
+            related.append(user_msg)
+            if assistant_msg:
+                related.append(assistant_msg)
+            count += 1
+
+    related.reverse()
+    return related
+
 # ==== Llama 3 Call ====
 def get_llama3_response(question):
     update_conversation_context(question)
@@ -155,11 +174,12 @@ def get_llama3_response(question):
     combined_text = (pdf_text + "\n\n" + latest_crawled_text)[:5000]
 
     messages = [
-        {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
-    ] + conversation_history[-5:]
+        {"role": "system", "content": "You are a helpful assistant that uses recent related questions and provided reference materials to answer follow-up questions clearly."},
+        {"role": "user", "content": f"Reference materials:\n\n{combined_text}"}
+    ] + get_recent_related_history(limit=5) + [{"role": "user", "content": question}]
 
     # === Conversation Memory Debugging ===
-    app.logger.info("Conversation History (last 5):")
+    app.logger.info("Conversation History (related):")
     for msg in messages:
         app.logger.info(json.dumps(msg, indent=2))
 
@@ -200,7 +220,7 @@ def format_response(response_text, for_voice=False):
 # ==== Routes ====
 @app.route("/")
 def index():
-    intro_message = "ðŸ¤– Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!"
+    intro_message = "🤖 Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!"
     return render_template("index.html", intro_message=intro_message)
 
 @app.route("/ask", methods=["POST"])
@@ -210,9 +230,6 @@ def ask():
     if not user_question:
         return jsonify({"answer": "Please ask a valid question."})
     if is_question_relevant(user_question):
-        # You can test memory by asking:
-        # Q1: "What is naloxone?"
-        # Q2: "Where can I get it?" — chatbot should remember "it" refers to naloxone
         answer = get_llama3_response(user_question)
     else:
         answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
