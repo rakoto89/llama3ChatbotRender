@@ -121,22 +121,32 @@ def update_urls_and_crawl():
     return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))
 
 def is_question_relevant(question):
+    """Checks if the question is opioid-related or appears in known content."""
     pronouns = ['it', 'they', 'this', 'that']
+    
+    # Check against known opioid keywords
     if any(topic.lower() in question.lower() for topic in relevant_topics):
         return True
 
+    # Check for follow-up pronouns
     for pronoun in pronouns:
         if pronoun in question.lower():
             if conversation_context.get("last_topic"):
                 return True
 
+    # Check similarity to previous question
     if conversation_history:
         prev_interaction = conversation_history[-1]["content"]
         similarity_ratio = SequenceMatcher(None, prev_interaction.lower(), question.lower()).ratio()
 
-        follow_up_triggers = ["What more", "Anything else", "What other things", "Is there anything more", "Any other thing", "Does that", "Anybody", "Anyone in particular", "is it", "what about", "other", "anymore", "what else", "more", "different", "anything else", "anyone else", "anything else", "others", "too"]
+        follow_up_triggers = ["What more", "Anything else", "What other things", "Is there anything more", "Any other thing", "Does that", "Anybody", "Anyone in particular", "is it", "what about", "other", "anymore", "what else", "more", "different", "anything else", "anyone else", "others", "too"]
         if similarity_ratio >= 0.5 or any(trigger in question.lower() for trigger in follow_up_triggers):
             return True
+
+    # NEW: Check if the question text exists in PDFs or website crawl
+    combined_text = pdf_text.lower() + update_urls_and_crawl().lower()
+    if question.lower() in combined_text:
+        return True
 
     return False
 
