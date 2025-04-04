@@ -173,27 +173,7 @@ def get_llama3_response(question):
 
         response.raise_for_status()
         data = response.json()
-
-        # Safely extract the response text from the API response with added checks
-        choices = data.get("choices")
-        if not choices:
-            app.logger.error("No 'choices' found in the API response.")
-            return "ERROR: No response from Llama 3 API."
-
-        choice = choices[0] if len(choices) > 0 else None
-        if not choice or 'message' not in choice:
-            app.logger.error("No valid 'message' field found in the API response.")
-            return "ERROR: No valid message in the response."
-
-        message = choice.get('message', {})
-        content = message.get('content', "No response").replace("*", "")
-
-        # Log the raw response for debugging purposes
-        app.logger.debug(f"Raw response content: {content}")
-
-        # Return the cleaned-up response content
-        response_text = content
-
+        response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
         conversation_history.append({"role": "assistant", "content": response_text})
 
         return format_response(response_text)
