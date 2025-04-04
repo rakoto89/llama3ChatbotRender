@@ -21,7 +21,6 @@ REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
 conversation_history = []
 conversation_context = {}
 
-# Extract text from PDFs
 def extract_text_from_pdf(pdf_paths):
     text = ""
     with pdfplumber.open(pdf_paths) as pdf:
@@ -54,7 +53,6 @@ relevant_topics = [
     "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", "brands", "treatment programs"
 ]
 
-# Load URLs from file
 def load_urls_from_file(file_path):
     urls = []
     if os.path.exists(file_path):
@@ -66,7 +64,6 @@ URLS_FILE_PATH = os.path.join(os.path.dirname(__file__), "data", "urls.txt")
 
 URLS = load_urls_from_file(URLS_FILE_PATH)
 
-# Crawl and extract text from URLs
 async def fetch_url(session, url, visited, base_domain, text_data, queue):
     if url in visited:
         return
@@ -119,57 +116,41 @@ async def crawl_and_extract_text(base_urls, max_pages=5):
 
     return ''.join(text_data).strip()
 
-# Update URLs and crawl
 def update_urls_and_crawl():
     updated_urls = load_urls_from_file(URLS_FILE_PATH)
     return asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))
 
-# Function to check if the question is relevant
 def is_question_relevant(question):
-    """Checks if the question is opioid-related or appears in known content."""
     pronouns = ['it', 'they', 'this', 'that']
-    
-    # Check against known opioid keywords
     if any(topic.lower() in question.lower() for topic in relevant_topics):
         return True
 
-    # Check for follow-up pronouns
     for pronoun in pronouns:
         if pronoun in question.lower():
             if conversation_context.get("last_topic"):
                 return True
 
-    # Check similarity to previous question
     if conversation_history:
         prev_interaction = conversation_history[-1]["content"]
         similarity_ratio = SequenceMatcher(None, prev_interaction.lower(), question.lower()).ratio()
 
-        follow_up_triggers = ["What more", "Anything else", "What other things", "Is there anything more", "Any other thing", "Does that", "Anybody", "Anyone in particular", "is it", "what about", "other", "anymore", "what else", "more", "different", "anything else", "anyone else", "others", "too"]
+        follow_up_triggers = ["What more", "Anything else", "What other things", "Is there anything more", "Any other thing", "Does that", "Anybody", "Anyone in particular", "is it", "what about", "other", "anymore", "what else", "more", "different", "anything else", "anyone else", "anything else", "others", "too"]
         if similarity_ratio >= 0.5 or any(trigger in question.lower() for trigger in follow_up_triggers):
             return True
 
-    # NEW: Check if the question text exists in PDFs or website crawl
-    combined_text = pdf_text.lower() + update_urls_and_crawl().lower()
-    if question.lower() in combined_text:
-        return True
-
     return False
 
-# Update conversation context
 def update_conversation_context(question):
     keywords = [keyword for keyword in relevant_topics if keyword in question.lower()]
     if keywords:
         conversation_context['last_topic'] = keywords[-1]
 
-# Get response from Llama3 model based on relevant content (PDF + crawled websites)
 def get_llama3_response(question):
     update_conversation_context(question)
     conversation_history.append({"role": "user", "content": question})
 
-    # Combine PDF content and crawled website content
     combined_text = pdf_text + "\n\n" + update_urls_and_crawl()
 
-    # Feed the AI model only with relevant content
     messages = [
         {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
     ] + conversation_history[-5:]
@@ -201,12 +182,10 @@ def get_llama3_response(question):
         app.logger.error(f"Llama 3 API error: {str(e)}")
         return f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"
 
-# Format response text
 def format_response(response_text, for_voice=False):
     formatted_text = response_text.strip().replace("brbr", "")
     return formatted_text.replace("<br>", " ").replace("\n", " ") if for_voice else formatted_text.replace("\n", "<br>")
 
-# Flask routes and server setup
 @app.route("/")
 def index():
     intro_message = "🤖 Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!"
@@ -243,10 +222,12 @@ def voice_response():
 
     return jsonify({"answer": clean_voice_response})
 
-# Feedback handling routes
+# ====== Feedback Persistence and Protection ======
+
 FEEDBACK_FILE = os.path.join(os.path.dirname(__file__), "data", "feedback.json")
 FEEDBACK_SECRET_KEY = os.environ.get("FEEDBACK_SECRET_KEY", "cDehbkli9985112sdnyyyeraqdmmopquip112!!")
 
+# Load feedback from file if it exists
 if os.path.exists(FEEDBACK_FILE):
     with open(FEEDBACK_FILE, "r") as f:
         try:
@@ -281,5 +262,5 @@ def view_feedback():
     return jsonify({"feedback": feedback_list})
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Port setting included here
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
