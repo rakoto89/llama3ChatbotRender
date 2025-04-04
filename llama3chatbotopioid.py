@@ -203,3 +203,25 @@ def get_llama3_response(question):
     except requests.exceptions.RequestException as e:
         app.logger.error(f"Llama 3 API error: {str(e)}")
         return f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"
+
+
+# ==== Flask App Entrypoint ====
+@app.route("/")
+def index():
+    return "Opioid Awareness Chatbot is running."
+
+@app.route("/ask", methods=["POST"])
+def ask():
+    data = request.json
+    user_question = data.get("question", "").strip()
+    if not user_question:
+        return jsonify({"answer": "Please ask a valid question."})
+    if is_question_relevant(user_question):
+        answer = get_llama3_response(user_question)
+    else:
+        answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
+    return jsonify({"answer": answer})
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
