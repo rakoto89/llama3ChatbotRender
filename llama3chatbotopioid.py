@@ -241,13 +241,8 @@ else:
 def feedback():
     if request.method == "POST":
         feedback_text = request.form.get("feedback")
-        rating = request.form.get("rate")
-        if feedback_text or rating:
-            feedback_entry = {
-                "feedback": feedback_text,
-                "rating": rating
-            }
-            feedback_list.append(feedback_entry)
+        if feedback_text:
+            feedback_list.append(feedback_text)
             with open(FEEDBACK_FILE, "w") as f:
                 json.dump(feedback_list, f, indent=2)
             return render_template("feedback.html", success=True)
