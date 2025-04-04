@@ -272,5 +272,6 @@ def view_feedback():
     return jsonify({"feedback": feedback_list})
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 5000))  # Port setting included here
     app.run(host="0.0.0.0", port=port)
+
