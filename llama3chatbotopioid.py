@@ -15,8 +15,8 @@ import json  # Added for saving feedback
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
 
-LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions").strip()
-REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
+MISTRAL_ENDPOINT = os.environ.get("MISTRAL_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions").strip()
+Mistral_API_Key = os.environ.get("Mistral_API_Key", "").strip()
 
 conversation_history = []
 conversation_context = {}
@@ -145,7 +145,7 @@ def update_conversation_context(question):
     if keywords:
         conversation_context['last_topic'] = keywords[-1]
 
-def get_llama3_response(question):
+def get_mistral3_response(question):
     update_conversation_context(question)
     conversation_history.append({"role": "user", "content": question})
 
@@ -156,15 +156,15 @@ def get_llama3_response(question):
     ] + conversation_history[-5:]
 
     headers = {
-        "Authorization": f"Bearer {REN_API_KEY}",
+        "Authorization": f"Bearer {Mistral_API_Key}",
         "Content-Type": "application/json"
     }
 
     try:
         response = requests.post(
-            LLAMA3_ENDPOINT,
+            MISTRAL_ENDPOINT,
             json={
-                "model": "meta-llama/llama-3.1-8b-instruct:free",
+                "model": "mistralai/mistral-small-3.1-24b-instruct:free",
                 "messages": messages
             },
             headers=headers,
@@ -179,8 +179,8 @@ def get_llama3_response(question):
         return format_response(response_text)
 
     except requests.exceptions.RequestException as e:
-        app.logger.error(f"Llama 3 API error: {str(e)}")
-        return f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"
+        app.logger.error(f"mistral 3 API error: {str(e)}")
+        return f"ERROR: Failed to connect to mistral 3 instance. Details: {str(e)}"
 
 def format_response(response_text, for_voice=False):
     formatted_text = response_text.strip().replace("brbr", "")
@@ -200,7 +200,7 @@ def ask():
         return jsonify({"answer": "Please ask a valid question."})
 
     if is_question_relevant(user_question):
-        answer = get_llama3_response(user_question)
+        answer = get_mistral3_response(user_question)
     else:
         answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
@@ -215,7 +215,7 @@ def voice_response():
         return jsonify({"answer": "Please ask a valid question."})
 
     if is_question_relevant(user_question):
-        answer = get_llama3_response(user_question)
+        answer = get_mistral3_response(user_question)
         clean_voice_response = format_response(answer, for_voice=True)
     else:
         clean_voice_response = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
