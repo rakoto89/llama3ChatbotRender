@@ -204,4 +204,11 @@ document.addEventListener("DOMContentLoaded", function () {
     [userInput, sendBtn, voiceBtn, stopBtn, endBtn].forEach(element => {
         element.addEventListener("keydown", handleTabKey);
     });
+
+     // Speak placeholder when user focuses on the input
+    userInput.addEventListener("focus", function () {
+        if (userInput.placeholder) {
+            speakElementText(userInput); // Speak the placeholder text
+        }
+    });
 });
