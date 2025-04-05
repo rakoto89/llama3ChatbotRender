@@ -12,6 +12,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const synth = window.speechSynthesis;
     let silenceTimeout;
 
+    let isTabbing = false; // Flag to track if the user is tabbing
+
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
         msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
@@ -205,10 +207,20 @@ document.addEventListener("DOMContentLoaded", function () {
         element.addEventListener("keydown", handleTabKey);
     });
 
-     // Speak placeholder when user focuses on the input
+     // Speak placeholder when user focuses on the input if tabbing
     userInput.addEventListener("focus", function () {
-        if (userInput.placeholder) {
-            speakResponse(userInput.placeholder);
+        if (isTabbing) {
+            if (userInput.placeholder) {
+                speakResponse(userInput.placeholder);
+            }
+        }
+        isTabbing = false; // Reset after focus
+    });
+
+    // When tab key is pressed, set the tabbing flag to true
+    userInput.addEventListener("keydown", function(event) {
+        if (event.key === "Tab") {
+            isTabbing = true;
         }
     });
 });
