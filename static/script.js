@@ -205,18 +205,15 @@ document.addEventListener("DOMContentLoaded", function () {
         element.addEventListener("keydown", handleTabKey);
     });
 
-// Speak placeholder when user focuses on the input
-userInput.addEventListener("focus", function () {
-    // Prevent speaking if the input is already focused (i.e., clicked inside)
-    if (!userInput.hasAttribute('data-focused')) {
+     // Speak placeholder when user focuses on the input
+    userInput.addEventListener("focus", function () {
         if (userInput.placeholder) {
+            // Mute speech when user clicks inside
+            if (isSpeaking) {
+                synth.cancel();  // Stop any ongoing speech
+                isSpeaking = false;
+            }
             speakResponse(userInput.placeholder);
-            userInput.setAttribute('data-focused', 'true'); // Mark as focused
         }
-    }
-});
-
-// Reset the focused state when the user starts typing
-userInput.addEventListener("input", function () {
-    userInput.removeAttribute('data-focused'); // Reset when user starts typing
+    });
 });
