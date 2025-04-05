@@ -193,28 +193,22 @@ document.addEventListener("DOMContentLoaded", function () {
         window.location.href = "/feedback";
     });
 
-    userInput.addEventListener("keypress", function (event) {
-        if (event.key === "Enter") {
-            event.preventDefault();
-            sendBtn.click();
+    userInput.addEventListener("focus", function () {
+    // Stop any ongoing speech when the user clicks inside the input field
+        if (isSpeaking) {
+            synth.cancel();  // Stop any ongoing speech
+            isSpeaking = false;
         }
-    });
+
 
     // Attach the handleTabKey to all focusable elements
     [userInput, sendBtn, voiceBtn, stopBtn, endBtn].forEach(element => {
         element.addEventListener("keydown", handleTabKey);
     });
 
-    // Mute any ongoing speech when user clicks inside the input field
+     // Speak placeholder when user focuses on the input
     userInput.addEventListener("focus", function () {
-        // Stop any ongoing speech before speaking the placeholder
-        if (isSpeaking) {
-            synth.cancel();  // Stop any ongoing speech
-            isSpeaking = false;
-        }
-
-        // Speak placeholder when user focuses on the input
-        if (userInput.placeholder && !isSpeaking) {
+        if (userInput.placeholder) {
             speakResponse(userInput.placeholder);
         }
     });
