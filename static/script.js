@@ -207,13 +207,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Mute any ongoing speech when user clicks inside the input field
     userInput.addEventListener("focus", function () {
+        // Stop any ongoing speech before speaking the placeholder
         if (isSpeaking) {
             synth.cancel();  // Stop any ongoing speech
             isSpeaking = false;
         }
 
         // Speak placeholder when user focuses on the input
-        if (userInput.placeholder) {
+        if (userInput.placeholder && !isSpeaking) {
             speakResponse(userInput.placeholder);
         }
     });
