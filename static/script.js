@@ -153,15 +153,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // ✅ ADDED: Speak "Enter your question" only when tabbing into the input field
-    userInput.addEventListener("focus", (e) => {
-        if (e.detail === 0) { // Keyboard focus only
-            let utterance = new SpeechSynthesisUtterance("Enter your question");
-            utterance.rate = 0.9;
-            synth.speak(utterance);
-        }
-    });
-
     function handleTabKey(event) {
         if (event.key === "Tab") {
             event.preventDefault();
@@ -206,6 +197,22 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    // ✅ ADDED: Speak "Enter your question" when tabbing in, mute if clicked
+    userInput.addEventListener("focus", (e) => {
+        if (e.detail === 0) {
+            // Focused via Tab key
+            let utterance = new SpeechSynthesisUtterance("Enter your question");
+            utterance.rate = 0.9;
+            synth.speak(utterance);
+        } else {
+            // Clicked into the input field
+            if (synth.speaking) {
+                synth.cancel();
+            }
+        }
+    });
+
+    // Attach the handleTabKey to all focusable elements
     [userInput, sendBtn, voiceBtn, stopBtn, endBtn].forEach(element => {
         element.addEventListener("keydown", handleTabKey);
     });
