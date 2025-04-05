@@ -76,6 +76,8 @@ def get_llama3_response(question):
 
     combined_text = pdf_text[:5000]
 
+    if not is_question_relevant (question):
+        return "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
     messages = [
         {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
     ] + conversation_history[-5:]
