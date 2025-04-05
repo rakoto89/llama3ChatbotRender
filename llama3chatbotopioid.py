@@ -50,18 +50,13 @@ relevant_topics = [
 ]
 
 # ==== Relevance & Context ====
-# ✅ UPDATED FUNCTION (this is the only change)
 def is_question_relevant(question):
-    # Check if current question has any opioid-related keywords
     if any(topic.lower() in question.lower() for topic in relevant_topics):
         return True
-
-    # Check recent user questions in conversation history
     for i in range(len(conversation_history) - 2, -1, -2):  # only user messages
         user_msg = conversation_history[i]
         if any(topic.lower() in user_msg["content"].lower() for topic in relevant_topics):
             return True
-
     return False
 
 def update_conversation_context(question):
@@ -76,11 +71,17 @@ def get_llama3_response(question):
 
     combined_text = pdf_text[:5000]
 
-    if not is_question_relevant (question):
-        return "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
+    # Updated system prompt
+    system_prompt = """
+    You are an Opioid Awareness Chatbot developed for Bowie State University.
+    Only answer questions related to opioids, opioid misuse, pain management, addiction, prevention, or recovery.
+    If the user asks about unrelated topics, kindly redirect them back to opioid awareness.
+    """
+
     messages = [
-        {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
-    ] + conversation_history[-5:]
+        {"role": "system", "content": f"{system_prompt}\n\nUse this context: {combined_text}"},
+        *conversation_history[-5:]
+    ]
 
     headers = {
         "Authorization": f"Bearer {REN_API_KEY}",
@@ -119,7 +120,7 @@ def format_response(response_text, for_voice=False):
 # ==== Routes ====
 @app.route("/")
 def index():
-    intro_message = "ðŸ¤– Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!"
+    intro_message = "🤖 Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!"
     return render_template("index.html", intro_message=intro_message)
 
 @app.route("/ask", methods=["POST"])
