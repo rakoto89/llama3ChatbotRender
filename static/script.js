@@ -207,18 +207,18 @@ document.addEventListener("DOMContentLoaded", function () {
         element.addEventListener("keydown", handleTabKey);
     });
 
-     // Speak "Enter your question" when user tabs into the input
-    userInput.addEventListener("focus", function () {
-        if (isTabbing) {
-            speakResponse("Enter your question");
-        }
-        isTabbing = false; // Reset after focus
-    });
-
     // When tab key is pressed, set the tabbing flag to true
     userInput.addEventListener("keydown", function(event) {
         if (event.key === "Tab") {
             isTabbing = true;
         }
+    });
+
+    // Speak "Enter your question" only when the user tabs into the input
+    userInput.addEventListener("focus", function () {
+        if (isTabbing) {
+            speakResponse("Enter your question");
+        }
+        isTabbing = false; // Reset after focus
     });
 });
