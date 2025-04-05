@@ -46,7 +46,8 @@ relevant_topics = [
     "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
     "medication-assisted treatment", "medication assistantedtreatment", "MAT", "opioid epidemic", "teen",
     "dangers", "genetic", "environmental factors", "pain management", "socioeconomic factors", "consequences", "adult", "death",
-    "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", "brands", "treatment programs", "medication", "young people", "peer pressure"
+    "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", "brands", "treatment programs", "medication", "young people", 
+    "percentage", "peer pressure"
 ]
 
 # ==== Relevance & Context ====
