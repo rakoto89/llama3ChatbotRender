@@ -208,7 +208,7 @@ document.addEventListener("DOMContentLoaded", function () {
      // Speak placeholder when user focuses on the input
     userInput.addEventListener("focus", function () {
         if (userInput.placeholder) {
-            speakElementText(userInput); // Speak the placeholder text
+            speakResponse(userInput.placeholder);
         }
     });
 });
