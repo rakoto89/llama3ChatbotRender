@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () { 
+document.addEventListener("DOMContentLoaded", function () {
     const chatBox = document.getElementById("chat-box");
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function speakResponse(text, callback) {
         if ("speechSynthesis" in window) {
-            const cleanText = text.replace(/<br\s*\/?>/g, " "); 
+            const cleanText = text.replace(/<br\s*\/?>/g, " ");
 
             if (cleanText.trim() === "") return;
 
@@ -127,7 +127,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function playBeep() {
-        const beep = new Audio("/static/beep2.mp3"); 
+        const beep = new Audio("/static/beep2.mp3");
         beep.play();
     }
 
@@ -142,7 +142,7 @@ document.addEventListener("DOMContentLoaded", function () {
             } else if (element.id === "stop-btn") {
                 text = "Stop button.";
             } else if (element.id === "end-btn") {
-                text = "End chat button.";    
+                text = "End chat button.";
             }
 
             if (text) {
@@ -156,13 +156,13 @@ document.addEventListener("DOMContentLoaded", function () {
     function handleTabKey(event) {
         if (event.key === "Tab") {
             event.preventDefault();
-            
+
             const elements = [userInput, sendBtn, voiceBtn, stopBtn, endBtn];
             let currentIndex = elements.indexOf(document.activeElement);
             let nextIndex = (currentIndex + 1) % elements.length;
             let nextElement = elements[nextIndex];
             nextElement.focus();
-            
+
             setTimeout(() => {
                 speakElementText(nextElement);
             }, 200);
@@ -197,22 +197,19 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // ✅ ADDED: Speak "Enter your question" when tabbing in, mute if clicked
+    // ✅ Only speak when tabbing into input (not clicking)
     userInput.addEventListener("focus", (e) => {
         if (e.detail === 0) {
-            // Focused via Tab key
+            // Focused via keyboard (tab key)
             let utterance = new SpeechSynthesisUtterance("Enter your question");
             utterance.rate = 0.9;
             synth.speak(utterance);
         } else {
-            // Clicked into the input field
-            if (synth.speaking) {
-                synth.cancel();
-            }
+            // Focused via mouse click — cancel any speech
+            synth.cancel();
         }
     });
 
-    // Attach the handleTabKey to all focusable elements
     [userInput, sendBtn, voiceBtn, stopBtn, endBtn].forEach(element => {
         element.addEventListener("keydown", handleTabKey);
     });
