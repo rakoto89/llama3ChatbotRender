@@ -66,12 +66,15 @@ def update_conversation_context(question):
 
 # ==== Llama 3 Call ====
 def get_llama3_response(question):
+    # Final relevance check here too
+    if not is_question_relevant(question):
+        return "That topic isn’t related to opioids. Please ask a question about opioid awareness, misuse, treatment, or support."
+
     update_conversation_context(question)
     conversation_history.append({"role": "user", "content": question})
 
     combined_text = pdf_text[:5000]
 
-    # Updated system prompt
     system_prompt = """
     You are an Opioid Awareness Chatbot developed for Bowie State University.
     Only answer questions related to opioids, opioid misuse, pain management, addiction, prevention, or recovery.
@@ -132,6 +135,7 @@ def ask():
     if is_question_relevant(user_question):
         answer = get_llama3_response(user_question)
     else:
+        # Do NOT add off-topic question to conversation history
         answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
     return jsonify({"answer": answer})
 
