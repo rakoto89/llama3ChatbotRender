@@ -66,6 +66,26 @@ def update_conversation_context(question):
     if keywords:
         conversation_context['last_topic'] = keywords[-1]
 
+# ==== ADDED: Related History Helper ====
+def get_recent_related_history(limit=3):
+    related = []
+    count = 0
+
+    for i in range(len(conversation_history) - 2, -1, -2):
+        if count >= limit:
+            break
+        user_msg = conversation_history[i]
+        assistant_msg = conversation_history[i + 1] if i + 1 < len(conversation_history) else None
+        if any(topic in user_msg["content"].lower() for topic in relevant_topics):
+            related.append(user_msg)
+            if assistant_msg:
+                related.append(assistant_msg)
+            count += 1
+
+    related.reverse()
+    return related
+# ==== END ADDITION ====
+
 # ==== Llama 3 Call ====
 def get_llama3_response(question):
     update_conversation_context(question)
@@ -75,7 +95,7 @@ def get_llama3_response(question):
 
     messages = [
         {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
-    ] + conversation_history[-5:]
+    ] + get_recent_related_history(limit=3) + [{"role": "user", "content": question}]
 
     headers = {
         "Authorization": f"Bearer {REN_API_KEY}",
