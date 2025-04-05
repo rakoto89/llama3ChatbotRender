@@ -50,41 +50,24 @@ relevant_topics = [
 ]
 
 # ==== Relevance & Context ====
+# ✅ UPDATED FUNCTION (this is the only change)
 def is_question_relevant(question):
+    # Check if current question has any opioid-related keywords
     if any(topic.lower() in question.lower() for topic in relevant_topics):
         return True
-    if conversation_history:
-        prev_interaction = conversation_history[-1]["content"]
-        similarity_ratio = SequenceMatcher(None, prev_interaction.lower(), question.lower()).ratio()
-        triggers = ["what else", "anything else", "other", "too", "more"]
-        if similarity_ratio >= 0.5 or any(trigger in question.lower() for trigger in triggers):
+
+    # Check recent user questions in conversation history
+    for i in range(len(conversation_history) - 2, -1, -2):  # only user messages
+        user_msg = conversation_history[i]
+        if any(topic.lower() in user_msg["content"].lower() for topic in relevant_topics):
             return True
+
     return False
 
 def update_conversation_context(question):
     keywords = [keyword for keyword in relevant_topics if keyword in question.lower()]
     if keywords:
         conversation_context['last_topic'] = keywords[-1]
-
-# ==== ADDED: Related History Helper ====
-def get_recent_related_history(limit=3):
-    related = []
-    count = 0
-
-    for i in range(len(conversation_history) - 2, -1, -2):
-        if count >= limit:
-            break
-        user_msg = conversation_history[i]
-        assistant_msg = conversation_history[i + 1] if i + 1 < len(conversation_history) else None
-        if any(topic in user_msg["content"].lower() for topic in relevant_topics):
-            related.append(user_msg)
-            if assistant_msg:
-                related.append(assistant_msg)
-            count += 1
-
-    related.reverse()
-    return related
-# ==== END ADDITION ====
 
 # ==== Llama 3 Call ====
 def get_llama3_response(question):
@@ -95,7 +78,7 @@ def get_llama3_response(question):
 
     messages = [
         {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
-    ] + get_recent_related_history(limit=3) + [{"role": "user", "content": question}]
+    ] + conversation_history[-5:]
 
     headers = {
         "Authorization": f"Bearer {REN_API_KEY}",
