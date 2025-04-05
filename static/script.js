@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {  
+document.addEventListener("DOMContentLoaded", function () { 
     const chatBox = document.getElementById("chat-box");
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
@@ -11,8 +11,6 @@ document.addEventListener("DOMContentLoaded", function () {
     let usingVoice = false;
     const synth = window.speechSynthesis;
     let silenceTimeout;
-
-    let isTabbing = false; // Flag to track if the user is tabbing
 
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
@@ -155,6 +153,15 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // ✅ ADDED: Speak "Enter your question" only when tabbing into the input field
+    userInput.addEventListener("focus", (e) => {
+        if (e.detail === 0) { // Keyboard focus only
+            let utterance = new SpeechSynthesisUtterance("Enter your question");
+            utterance.rate = 0.9;
+            synth.speak(utterance);
+        }
+    });
+
     function handleTabKey(event) {
         if (event.key === "Tab") {
             event.preventDefault();
@@ -185,13 +192,10 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     endBtn.addEventListener("click", () => {
-        // Stop any ongoing speech before ending the chat
         if (isSpeaking) {
             synth.cancel();
             isSpeaking = false;
         }
-    
-        // Redirect to the feedback page
         window.location.href = "/feedback";
     });
 
@@ -202,23 +206,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Attach the handleTabKey to all focusable elements
     [userInput, sendBtn, voiceBtn, stopBtn, endBtn].forEach(element => {
         element.addEventListener("keydown", handleTabKey);
-    });
-
-    // When tab key is pressed, set the tabbing flag to true
-    userInput.addEventListener("keydown", function(event) {
-        if (event.key === "Tab") {
-            isTabbing = true;
-        }
-    });
-
-    // Speak "Enter your question" only when the user tabs into the input
-    userInput.addEventListener("focus", function () {
-        if (isTabbing) {
-            speakResponse("Enter your question");
-        }
-        isTabbing = false; // Reset after focus
     });
 });
