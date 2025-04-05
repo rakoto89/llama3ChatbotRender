@@ -11,6 +11,17 @@ document.addEventListener("DOMContentLoaded", function () {
     let usingVoice = false;
     const synth = window.speechSynthesis;
     let silenceTimeout;
+    let lastInputWasKeyboard = false; // ✅ Added to track focus method
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Tab") {
+            lastInputWasKeyboard = true;
+        }
+    });
+
+    document.addEventListener("mousedown", () => {
+        lastInputWasKeyboard = false;
+    });
 
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
@@ -54,16 +65,16 @@ document.addEventListener("DOMContentLoaded", function () {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ question: text }),
         })
-        .then(response => response.json())
-        .then(data => {
-            removePreviousThinkingMessage();
-            appendMessage("bot", data.answer);
-            if (useVoice) speakResponse(data.answer);
-        })
-        .catch(() => {
-            removePreviousThinkingMessage();
-            appendMessage("bot", "Error: Could not get a response.");
-        });
+            .then(response => response.json())
+            .then(data => {
+                removePreviousThinkingMessage();
+                appendMessage("bot", data.answer);
+                if (useVoice) speakResponse(data.answer);
+            })
+            .catch(() => {
+                removePreviousThinkingMessage();
+                appendMessage("bot", "Error: Could not get a response.");
+            });
     }
 
     function speakResponse(text, callback) {
@@ -197,19 +208,16 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // ✅ Only speak when tabbing into input (not clicking)
-    userInput.addEventListener("focus", (e) => {
-        if (e.detail === 0) {
-            // Focused via keyboard (tab key)
+    // ✅ Speak "Enter your question" only when tabbing into input field
+    userInput.addEventListener("focus", () => {
+        if (lastInputWasKeyboard) {
             let utterance = new SpeechSynthesisUtterance("Enter your question");
             utterance.rate = 0.9;
             synth.speak(utterance);
-        } else {
-            // Focused via mouse click — cancel any speech
-            synth.cancel();
         }
     });
 
+    // ✅ Attach tab key handler
     [userInput, sendBtn, voiceBtn, stopBtn, endBtn].forEach(element => {
         element.addEventListener("keydown", handleTabKey);
     });
