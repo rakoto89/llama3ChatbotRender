@@ -3,15 +3,8 @@ import requests
 import pdfplumber
 from flask import Flask, request, render_template, jsonify, redirect, url_for
 from flask_cors import CORS
-from bs4 import BeautifulSoup
-from urllib.parse import urljoin, urlparse
-from collections import deque
-import time
-import asyncio
-import aiohttp
 from difflib import SequenceMatcher
 import json
-import threading
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
@@ -56,80 +49,6 @@ relevant_topics = [
     "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", "brands", "treatment programs", "medication", "young people", "peer pressure"
 ]
 
-# ==== URL Loading ====
-def load_urls_from_file(file_path):
-    urls = []
-    if os.path.exists(file_path):
-        with open(file_path, "r") as f:
-            urls = [line.strip() for line in f if line.strip()]
-    return urls
-
-URLS_FILE_PATH = os.path.join(os.path.dirname(__file__), "data", "urls.txt")
-URLS = load_urls_from_file(URLS_FILE_PATH)
-
-# ==== Async Crawler ====
-async def fetch_url(session, url, visited, base_domain, text_data, queue):
-    if url in visited:
-        return
-    visited.add(url)
-
-    try:
-        async with session.get(url, timeout=10) as response:
-            if response.status != 200:
-                return
-
-            soup = BeautifulSoup(await response.text(), "html.parser")
-
-            page_text = soup.get_text().lower()
-            if not any(keyword in page_text for keyword in relevant_topics):
-                return
-
-            for tag in soup.find_all(["p", "h1", "h2", "h3", "li"]):
-                text_data.append(tag.get_text() + "\n")
-
-            for link_tag in soup.find_all("a", href=True):
-                href = link_tag['href']
-                full_url = urljoin(url, href)
-                link_domain = urlparse(full_url).netloc
-
-                if base_domain in link_domain and full_url not in visited:
-                    queue.append(full_url)
-
-            await asyncio.sleep(0.5)
-    except Exception as e:
-        print(f"Error crawling {url}: {e}")
-
-async def crawl_and_extract_text(base_urls, max_pages=5):
-    visited = set()
-    text_data = []
-    queue = deque(base_urls)
-
-    async with aiohttp.ClientSession() as session:
-        tasks = []
-        while queue and len(visited) < max_pages:
-            url = queue.popleft()
-            tasks.append(fetch_url(session, url, visited, urlparse(url).netloc, text_data, queue))
-            if len(tasks) >= 10:
-                await asyncio.gather(*tasks)
-                tasks = []
-
-        if tasks:
-            await asyncio.gather(*tasks)
-
-    return ''.join(text_data).strip()
-
-# ==== Background Crawling ====
-latest_crawled_text = ""
-
-def background_crawl():
-    global latest_crawled_text
-    updated_urls = load_urls_from_file(URLS_FILE_PATH)
-    latest_crawled_text = asyncio.run(crawl_and_extract_text(updated_urls, max_pages=5))
-    app.logger.info("Background crawl finished.")
-
-# Run crawl at startup
-threading.Thread(target=background_crawl, daemon=True).start()
-
 # ==== Relevance & Context ====
 def is_question_relevant(question):
     if any(topic.lower() in question.lower() for topic in relevant_topics):
@@ -152,7 +71,7 @@ def get_llama3_response(question):
     update_conversation_context(question)
     conversation_history.append({"role": "user", "content": question})
 
-    combined_text = (pdf_text + "\n\n" + latest_crawled_text)[:5000]
+    combined_text = pdf_text[:5000]
 
     messages = [
         {"role": "system", "content": f"You are an expert in opioid education. Use this knowledge to answer questions: {combined_text}"}
