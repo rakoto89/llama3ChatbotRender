@@ -53,7 +53,7 @@ relevant_topics = [
 def is_question_relevant(question):
     if any(topic.lower() in question.lower() for topic in relevant_topics):
         return True
-    for i in range(len(conversation_history) - 2, -1, -2):  # only user messages
+    for i in range(len(conversation_history) - 2, -1, -2):
         user_msg = conversation_history[i]
         if any(topic.lower() in user_msg["content"].lower() for topic in relevant_topics):
             return True
@@ -66,9 +66,9 @@ def update_conversation_context(question):
 
 # ==== Llama 3 Call ====
 def get_llama3_response(question):
-    # Final relevance check here too
+    # Strict filter: block irrelevant questions immediately
     if not is_question_relevant(question):
-        return "That topic isn’t related to opioids. Please ask a question about opioid awareness, misuse, treatment, or support."
+        return "Sorry, I can only discuss topics related to opioid addiction, misuse, prevention, or recovery."
 
     update_conversation_context(question)
     conversation_history.append({"role": "user", "content": question})
@@ -77,8 +77,10 @@ def get_llama3_response(question):
 
     system_prompt = """
     You are an Opioid Awareness Chatbot developed for Bowie State University.
-    Only answer questions related to opioids, opioid misuse, pain management, addiction, prevention, or recovery.
-    If the user asks about unrelated topics, kindly redirect them back to opioid awareness.
+    You must ONLY answer questions related to opioids, opioid misuse, pain management, addiction, prevention, or recovery.
+    Do NOT answer questions about celebrities, entertainment, politics, or anything outside of opioid awareness.
+    If the question is off-topic, respond with:
+    'Sorry, I can only discuss topics related to opioid addiction, misuse, prevention, or recovery.'
     """
 
     messages = [
@@ -108,6 +110,12 @@ def get_llama3_response(question):
         response.raise_for_status()
         data = response.json()
         response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
+
+        # Optional: final guard — overwrite off-topic responses that slip through
+        banned_terms = ["lady gaga", "michael jackson", "taylor swift", "elvis", "beyoncé", "celebrity", "musician", "singer", "actor", "entertainer"]
+        if any(term in response_text.lower() for term in banned_terms):
+            return "Sorry, I can only discuss topics related to opioid addiction, misuse, prevention, or recovery."
+
         conversation_history.append({"role": "assistant", "content": response_text})
 
         return format_response(response_text)
@@ -135,8 +143,7 @@ def ask():
     if is_question_relevant(user_question):
         answer = get_llama3_response(user_question)
     else:
-        # Do NOT add off-topic question to conversation history
-        answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
+        answer = "Sorry, I can only discuss topics related to opioid addiction, misuse, prevention, or recovery."
     return jsonify({"answer": answer})
 
 @app.route("/voice", methods=["POST"])
@@ -149,7 +156,7 @@ def voice_response():
         answer = get_llama3_response(user_question)
         clean_voice_response = format_response(answer, for_voice=True)
     else:
-        clean_voice_response = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
+        clean_voice_response = "Sorry, I can only discuss topics related to opioid addiction, misuse, prevention, or recovery."
     return jsonify({"answer": clean_voice_response})
 
 # ==== Feedback ====
