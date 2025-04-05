@@ -205,14 +205,15 @@ document.addEventListener("DOMContentLoaded", function () {
         element.addEventListener("keydown", handleTabKey);
     });
 
-     // Speak placeholder when user focuses on the input
+    // Mute any ongoing speech when user clicks inside the input field
     userInput.addEventListener("focus", function () {
+        if (isSpeaking) {
+            synth.cancel();  // Stop any ongoing speech
+            isSpeaking = false;
+        }
+
+        // Speak placeholder when user focuses on the input
         if (userInput.placeholder) {
-            // Mute speech when user clicks inside
-            if (isSpeaking) {
-                synth.cancel();  // Stop any ongoing speech
-                isSpeaking = false;
-            }
             speakResponse(userInput.placeholder);
         }
     });
