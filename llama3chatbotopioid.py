@@ -82,7 +82,7 @@ def update_conversation_context(question):
 # ==== Llama 3 Call ====
 def get_llama3_response(question):
     if not is_question_relevant(question):
-        return "Sorry, I can only discuss topics related to opioid addiction, misuse, prevention, or recovery."
+        return "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
     update_conversation_context(question)
     conversation_history.append({"role": "user", "content": question})
@@ -121,7 +121,7 @@ def get_llama3_response(question):
 
         banned_terms = ["lady gaga", "michael jackson", "taylor swift", "elvis", "beyoncé", "celebrity"]
         if any(term in response_text.lower() for term in banned_terms):
-            return "Sorry, I can only discuss topics related to opioid addiction, misuse, prevention, or recovery."
+            return "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
         conversation_history.append({"role": "assistant", "content": response_text})
         return format_response(response_text)
@@ -148,7 +148,7 @@ def ask():
     if is_question_relevant(user_question):
         answer = get_llama3_response(user_question)
     else:
-        answer = "Sorry, I can only discuss topics related to opioid addiction, misuse, prevention, or recovery."
+        answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
     return jsonify({"answer": answer})
 
 @app.route("/voice", methods=["POST"])
@@ -161,7 +161,7 @@ def voice_response():
         answer = get_llama3_response(user_question)
         clean_voice_response = format_response(answer, for_voice=True)
     else:
-        clean_voice_response = "Sorry, I can only discuss topics related to opioid addiction, misuse, prevention, or recovery."
+        clean_voice_response = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
     return jsonify({"answer": clean_voice_response})
 
 # ==== Feedback: Save to PostgreSQL ====
