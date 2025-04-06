@@ -6,12 +6,19 @@ from flask import Flask, request, render_template, jsonify, redirect, url_for
 from flask_cors import CORS
 from difflib import SequenceMatcher
 import json
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
 
+# Fetch environment variables
 LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions").strip()
 REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
+PDF_FOLDER = os.environ.get("PDF_FOLDER", "pdfs")
+FEEDBACK_SECRET_KEY = os.environ.get("FEEDBACK_SECRET_KEY", "")
 
 conversation_history = []
 conversation_context = {}
@@ -35,7 +42,8 @@ def read_pdfs_in_folder(folder_path):
             concatenated_text += pdf_text + '\n\n'
     return concatenated_text
 
-pdf_text = read_pdfs_in_folder('pdfs')
+# Read PDFs from the folder
+pdf_text = read_pdfs_in_folder(PDF_FOLDER)
 
 # ==== Keywords ====
 relevant_topics = [
@@ -53,6 +61,8 @@ relevant_topics = [
 
 # ==== Relevance & Context ====
 def is_question_relevant(question):
+    if len(conversation_history) < 2:
+        return False
     if any(topic.lower() in question.lower() for topic in relevant_topics):
         return True
     for i in range(len(conversation_history) - 2, -1, -2):
@@ -133,10 +143,10 @@ def format_response(response_text, for_voice=False):
 # ==== PostgreSQL Database Connection ====
 def get_db_connection():
     connection = psycopg2.connect(
-        host="dpg-cvokq215pdvs73a0o2i0-a.virginia-postgres.render.com",  # Your host
-        database="opioid_education_bot_feedback",  # Your database name
-        user="opioid_education_bot_feedback_user",  # Your user
-        password="dcMBBlS3ph96UOKvn9ednr3NCuGY1qyU"  # Your password
+        host=os.environ.get("DB_HOST", ""),  # Using environment variables
+        database=os.environ.get("DB_NAME", ""),  # Your database name
+        user=os.environ.get("DB_USER", ""),  # Your user
+        password=os.environ.get("DB_PASSWORD", "")  # Your password
     )
     return connection
 
@@ -174,7 +184,7 @@ def feedback():
 @app.route("/view_feedback", methods=["GET"])
 def view_feedback():
     key = request.args.get("key", "")
-    if key != os.environ.get("FEEDBACK_SECRET_KEY", "cDehbkli9985112sdnyyyeraqdmmopquip112!!"):
+    if key != FEEDBACK_SECRET_KEY:
         return jsonify({"error": "Unauthorized access"}), 401
 
     try:
@@ -224,18 +234,16 @@ def ask():
     return jsonify({"answer": answer})
 
 @app.route("/voice", methods=["POST"])
-def voice_response():
+def voice_input():
     data = request.json
     user_question = data.get("question", "").strip()
     if not user_question:
         return jsonify({"answer": "Please ask a valid question."})
     if is_question_relevant(user_question):
         answer = get_llama3_response(user_question)
-        clean_voice_response = format_response(answer, for_voice=True)
     else:
-        clean_voice_response = "Sorry, I can only discuss topics related to opioid addiction, misuse, prevention, or recovery."
-    return jsonify({"answer": clean_voice_response})
+        answer = "Sorry, I can only discuss topics related to opioid addiction, misuse, prevention, or recovery."
+    return jsonify({"answer": answer})
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(debug=True)
