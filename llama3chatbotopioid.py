@@ -39,13 +39,27 @@ def extract_text_from_pdf(pdf_paths):
                 text += extracted_text + "\n"
     return text.strip()
 
+# === ADDED: Function to extract tables ===
+def extract_tables_from_pdf(pdf_path):
+    table_text = ""
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            tables = page.extract_tables()
+            for table in tables:
+                for row in table:
+                    if row:
+                        table_text += " | ".join(cell if cell else "" for cell in row) + "\n"
+    return table_text.strip()
+
 def read_pdfs_in_folder(folder_path):
     concatenated_text = ''
     for filename in os.listdir(folder_path):
         if filename.endswith('.pdf'):
             pdf_path = os.path.join(folder_path, filename)
             pdf_text = extract_text_from_pdf(pdf_path)
+            table_text = extract_tables_from_pdf(pdf_path)        # <--- ADDED
             concatenated_text += pdf_text + '\n\n'
+            concatenated_text += table_text + '\n\n'              # <--- ADDED
     return concatenated_text
 
 pdf_text = read_pdfs_in_folder('pdfs')
