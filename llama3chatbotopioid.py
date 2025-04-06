@@ -176,26 +176,34 @@ def view_feedback():
     key = request.args.get("key", "")
     if key != os.environ.get("FEEDBACK_SECRET_KEY", "cDehbkli9985112sdnyyyeraqdmmopquip112!!"):
         return jsonify({"error": "Unauthorized access"}), 401
-    
-    # Connect to PostgreSQL and retrieve feedback
+
     try:
+        # Connect to the PostgreSQL database
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Query to retrieve feedback and ratings from the database
-        cursor.execute("SELECT feedback_text, rating FROM feedback")
-        feedback_entries = cursor.fetchall()
+        # Retrieve feedback data
+        cursor.execute("SELECT feedback_text, rating FROM feedback;")
+        feedback_data = cursor.fetchall()
+
+        # Format feedback data as a list of dictionaries
+        feedback_list = []
+        for row in feedback_data:
+            feedback_dict = {
+                "feedback": row[0],  # feedback text
+                "rating": row[1]     # rating
+            }
+            feedback_list.append(feedback_dict)
 
         # Close the cursor and connection
         cursor.close()
         conn.close()
 
-        # Format feedback as a JSON response
-        feedback_list = [{"feedback": entry[0], "rating": entry[1]} for entry in feedback_entries]
+        # Return the feedback as JSON
         return jsonify({"feedback": feedback_list})
-    
+
     except Exception as e:
-        app.logger.error(f"Error retrieving feedback from database: {e}")
+        app.logger.error(f"Error retrieving feedback: {str(e)}")
         return jsonify({"error": "Error retrieving feedback"}), 500
 
 @app.route("/")
@@ -228,7 +236,6 @@ def voice_response():
         clean_voice_response = "Sorry, I can only discuss topics related to opioid addiction, misuse, prevention, or recovery."
     return jsonify({"answer": clean_voice_response})
 
-# ==== App Entrypoint ====
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
