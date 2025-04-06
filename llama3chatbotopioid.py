@@ -3,6 +3,7 @@ import requests
 import pdfplumber
 import psycopg2
 import urllib.parse as urlparse
+import pandas as pd
 from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
 import json
@@ -75,6 +76,16 @@ def read_csv_as_text(csv_path):
     with open(csv_path, 'r', encoding='utf-8') as f:
         return f"=== CSV Data ===\n{f.read().strip()}"
 
+# === NEW: CSV Lookup Function ===
+def get_csv_value(state, age_range):
+    if csv_df is None:
+        return "CSV file not found."
+    try:
+        value = csv_df.loc[csv_df["Location"].str.lower() == state.lower(), age_range].values[0]
+        return str(value)
+    except:
+        return f"Sorry, I couldn't find data for {state} and age group {age_range}."
+
 # === COMBINE PDF + CSV ===
 pdf_folder = 'pdfs'
 csv_path = os.path.join(pdf_folder, "opioid_deaths_by_age.csv")
@@ -82,6 +93,7 @@ csv_path = os.path.join(pdf_folder, "opioid_deaths_by_age.csv")
 all_table_text = extract_all_tables_first(pdf_folder)
 pdf_texts = read_pdfs_in_folder(pdf_folder)
 csv_text = read_csv_as_text(csv_path) if os.path.exists(csv_path) else ""
+csv_df = pd.read_csv(csv_path) if os.path.exists(csv_path) else None
 
 pdf_text = csv_text + "\n\n" + all_table_text + "\n\n" + pdf_texts
 
@@ -180,6 +192,11 @@ def ask():
     user_question = data.get("question", "").strip()
     if not user_question:
         return jsonify({"answer": "Please ask a valid question."})
+
+    # Optional: handle direct CSV questions yourself before calling LLM
+    if "alaska" in user_question.lower() and "0-24" in user_question:
+        return jsonify({"answer": get_csv_value("Alaska", "Age 0-24")})
+
     if is_question_relevant(user_question):
         answer = get_llama3_response(user_question)
     else:
