@@ -5,7 +5,6 @@ from flask import Flask, request, render_template, jsonify, redirect, url_for
 from flask_cors import CORS
 from difflib import SequenceMatcher
 import json
-import psycopg2  # === ADDED FOR DATABASE ===
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
@@ -15,17 +14,6 @@ REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
 
 conversation_history = []
 conversation_context = {}
-
-# === ADDED FOR DATABASE ===
-conn = psycopg2.connect(
-    dbname="opioid_education_bot_feedback",
-    user="opioid_education_bot_feedback_user",
-    password="dcMBB1S3ph96U0KVn9ednz3NCuGY14yU",  # Make sure this is correct
-    host="dpg-cvokq215pdvs73a0o2i0-a.virginia-postgres.render.com",
-    port="5432",
-    sslmode='require'  # Ensure SSL/TLS connection
-)
-cursor = conn.cursor()
 
 # ==== PDF Extraction ====
 def extract_text_from_pdf(pdf_paths):
@@ -79,6 +67,7 @@ def update_conversation_context(question):
 
 # ==== Llama 3 Call ====
 def get_llama3_response(question):
+    # Strict filter: block irrelevant questions immediately
     if not is_question_relevant(question):
         return "Sorry, I can only discuss topics related to opioid addiction, misuse, prevention, or recovery."
 
@@ -93,7 +82,7 @@ def get_llama3_response(question):
     Do NOT answer questions about celebrities, entertainment, politics, or anything outside of opioid awareness.
     If the question is off-topic, respond with:
     'Sorry, I can only discuss topics related to opioid addiction, misuse, prevention, or recovery.'
-    """ 
+    """
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nUse this context: {combined_text}"},
@@ -123,6 +112,7 @@ def get_llama3_response(question):
         data = response.json()
         response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
 
+        # Optional: final guard — overwrite off-topic responses that slip through
         banned_terms = ["lady gaga", "michael jackson", "taylor swift", "elvis", "beyoncé", "celebrity", "musician", "singer", "actor", "entertainer"]
         if any(term in response_text.lower() for term in banned_terms):
             return "Sorry, I can only discuss topics related to opioid addiction, misuse, prevention, or recovery."
@@ -193,14 +183,6 @@ def feedback():
             feedback_list.append(feedback_entry)
             with open(FEEDBACK_FILE, "w") as f:
                 json.dump(feedback_list, f, indent=2)
-
-            # === ADDED: Store feedback in PostgreSQL ===
-            cursor.execute(
-                "INSERT INTO feedback (user_id, rating, comments) VALUES (%s, %s, %s)",
-                ("web_user", rating, feedback_text)
-            )
-            conn.commit()
-
             return render_template("feedback.html", success=True)
     return render_template("feedback.html", success=False)
 
@@ -210,13 +192,6 @@ def view_feedback():
     if key != FEEDBACK_SECRET_KEY:
         return jsonify({"error": "Unauthorized access"}), 401
     return jsonify({"feedback": feedback_list})
-
-# === ADDED: Dashboard to view PostgreSQL feedback ===
-@app.route("/dashboard")
-def dashboard():
-    cursor.execute("SELECT * FROM feedback ORDER BY submitted_at DESC")
-    rows = cursor.fetchall()
-    return render_template("dashboard.html", feedback=rows)
 
 # ==== App Entrypoint ====
 if __name__ == "__main__":
