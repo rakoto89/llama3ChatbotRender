@@ -1,24 +1,16 @@
 import os
-import psycopg2
 import requests
 import pdfplumber
 from flask import Flask, request, render_template, jsonify, redirect, url_for
 from flask_cors import CORS
 from difflib import SequenceMatcher
 import json
-import logging
-
-# Set up logging
-logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
 
-# Fetch environment variables
 LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions").strip()
 REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
-PDF_FOLDER = os.environ.get("PDF_FOLDER", "pdfs")
-FEEDBACK_SECRET_KEY = os.environ.get("FEEDBACK_SECRET_KEY", "")
 
 conversation_history = []
 conversation_context = {}
@@ -42,8 +34,7 @@ def read_pdfs_in_folder(folder_path):
             concatenated_text += pdf_text + '\n\n'
     return concatenated_text
 
-# Read PDFs from the folder
-pdf_text = read_pdfs_in_folder(PDF_FOLDER)
+pdf_text = read_pdfs_in_folder('pdfs')
 
 # ==== Keywords ====
 relevant_topics = [
@@ -61,8 +52,6 @@ relevant_topics = [
 
 # ==== Relevance & Context ====
 def is_question_relevant(question):
-    if len(conversation_history) < 2:
-        return False
     if any(topic.lower() in question.lower() for topic in relevant_topics):
         return True
     for i in range(len(conversation_history) - 2, -1, -2):
@@ -140,82 +129,7 @@ def format_response(response_text, for_voice=False):
     formatted_text = response_text.strip().replace("brbr", "")
     return formatted_text.replace("<br>", " ").replace("\n", " ") if for_voice else formatted_text.replace("\n", "<br>")
 
-# ==== PostgreSQL Database Connection ====
-def get_db_connection():
-    connection = psycopg2.connect(
-        host=os.environ.get("DB_HOST", ""),  # Using environment variables
-        database=os.environ.get("DB_NAME", ""),  # Your database name
-        user=os.environ.get("DB_USER", ""),  # Your user
-        password=os.environ.get("DB_PASSWORD", "")  # Your password
-    )
-    return connection
-
 # ==== Routes ====
-@app.route("/feedback", methods=["GET", "POST"])
-def feedback():
-    if request.method == "POST":
-        feedback_text = request.form.get("feedback")
-        rating = request.form.get("rate")
-        if feedback_text or rating:
-            # Connect to PostgreSQL and insert feedback
-            try:
-                conn = get_db_connection()
-                cursor = conn.cursor()
-
-                # Insert feedback into the database
-                cursor.execute("""
-                    INSERT INTO feedback (feedback_text, rating) 
-                    VALUES (%s, %s)
-                """, (feedback_text, rating))
-                
-                # Commit the transaction
-                conn.commit()
-                
-                # Close the cursor and connection
-                cursor.close()
-                conn.close()
-                
-                return render_template("feedback.html", success=True)
-            except Exception as e:
-                app.logger.error(f"Error saving feedback to database: {e}")
-                return render_template("feedback.html", success=False)
-    return render_template("feedback.html", success=False)
-
-@app.route("/view_feedback", methods=["GET"])
-def view_feedback():
-    key = request.args.get("key", "")
-    if key != FEEDBACK_SECRET_KEY:
-        return jsonify({"error": "Unauthorized access"}), 401
-
-    try:
-        # Connect to the PostgreSQL database
-        conn = get_db_connection()
-        cursor = conn.cursor()
-
-        # Retrieve feedback data
-        cursor.execute("SELECT feedback_text, rating FROM feedback;")
-        feedback_data = cursor.fetchall()
-
-        # Format feedback data as a list of dictionaries
-        feedback_list = []
-        for row in feedback_data:
-            feedback_dict = {
-                "feedback": row[0],  # feedback text
-                "rating": row[1]     # rating
-            }
-            feedback_list.append(feedback_dict)
-
-        # Close the cursor and connection
-        cursor.close()
-        conn.close()
-
-        # Return the feedback as JSON
-        return jsonify({"feedback": feedback_list})
-
-    except Exception as e:
-        app.logger.error(f"Error retrieving feedback: {str(e)}")
-        return jsonify({"error": "Error retrieving feedback"}), 500
-
 @app.route("/")
 def index():
     intro_message = "🤖 Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!"
@@ -234,18 +148,52 @@ def ask():
     return jsonify({"answer": answer})
 
 @app.route("/voice", methods=["POST"])
-def voice_input():
+def voice_response():
     data = request.json
     user_question = data.get("question", "").strip()
     if not user_question:
         return jsonify({"answer": "Please ask a valid question."})
     if is_question_relevant(user_question):
         answer = get_llama3_response(user_question)
+        clean_voice_response = format_response(answer, for_voice=True)
     else:
-        answer = "Sorry, I can only discuss topics related to opioid addiction, misuse, prevention, or recovery."
-    return jsonify({"answer": answer})
+        clean_voice_response = "Sorry, I can only discuss topics related to opioid addiction, misuse, prevention, or recovery."
+    return jsonify({"answer": clean_voice_response})
 
+# ==== Feedback ====
+FEEDBACK_FILE = os.path.join(os.path.dirname(__file__), "data", "feedback.json")
+FEEDBACK_SECRET_KEY = os.environ.get("FEEDBACK_SECRET_KEY", "cDehbkli9985112sdnyyyeraqdmmopquip112!!")
+
+if os.path.exists(FEEDBACK_FILE):
+    with open(FEEDBACK_FILE, "r") as f:
+        try:
+            feedback_list = json.load(f)
+        except json.JSONDecodeError:
+            feedback_list = []
+else:
+    feedback_list = []
+
+@app.route("/feedback", methods=["GET", "POST"])
+def feedback():
+    if request.method == "POST":
+        feedback_text = request.form.get("feedback")
+        rating = request.form.get("rate")
+        if feedback_text or rating:
+            feedback_entry = {"feedback": feedback_text, "rating": rating}
+            feedback_list.append(feedback_entry)
+            with open(FEEDBACK_FILE, "w") as f:
+                json.dump(feedback_list, f, indent=2)
+            return render_template("feedback.html", success=True)
+    return render_template("feedback.html", success=False)
+
+@app.route("/view_feedback", methods=["GET"])
+def view_feedback():
+    key = request.args.get("key", "")
+    if key != FEEDBACK_SECRET_KEY:
+        return jsonify({"error": "Unauthorized access"}), 401
+    return jsonify({"feedback": feedback_list})
+
+# ==== App Entrypoint ====
 if __name__ == "__main__":
-    app.run(debug=True)
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
