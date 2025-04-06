@@ -62,10 +62,20 @@ def read_pdfs_in_folder(folder_path):
             concatenated_text += table_text + '\n\n'              # <--- ADDED
     return concatenated_text
 
-# === PRIORITIZE TABLE PDF TEXT ===
-table_pdf_path = os.path.join("pdfs", "KFF Opioid Overdose Deaths 2022.pdf", "KFF Opioid Overdose Deaths by Age Group 2022.pdf", "KFF Opioid Overdose Deaths by Race and Ethnicity 2022.pdf")  # <- Use your actual table PDF filename
-table_text = extract_tables_from_pdf(table_pdf_path)
-pdf_text = table_text + "\n\n" + read_pdfs_in_folder('pdfs')   # <- Prioritize table content
+# === PRIORITIZE TABLE TEXT FROM ALL PDFs ===
+def extract_all_tables_first(folder_path):
+    combined_table_text = ""
+    for filename in os.listdir(folder_path):
+        if filename.endswith('.pdf'):
+            pdf_path = os.path.join(folder_path, filename)
+            table_text = extract_tables_from_pdf(pdf_path)
+            if table_text.strip():
+                combined_table_text += f"=== Tables from {filename} ===\n{table_text}\n\n"
+    return combined_table_text.strip()
+
+pdf_folder = 'pdfs'
+all_table_text = extract_all_tables_first(pdf_folder)
+pdf_text = all_table_text + "\n\n" + read_pdfs_in_folder(pdf_folder)
 
 # ==== Keywords ====
 relevant_topics = [
