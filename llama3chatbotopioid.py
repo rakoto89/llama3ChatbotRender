@@ -1,4 +1,5 @@
 import os
+import psycopg2
 import requests
 import pdfplumber
 from flask import Flask, request, render_template, jsonify, redirect, url_for
@@ -129,7 +130,53 @@ def format_response(response_text, for_voice=False):
     formatted_text = response_text.strip().replace("brbr", "")
     return formatted_text.replace("<br>", " ").replace("\n", " ") if for_voice else formatted_text.replace("\n", "<br>")
 
+# ==== PostgreSQL Database Connection ====
+def get_db_connection():
+    connection = psycopg2.connect(
+        host="dpg-cvokq215pdvs73a0o2i0-a.virginia-postgres.render.com",  # Your host
+        database="opioid_education_bot_feedback",  # Your database name
+        user="opioid_education_bot_feedback_user",  # Your user
+        password="dcMBBlS3ph96UOKvn9ednr3NCuGY1qyU"  # Your password
+    )
+    return connection
 # ==== Routes ====
+@app.route("/feedback", methods=["GET", "POST"])
+def feedback():
+    if request.method == "POST":
+        feedback_text = request.form.get("feedback")
+        rating = request.form.get("rate")
+        if feedback_text or rating:
+            # Connect to PostgreSQL and insert feedback
+            try:
+                conn = get_db_connection()
+                cursor = conn.cursor()
+
+                # Insert feedback into the database
+                cursor.execute("""
+                    INSERT INTO feedback (feedback_text, rating) 
+                    VALUES (%s, %s)
+                """, (feedback_text, rating))
+                
+                # Commit the transaction
+                conn.commit()
+                
+                # Close the cursor and connection
+                cursor.close()
+                conn.close()
+                
+                return render_template("feedback.html", success=True)
+            except Exception as e:
+                app.logger.error(f"Error saving feedback to database: {e}")
+                return render_template("feedback.html", success=False)
+    return render_template("feedback.html", success=False)
+
+@app.route("/view_feedback", methods=["GET"])
+def view_feedback():
+    key = request.args.get("key", "")
+    if key != os.environ.get("FEEDBACK_SECRET_KEY", "cDehbkli9985112sdnyyyeraqdmmopquip112!!"):
+        return jsonify({"error": "Unauthorized access"}), 401
+    return jsonify({"feedback": "Feedback retrieval is not implemented"})
+
 @app.route("/")
 def index():
     intro_message = "🤖 Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!"
@@ -159,39 +206,6 @@ def voice_response():
     else:
         clean_voice_response = "Sorry, I can only discuss topics related to opioid addiction, misuse, prevention, or recovery."
     return jsonify({"answer": clean_voice_response})
-
-# ==== Feedback ====
-FEEDBACK_FILE = os.path.join(os.path.dirname(__file__), "data", "feedback.json")
-FEEDBACK_SECRET_KEY = os.environ.get("FEEDBACK_SECRET_KEY", "cDehbkli9985112sdnyyyeraqdmmopquip112!!")
-
-if os.path.exists(FEEDBACK_FILE):
-    with open(FEEDBACK_FILE, "r") as f:
-        try:
-            feedback_list = json.load(f)
-        except json.JSONDecodeError:
-            feedback_list = []
-else:
-    feedback_list = []
-
-@app.route("/feedback", methods=["GET", "POST"])
-def feedback():
-    if request.method == "POST":
-        feedback_text = request.form.get("feedback")
-        rating = request.form.get("rate")
-        if feedback_text or rating:
-            feedback_entry = {"feedback": feedback_text, "rating": rating}
-            feedback_list.append(feedback_entry)
-            with open(FEEDBACK_FILE, "w") as f:
-                json.dump(feedback_list, f, indent=2)
-            return render_template("feedback.html", success=True)
-    return render_template("feedback.html", success=False)
-
-@app.route("/view_feedback", methods=["GET"])
-def view_feedback():
-    key = request.args.get("key", "")
-    if key != FEEDBACK_SECRET_KEY:
-        return jsonify({"error": "Unauthorized access"}), 401
-    return jsonify({"feedback": feedback_list})
 
 # ==== App Entrypoint ====
 if __name__ == "__main__":
