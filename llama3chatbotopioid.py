@@ -1,16 +1,30 @@
 import os
 import requests
 import pdfplumber
-from flask import Flask, request, render_template, jsonify, redirect, url_for
+import psycopg2
+import urllib.parse as urlparse
+from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
-from difflib import SequenceMatcher
 import json
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
 
+# ==== ENVIRONMENT CONFIG ====
 LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions").strip()
 REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
+FEEDBACK_SECRET_KEY = os.environ.get("FEEDBACK_SECRET_KEY", "test-key")
+
+# Use Render-provided DATABASE_URL
+DATABASE_URL = os.environ.get("DATABASE_URL")
+url = urlparse.urlparse(DATABASE_URL)
+db_config = {
+    "dbname": url.path[1:],
+    "user": url.username,
+    "password": url.password,
+    "host": url.hostname,
+    "port": url.port
+}
 
 conversation_history = []
 conversation_context = {}
@@ -44,10 +58,10 @@ relevant_topics = [
     "support", "support for opioid addiction", "drug use", "email", "campus", "phone number",
     "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication",
     "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
-    "medication-assisted treatment", "medication assistantedtreatment", "MAT", "opioid epidemic", "teen",
-    "dangers", "genetic", "environmental factors", "pain management", "socioeconomic factors", "consequences", "adult", "death",
-    "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", "brands", "treatment programs", "medication", "young people", 
-    "percentage", "peer pressure"
+    "medication-assisted treatment", "MAT", "opioid epidemic", "teen", "dangers", "genetic", 
+    "environmental factors", "pain management", "socioeconomic factors", "consequences", 
+    "adult", "death", "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", 
+    "brands", "treatment programs", "medication", "young people", "peer pressure"
 ]
 
 # ==== Relevance & Context ====
@@ -67,7 +81,6 @@ def update_conversation_context(question):
 
 # ==== Llama 3 Call ====
 def get_llama3_response(question):
-    # Strict filter: block irrelevant questions immediately
     if not is_question_relevant(question):
         return "Sorry, I can only discuss topics related to opioid addiction, misuse, prevention, or recovery."
 
@@ -80,8 +93,6 @@ def get_llama3_response(question):
     You are an Opioid Awareness Chatbot developed for Bowie State University.
     You must ONLY answer questions related to opioids, opioid misuse, pain management, addiction, prevention, or recovery.
     Do NOT answer questions about celebrities, entertainment, politics, or anything outside of opioid awareness.
-    If the question is off-topic, respond with:
-    'Sorry, I can only discuss topics related to opioid addiction, misuse, prevention, or recovery.'
     """
 
     messages = [
@@ -95,7 +106,6 @@ def get_llama3_response(question):
     }
 
     try:
-        app.logger.info(f"Sending request to Llama 3 with {len(messages)} messages")
         response = requests.post(
             LLAMA3_ENDPOINT,
             json={
@@ -105,25 +115,19 @@ def get_llama3_response(question):
             headers=headers,
             timeout=30
         )
-        app.logger.info(f"Status: {response.status_code}")
-        app.logger.info(f"Body: {response.text}")
-
         response.raise_for_status()
         data = response.json()
         response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
 
-        # Optional: final guard — overwrite off-topic responses that slip through
-        banned_terms = ["lady gaga", "michael jackson", "taylor swift", "elvis", "beyoncé", "celebrity", "musician", "singer", "actor", "entertainer"]
+        banned_terms = ["lady gaga", "michael jackson", "taylor swift", "elvis", "beyoncé", "celebrity"]
         if any(term in response_text.lower() for term in banned_terms):
             return "Sorry, I can only discuss topics related to opioid addiction, misuse, prevention, or recovery."
 
         conversation_history.append({"role": "assistant", "content": response_text})
-
         return format_response(response_text)
 
     except requests.exceptions.RequestException as e:
-        app.logger.error(f"Llama 3 API error: {str(e)}")
-        return f"ERROR: Failed to connect to Llama 3 instance. Details: {str(e)}"
+        return f"ERROR: Failed to connect to Llama 3. Details: {str(e)}"
 
 def format_response(response_text, for_voice=False):
     formatted_text = response_text.strip().replace("brbr", "")
@@ -160,38 +164,54 @@ def voice_response():
         clean_voice_response = "Sorry, I can only discuss topics related to opioid addiction, misuse, prevention, or recovery."
     return jsonify({"answer": clean_voice_response})
 
-# ==== Feedback ====
-FEEDBACK_FILE = os.path.join(os.path.dirname(__file__), "data", "feedback.json")
-FEEDBACK_SECRET_KEY = os.environ.get("FEEDBACK_SECRET_KEY", "cDehbkli9985112sdnyyyeraqdmmopquip112!!")
-
-if os.path.exists(FEEDBACK_FILE):
-    with open(FEEDBACK_FILE, "r") as f:
-        try:
-            feedback_list = json.load(f)
-        except json.JSONDecodeError:
-            feedback_list = []
-else:
-    feedback_list = []
-
+# ==== Feedback: Save to PostgreSQL ====
 @app.route("/feedback", methods=["GET", "POST"])
 def feedback():
     if request.method == "POST":
         feedback_text = request.form.get("feedback")
         rating = request.form.get("rate")
+        user_id = request.remote_addr
+
         if feedback_text or rating:
-            feedback_entry = {"feedback": feedback_text, "rating": rating}
-            feedback_list.append(feedback_entry)
-            with open(FEEDBACK_FILE, "w") as f:
-                json.dump(feedback_list, f, indent=2)
-            return render_template("feedback.html", success=True)
+            try:
+                conn = psycopg2.connect(**db_config)
+                cur = conn.cursor()
+                cur.execute("""
+                    INSERT INTO feedback (user_id, rating, comments)
+                    VALUES (%s, %s, %s);
+                """, (user_id, int(rating), feedback_text))
+                conn.commit()
+                cur.close()
+                conn.close()
+                return render_template("feedback.html", success=True)
+            except Exception as e:
+                app.logger.error(f"Database insert error: {e}")
+                return render_template("feedback.html", success=False)
     return render_template("feedback.html", success=False)
 
+# ==== Feedback Viewer ====
 @app.route("/view_feedback", methods=["GET"])
 def view_feedback():
     key = request.args.get("key", "")
     if key != FEEDBACK_SECRET_KEY:
         return jsonify({"error": "Unauthorized access"}), 401
-    return jsonify({"feedback": feedback_list})
+
+    try:
+        conn = psycopg2.connect(**db_config)
+        cur = conn.cursor()
+        cur.execute("SELECT user_id, rating, comments, submitted_at FROM feedback ORDER BY submitted_at DESC;")
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        feedback_data = [
+            {"user_id": row[0], "rating": row[1], "comments": row[2], "submitted_at": str(row[3])}
+            for row in rows
+        ]
+        return jsonify({"feedback": feedback_data})
+    except Exception as e:
+        app.logger.error(f"Database fetch error: {e}")
+        return jsonify({"error": "Could not fetch feedback"}), 500
 
 # ==== App Entrypoint ====
 if __name__ == "__main__":
