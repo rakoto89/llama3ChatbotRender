@@ -139,6 +139,7 @@ def get_db_connection():
         password="dcMBBlS3ph96UOKvn9ednr3NCuGY1qyU"  # Your password
     )
     return connection
+
 # ==== Routes ====
 @app.route("/feedback", methods=["GET", "POST"])
 def feedback():
@@ -175,7 +176,27 @@ def view_feedback():
     key = request.args.get("key", "")
     if key != os.environ.get("FEEDBACK_SECRET_KEY", "cDehbkli9985112sdnyyyeraqdmmopquip112!!"):
         return jsonify({"error": "Unauthorized access"}), 401
-    return jsonify({"feedback": "Feedback retrieval is not implemented"})
+    
+    # Connect to PostgreSQL and retrieve feedback
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Query to retrieve feedback and ratings from the database
+        cursor.execute("SELECT feedback_text, rating FROM feedback")
+        feedback_entries = cursor.fetchall()
+
+        # Close the cursor and connection
+        cursor.close()
+        conn.close()
+
+        # Format feedback as a JSON response
+        feedback_list = [{"feedback": entry[0], "rating": entry[1]} for entry in feedback_entries]
+        return jsonify({"feedback": feedback_list})
+    
+    except Exception as e:
+        app.logger.error(f"Error retrieving feedback from database: {e}")
+        return jsonify({"error": "Error retrieving feedback"}), 500
 
 @app.route("/")
 def index():
