@@ -71,31 +71,34 @@ def extract_all_tables_first(folder_path):
                 combined_table_text += f"=== Tables from {filename} ===\n{table_text}\n\n"
     return combined_table_text.strip()
 
-# === NEW: CSV Support ===
-def read_csv_as_text(csv_path):
-    with open(csv_path, 'r', encoding='utf-8') as f:
-        return f"=== CSV Data ===\n{f.read().strip()}"
-
-# === NEW: CSV Lookup Function ===
-def get_csv_value(state, age_range):
-    if csv_df is None:
-        return "CSV file not found."
+# === NEW: Excel Support ===
+def read_excel_as_text(excel_path):
     try:
-        value = csv_df.loc[csv_df["Location"].str.lower() == state.lower(), age_range].values[0]
+        df = pd.read_excel(excel_path)
+        return f"=== Excel Data ===\n{df.to_string(index=False)}"
+    except Exception as e:
+        return f"Error reading Excel file: {str(e)}"
+
+# === NEW: Excel Lookup Function ===
+def get_excel_value(state, age_range):
+    if excel_df is None:
+        return "Excel file not found."
+    try:
+        value = excel_df.loc[excel_df["Location"].str.lower() == state.lower(), age_range].values[0]
         return str(value)
     except:
         return f"Sorry, I couldn't find data for {state} and age group {age_range}."
 
-# === COMBINE PDF + CSV ===
+# === COMBINE PDF + Excel ===
 pdf_folder = 'pdfs'
-csv_path = os.path.join(pdf_folder, "KFF_Opioid_Overdose_Deaths_by-Race_and_Ethnicity_2022.csv", "KFF_Opioid_Overdose_Deaths_by_Age_Group_2022.csv", "KFF_Opioid_Overdose_Deaths_2022.csv" )
+excel_path = os.path.join(pdf_folder, "KFF_Opioid_Overdose_Deaths_by_Race_and_Ethnicity_2022.xlsx", "KFF_Opioid_Overdose_Deaths_by_Age_Group_2022.xlsx", "KFF_Opioid_Overdose_Deaths_2022.xlsx")
 
 all_table_text = extract_all_tables_first(pdf_folder)
 pdf_texts = read_pdfs_in_folder(pdf_folder)
-csv_text = read_csv_as_text(csv_path) if os.path.exists(csv_path) else ""
-csv_df = pd.read_csv(csv_path) if os.path.exists(csv_path) else None
+excel_text = read_excel_as_text(excel_path) if os.path.exists(excel_path) else ""
+excel_df = pd.read_excel(excel_path) if os.path.exists(excel_path) else None
 
-pdf_text = csv_text + "\n\n" + all_table_text + "\n\n" + pdf_texts
+pdf_text = excel_text + "\n\n" + all_table_text + "\n\n" + pdf_texts
 
 # ==== Keywords ====
 relevant_topics = [
@@ -193,9 +196,9 @@ def ask():
     if not user_question:
         return jsonify({"answer": "Please ask a valid question."})
 
-    # Optional: handle direct CSV questions yourself before calling LLM
+    # Optional: handle direct Excel questions yourself before calling LLM
     if "alaska" in user_question.lower() and "0-24" in user_question:
-        return jsonify({"answer": get_csv_value("Alaska", "Age 0-24")})
+        return jsonify({"answer": get_excel_value("Alaska", "Age 0-24")})
 
     if is_question_relevant(user_question):
         answer = get_llama3_response(user_question)
