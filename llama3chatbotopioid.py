@@ -71,15 +71,19 @@ def extract_all_tables_first(folder_path):
                 combined_table_text += f"=== Tables from {filename} ===\n{table_text}\n\n"
     return combined_table_text.strip()
 
-# === NEW: Excel Support ===
+# === Excel Support ===
 def read_excel_as_text(excel_path):
     try:
-        df = pd.read_excel(excel_path)
-        return f"=== Excel Data ===\n{df.to_string(index=False)}"
+        excel_data = pd.read_excel(excel_path, sheet_name=None)
+        full_text = "=== Excel Data ===\n"
+        for sheet_name, df in excel_data.items():
+            full_text += f"\n--- Sheet: {sheet_name} ---\n"
+            full_text += df.to_string(index=False)
+            full_text += "\n\n"
+        return full_text.strip()
     except Exception as e:
         return f"Error reading Excel file: {str(e)}"
 
-# === NEW: Excel Lookup Function ===
 def get_excel_value(state, age_range):
     if excel_df is None:
         return "Excel file not found."
@@ -87,18 +91,19 @@ def get_excel_value(state, age_range):
         value = excel_df.loc[excel_df["Location"].str.lower() == state.lower(), age_range].values[0]
         return str(value)
     except:
-        return f"Sorry, I couldn't find data for {state} and age group {age_range}."
+        return f"Sorry, I couldn't find data for {state} and category '{age_range}'."
 
 # === COMBINE PDF + Excel ===
 pdf_folder = 'pdfs'
-excel_path = os.path.join(pdf_folder, "KFF_Opioid_Overdose_Deaths_by_Race_and_Ethnicity_2022.xlsx", "KFF_Opioid_Overdose_Deaths_by_Age_Group_2022.xlsx", "KFF_Opioid_Overdose_Deaths_2022.xlsx")
+excel_path = os.path.join(pdf_folder, "KFF_Opioid_Overdose_Deaths_by_Age_Group_2022.xlsx")
 
 all_table_text = extract_all_tables_first(pdf_folder)
 pdf_texts = read_pdfs_in_folder(pdf_folder)
 excel_text = read_excel_as_text(excel_path) if os.path.exists(excel_path) else ""
 excel_df = pd.read_excel(excel_path) if os.path.exists(excel_path) else None
 
-pdf_text = excel_text + "\n\n" + all_table_text + "\n\n" + pdf_texts
+# Prioritize Excel text in the context
+pdf_text = (excel_text + "\n\n" + all_table_text + "\n\n" + pdf_texts)[:5000]
 
 # ==== Keywords ====
 relevant_topics = [
@@ -137,11 +142,14 @@ def get_llama3_response(question):
     update_conversation_context(question)
     conversation_history.append({"role": "user", "content": question})
 
-    combined_text = pdf_text[:12000]
+    combined_text = pdf_text
 
     system_prompt = """
     You are an Opioid Awareness Chatbot developed for Bowie State University.
     You must ONLY answer questions related to opioids, opioid misuse, pain management, addiction, prevention, or recovery.
+
+    You have access to data extracted from PDFs and Excel spreadsheets, which may include overdose deaths, rates, and trends by state and age group. Use this data to answer questions when relevant.
+
     Do NOT answer questions about celebrities, entertainment, politics, or anything outside of opioid awareness.
     """
 
@@ -196,6 +204,10 @@ def ask():
     if not user_question:
         return jsonify({"answer": "Please ask a valid question."})
 
+    # Optional: direct lookup
+    if "alaska" in user_question.lower() and ("0-24" in user_question or "0 to 24" in user_question):
+        return jsonify({"answer": get_excel_value("Alaska", "Age 0-24")})
+
     if is_question_relevant(user_question):
         answer = get_llama3_response(user_question)
     else:
@@ -215,7 +227,6 @@ def voice_response():
         clean_voice_response = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
     return jsonify({"answer": clean_voice_response})
 
-# ==== Feedback: Save to PostgreSQL ====
 @app.route("/feedback", methods=["GET", "POST"])
 def feedback():
     if request.method == "POST":
@@ -240,7 +251,6 @@ def feedback():
                 return render_template("feedback.html", success=False)
     return render_template("feedback.html", success=False)
 
-# ==== Feedback Viewer ====
 @app.route("/view_feedback", methods=["GET"])
 def view_feedback():
     key = request.args.get("key", "")
@@ -264,7 +274,6 @@ def view_feedback():
         app.logger.error(f"Database fetch error: {e}")
         return jsonify({"error": "Could not fetch feedback"}), 500
 
-# ==== App Entrypoint ====
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
