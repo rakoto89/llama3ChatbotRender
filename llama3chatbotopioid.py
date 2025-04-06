@@ -15,7 +15,6 @@ LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://openrouter.ai/api/v
 REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
 FEEDBACK_SECRET_KEY = os.environ.get("FEEDBACK_SECRET_KEY", "test-key")
 
-# Use Render-provided DATABASE_URL
 DATABASE_URL = os.environ.get("DATABASE_URL")
 url = urlparse.urlparse(DATABASE_URL)
 db_config = {
@@ -39,7 +38,6 @@ def extract_text_from_pdf(pdf_paths):
                 text += extracted_text + "\n"
     return text.strip()
 
-# === ADDED: Function to extract tables ===
 def extract_tables_from_pdf(pdf_path):
     table_text = ""
     with pdfplumber.open(pdf_path) as pdf:
@@ -57,12 +55,11 @@ def read_pdfs_in_folder(folder_path):
         if filename.endswith('.pdf'):
             pdf_path = os.path.join(folder_path, filename)
             pdf_text = extract_text_from_pdf(pdf_path)
-            table_text = extract_tables_from_pdf(pdf_path)        # <--- ADDED
+            table_text = extract_tables_from_pdf(pdf_path)
             concatenated_text += pdf_text + '\n\n'
-            concatenated_text += table_text + '\n\n'              # <--- ADDED
+            concatenated_text += table_text + '\n\n'
     return concatenated_text
 
-# === PRIORITIZE TABLE TEXT FROM ALL PDFs ===
 def extract_all_tables_first(folder_path):
     combined_table_text = ""
     for filename in os.listdir(folder_path):
@@ -73,9 +70,20 @@ def extract_all_tables_first(folder_path):
                 combined_table_text += f"=== Tables from {filename} ===\n{table_text}\n\n"
     return combined_table_text.strip()
 
+# === NEW: CSV Support ===
+def read_csv_as_text(csv_path):
+    with open(csv_path, 'r', encoding='utf-8') as f:
+        return f"=== CSV Data ===\n{f.read().strip()}"
+
+# === COMBINE PDF + CSV ===
 pdf_folder = 'pdfs'
+csv_path = os.path.join(pdf_folder, "opioid_deaths_by_age.csv")
+
 all_table_text = extract_all_tables_first(pdf_folder)
-pdf_text = all_table_text + "\n\n" + read_pdfs_in_folder(pdf_folder)
+pdf_texts = read_pdfs_in_folder(pdf_folder)
+csv_text = read_csv_as_text(csv_path) if os.path.exists(csv_path) else ""
+
+pdf_text = csv_text + "\n\n" + all_table_text + "\n\n" + pdf_texts
 
 # ==== Keywords ====
 relevant_topics = [
