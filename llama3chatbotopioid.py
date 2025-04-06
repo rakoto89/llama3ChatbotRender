@@ -21,7 +21,7 @@ conn = psycopg2.connect(
     dbname="opioid_education_bot_feedback",
     user="opioid_education_bot_feedback_user",
     password="dcMBB1S3ph96U0KVn9ednz3NCuGY14yU",
-    host="dpg-cvokq215pdvs73ao02i0-a.virginia.render.com",  # replace <your-region>
+    host="dpg-cvokq215pdvs73ao02i0-a.virginia-postgres.render.com",  # replace <your-region>
     port="5432"
 )
 cursor = conn.cursor()
