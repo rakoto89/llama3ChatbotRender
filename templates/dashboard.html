@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head><title>Feedback Dashboard</title></head>
+<body>
+  <h2>Feedback Dashboard</h2>
+  <table border="1">
+    <tr><th>ID</th><th>User</th><th>Rating</th><th>Comments</th><th>Submitted</th></tr>
+    {% for row in feedback %}
+      <tr>
+        <td>{{ row[0] }}</td>
+        <td>{{ row[1] }}</td>
+        <td>{{ row[2] }}</td>
+        <td>{{ row[3] }}</td>
+        <td>{{ row[4] }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>
