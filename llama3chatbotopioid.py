@@ -137,7 +137,7 @@ def get_llama3_response(question):
     update_conversation_context(question)
     conversation_history.append({"role": "user", "content": question})
 
-    combined_text = pdf_text[:5000]
+    combined_text = pdf_text[:12000]
 
     system_prompt = """
     You are an Opioid Awareness Chatbot developed for Bowie State University.
@@ -195,10 +195,6 @@ def ask():
     user_question = data.get("question", "").strip()
     if not user_question:
         return jsonify({"answer": "Please ask a valid question."})
-
-    # Optional: handle direct Excel questions yourself before calling LLM
-    if "alaska" in user_question.lower() and "0-24" in user_question:
-        return jsonify({"answer": get_excel_value("Alaska", "Age 0-24")})
 
     if is_question_relevant(user_question):
         answer = get_llama3_response(user_question)
