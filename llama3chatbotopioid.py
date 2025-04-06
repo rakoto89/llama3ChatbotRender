@@ -88,7 +88,7 @@ def get_csv_value(state, age_range):
 
 # === COMBINE PDF + CSV ===
 pdf_folder = 'pdfs'
-csv_path = os.path.join(pdf_folder, "opioid_deaths_by_age.csv")
+csv_path = os.path.join(pdf_folder, "KFF_Opioid_Overdose_Deaths_by-Race_and_Ethnicity_2022.csv", "KFF_Opioid_Overdose_Deaths_by_Age_Group_2022.csv", "KFF_Opioid_Overdose_Deaths_2022.csv" )
 
 all_table_text = extract_all_tables_first(pdf_folder)
 pdf_texts = read_pdfs_in_folder(pdf_folder)
