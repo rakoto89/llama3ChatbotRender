@@ -74,7 +74,7 @@ def extract_all_tables_first(folder_path):
 # === Excel Support ===
 def read_excel_as_text(excel_path):
     try:
-        excel_data = pd.read_excel(excel_path, sheet_name=None)
+        excel_data = pd.read_excel(excel_path, header=1, sheet_name=None)
         full_text = "=== Excel Data ===\n"
         for sheet_name, df in excel_data.items():
             full_text += f"\n--- Sheet: {sheet_name} ---\n"
@@ -100,7 +100,7 @@ excel_path = os.path.join(pdf_folder, "KFF_Opioid_Overdose_Deaths_by_Age_Group_2
 all_table_text = extract_all_tables_first(pdf_folder)
 pdf_texts = read_pdfs_in_folder(pdf_folder)
 excel_text = read_excel_as_text(excel_path) if os.path.exists(excel_path) else ""
-excel_df = pd.read_excel(excel_path) if os.path.exists(excel_path) else None
+excel_df = pd.read_excel(excel_path, header=1) if os.path.exists(excel_path) else None
 
 # Prioritize Excel text in the context
 pdf_text = (excel_text + "\n\n" + all_table_text + "\n\n" + pdf_texts)[:5000]
