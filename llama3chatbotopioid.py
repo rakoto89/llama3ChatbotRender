@@ -20,9 +20,10 @@ conversation_context = {}
 conn = psycopg2.connect(
     dbname="opioid_education_bot_feedback",
     user="opioid_education_bot_feedback_user",
-    password="dcMBB1S3ph96U0KVn9ednz3NCuGY14yU",
-    host="dpg-cvokq215pdvs73a0o2i0-a.virginia-postgres.render.com",  # ← comma added here
-    port="5432"
+    password="dcMBB1S3ph96U0KVn9ednz3NCuGY14yU",  # Make sure this is correct
+    host="dpg-cvokq215pdvs73a0o2i0-a.virginia-postgres.render.com",
+    port="5432",
+    sslmode='require'  # Ensure SSL/TLS connection
 )
 cursor = conn.cursor()
 
@@ -92,7 +93,7 @@ def get_llama3_response(question):
     Do NOT answer questions about celebrities, entertainment, politics, or anything outside of opioid awareness.
     If the question is off-topic, respond with:
     'Sorry, I can only discuss topics related to opioid addiction, misuse, prevention, or recovery.'
-    """
+    """ 
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nUse this context: {combined_text}"},
