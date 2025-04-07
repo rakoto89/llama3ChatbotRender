@@ -7,12 +7,28 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <!-- Sidebar with icons -->
+    <!-- Sidebar with images -->
     <div class="sidebar">
         <img src="{{ url_for('static', filename='images/bowie_state_white_logo.png') }}" alt="Bowie State Logo" class="top-right-image">
-        <div class="icon" onclick="location.href='/'" title="Home">🏠</div>
-        <div class="icon" title="School">🎓</div>
-        <div class="icon" onclick="window.close()" title="Exit">🚪</div>
+        <div class="icon" onclick="location.href='/'" title="Home">
+            <img src="{{ url_for('static', filename='images/home_icon.png') }}" alt="Home Icon" class="sidebar-icon">
+        </div>
+        <div class="icon" title="language">
+            <img src="{{ url_for('static', filename='images/language.png') }}" alt="language" class="sidebar-icon">
+        </div>
+        <!-- Removed the Exit icon -->
+        <div class="icon" title="star">
+            <img src="{{ url_for('static', filename='images/star.png') }}" alt="star" class="sidebar-icon">
+        </div>
+        <div class="icon" title="exit">
+            <img src="{{ url_for('static', filename='images/exit.png') }}" alt="exit" class="sidebar-icon">
+        </div>
+        <div class="icon" title="Help">
+            <img src="{{ url_for('static', filename='images/help_icon.png') }}" alt="Help Icon" class="sidebar-icon">
+        </div>
+        <div class="icon" title="resources">
+            <img src="{{ url_for('static', filename='images/resources.png') }}" alt="Contact Icon" class="sidebar-icon">
+        </div>
     </div>
 
     <div class="chat-container">
