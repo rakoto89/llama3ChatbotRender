@@ -10,20 +10,30 @@
     <!-- Sidebar with images -->
     <div class="sidebar">
         <img src="{{ url_for('static', filename='images/bowie_state_white_logo.png') }}" alt="Bowie State Logo" class="top-right-image">
+
         <div class="icon" onclick="location.href='/'" title="Home">
             <img src="{{ url_for('static', filename='images/home.png') }}" alt="Home" class="sidebar-icon">
+            <span class="icon-label">Home</span>
         </div>
-        <div class="icon" title="language">
-            <img src="{{ url_for('static', filename='images/language.png') }}" alt="language" class="sidebar-icon">
+
+        <div class="icon" title="Language">
+            <img src="{{ url_for('static', filename='images/language.png') }}" alt="Language" class="sidebar-icon">
+            <span class="icon-label">Language</span>
         </div>
-        <div class="icon" title="star">
-            <img src="{{ url_for('static', filename='images/star.png') }}" alt="star" class="sidebar-icon">
+
+        <div class="icon" title="Favorites">
+            <img src="{{ url_for('static', filename='images/star.png') }}" alt="Favorites" class="sidebar-icon">
+            <span class="icon-label">Favorites</span>
         </div>
-        <div class="icon" title="bull_dog">
-            <img src="{{ url_for('static', filename='images/bull_dog.png') }}" alt="bull_dog" class="sidebar-icon no-filter">
+
+        <div class="icon" title="Mascot">
+            <img src="{{ url_for('static', filename='images/bull_dog.png') }}" alt="Mascot" class="sidebar-icon no-filter">
+            <span class="icon-label">Mascot</span>
         </div>
-        <div class="icon" title="exit">
-            <img src="{{ url_for('static', filename='images/exit.png') }}" alt="exit" class="sidebar-icon">
+
+        <div class="icon" title="Exit">
+            <img src="{{ url_for('static', filename='images/exit.png') }}" alt="Exit" class="sidebar-icon">
+            <span class="icon-label">Exit</span>
         </div>
     </div>
 
@@ -44,4 +54,3 @@
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
-
