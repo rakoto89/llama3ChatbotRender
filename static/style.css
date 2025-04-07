@@ -197,3 +197,11 @@ button {
 .sidebar .icon:hover {
     background-color: #1abc9c;
 }
+
+/* Sidebar icon images */
+.sidebar .sidebar-icon {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    border-radius: 50%;
+}
