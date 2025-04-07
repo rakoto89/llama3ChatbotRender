@@ -104,8 +104,8 @@ h1 {
 /* Input field with white background and black text */
 input {
     flex: 1;
-    padding: 14px 18px; /* Increased padding */
-    font size: 18px;
+    padding: 14px 18px;
+    font-size: 30px; /* Match greeting size */
     border: 1px solid #ccc;
     border-radius: 6px;
     background: white; /* Updated to white background */
@@ -121,6 +121,7 @@ button {
     border-radius: 5px;
     background: transparent; /* No background */
     color: white; /* Text color set to white */
+    font-size: 30px; /* Match greeting size */
 }
 
 /* Send button */
