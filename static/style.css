@@ -104,21 +104,21 @@ h1 {
 /* Input field with white background and black text */
 input {
     flex: 1;
-    padding: 14px 18px;
+    padding: 16px 24px; /* Wider padding */
     font-size: 30px; /* Match greeting size */
     border: 1px solid #ccc;
-    border-radius: 6px;
-    background: white; /* Updated to white background */
-    color: black; /* Text set to black */
+    border-radius: 10px; /* More rounded */
+    background: white;
+    color: black;
 }
 
 /* Button styles with no background */
 button {
     margin-left: 10px; /* Increased margin */
-    padding: 10px 15px; /* Increased padding */
+    padding: 14px 22px; /* Wider and taller */
     border: none;
     cursor: pointer;
-    border-radius: 5px;
+    border-radius: 10px; /* More rounded */
     background: transparent; /* No background */
     color: white; /* Text color set to white */
     font-size: 30px; /* Match greeting size */
@@ -151,8 +151,8 @@ button {
     color: white; /* White text */
     border: 1px solid gray;
     margin-left: 10px; /* Same margin as other buttons */
-    padding: 10px 15px; /* Matching padding */
-    border-radius: 5px; /* Rounded corners */
+    padding: 14px 22px; /* Matching button padding */
+    border-radius: 10px; /* Rounded corners */
     cursor: pointer;
 }
 
