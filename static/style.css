@@ -29,7 +29,7 @@ h1 {
     border-radius: 4px;
 }
 
-/* Chat container */
+/* Updated: No box around chat and no header background */
 .chat-container {
     width: auto;
     background: transparent;
@@ -38,10 +38,10 @@ h1 {
     text-align: center;
     overflow: visible;
     padding-top: 20px;
-    margin-left: 60px; /* Make space for sidebar */
+    margin-left: 60px; /* Added for sidebar space */
 }
 
-/* Chat header */
+/* Chat header with no background */
 .chat-header {
     background: transparent;
     color: black;
@@ -54,7 +54,7 @@ h1 {
     margin-left: -20px;
 }
 
-/* Chat box */
+/* Chat box with no background */
 .chat-box {
     height: 400px;
     overflow-y: auto;
@@ -66,7 +66,7 @@ h1 {
     border: none;
 }
 
-/* Bot message */
+/* Bot message style */
 .bot-message {
     background: black;
     color: white;
@@ -79,7 +79,7 @@ h1 {
     font-size: 22px;
 }
 
-/* User message */
+/* User message style */
 .user-message {
     background: #d3d3d3;
     color: black;
@@ -92,13 +92,14 @@ h1 {
     font-size: 22px;
 }
 
-/* Input and buttons */
+/* Input and button container */
 .input-container {
     display: flex;
     padding: 15px;
     background: transparent;
 }
 
+/* Input field with white background and black text */
 input {
     flex: 1;
     padding: 16px 24px;
@@ -109,7 +110,7 @@ input {
     color: black;
 }
 
-/* Buttons general */
+/* Button styles with no background */
 button {
     margin-left: 10px;
     padding: 14px 22px;
@@ -121,25 +122,28 @@ button {
     font-size: 22px;
 }
 
-/* Specific buttons */
+/* Send button */
 #send-btn {
     background: green;
     color: white;
     border: 1px solid green;
 }
 
+/* Voice button */
 #voice-btn {
     background: blue;
     color: white;
     border: 1px solid blue;
 }
 
+/* Stop button */
 #stop-btn {
     background: red;
     color: white;
     border: 1px solid red;
 }
 
+/* End Chat button */
 #end-btn {
     background: gray;
     color: white;
@@ -150,7 +154,7 @@ button {
     cursor: pointer;
 }
 
-/* Emojis before messages */
+/* Add emoji support */
 .bot-message::before {
     content: "🤖 ";
 }
@@ -159,7 +163,7 @@ button {
     content: "👤 ";
 }
 
-/* Sidebar styles */
+/* Sidebar container */
 .sidebar {
     position: fixed;
     top: 0;
@@ -170,14 +174,14 @@ button {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-top: 60px;
+    padding-top: 20px;
     z-index: 1000;
 }
 
 /* Sidebar icon buttons */
 .sidebar .icon {
-    width: 40px; /* Increase width */
-    height: 40px; /* Increase height */
+    width: 30px;
+    height: 30px;
     background-color: #34495e;
     color: white;
     display: flex;
@@ -185,19 +189,11 @@ button {
     justify-content: center;
     margin-top: 20px;
     border-radius: 6px;
-    font-size: 18px;
+    font-size: 14px;
     cursor: pointer;
     transition: background-color 0.3s;
 }
 
-/* Hover effect for sidebar icons */
 .sidebar .icon:hover {
     background-color: #1abc9c;
-}
-
-/* Sidebar icon images */
-.icon-img {
-    width: 30px;  /* Consistent width */
-    height: 30px; /* Consistent height */
-    object-fit: contain; /* Preserve aspect ratio */
 }
