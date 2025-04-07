@@ -173,9 +173,9 @@ button {
 
 /* Sidebar icons */
 .sidebar .icon {
-    width: 40px;
-    height: 40px;
-    background-color: transparent; /* Blends with sidebar */
+    width: 30px;
+    height: 30px;
+    background-color: #34495e;
     color: white;
     display: flex;
     align-items: center;
@@ -197,10 +197,10 @@ button {
     height: 30px;
     object-fit: contain;
     border-radius: 50%;
-    filter: brightness(0) invert(1); /* Makes icons white on dark background */
+    filter: brightness(0) invert(1); /* Makes them white */
 }
 
-/* Exclude specific icons from white filter */
+/* Exclude bull_dog icon from white filter */
 .sidebar .sidebar-icon.no-filter {
     filter: none;
 }
