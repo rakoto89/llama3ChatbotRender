@@ -7,9 +7,19 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <!-- Add the Bowie State Logo here -->
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="icon">1</div>
+        <div class="icon">2</div>
+        <div class="icon">3</div>
+        <div class="icon">4</div>
+        <div class="icon">5</div>
+    </div>
+
+    <!-- Bowie State Logo -->
     <img src="{{ url_for('static', filename='images/bowie_state_logo.png') }}" alt="Bowie State Logo" class="top-right-image">
-    
+
     <div class="chat-container">
         <div class="chat-header">Opioid Awareness Chatbot</div>
         <div class="chat-box" id="chat-box">
@@ -20,9 +30,10 @@
             <button id="send-btn">Send</button>
             <button id="voice-btn">Voice</button>
             <button id="stop-btn">Stop</button>
-            <button id="end-btn">End Chat</button> <!-- Added End Chat button -->
+            <button id="end-btn">End Chat</button>
         </div>
     </div>
+
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
