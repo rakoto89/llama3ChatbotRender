@@ -7,19 +7,22 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-
     <!-- Sidebar -->
     <div class="sidebar">
-        <div class="icon">1</div>
-        <div class="icon">2</div>
-        <div class="icon">3</div>
-        <div class="icon">4</div>
-        <div class="icon">5</div>
+        <button class="sidebar-btn" title="Home">
+            <img src="https://raw.githubusercontent.com/your-username/your-repo/main/assets/home.png" alt="Home">
+        </button>
+        <button class="sidebar-btn" title="School">
+            <img src="https://raw.githubusercontent.com/your-username/your-repo/main/assets/school.png" alt="School">
+        </button>
+        <button class="sidebar-btn" title="Exit">
+            <img src="https://raw.githubusercontent.com/your-username/your-repo/main/assets/exit.png" alt="Exit">
+        </button>
     </div>
 
-    <!-- Bowie State Logo -->
+    <!-- Add the Bowie State Logo here -->
     <img src="{{ url_for('static', filename='images/bowie_state_logo.png') }}" alt="Bowie State Logo" class="top-right-image">
-
+    
     <div class="chat-container">
         <div class="chat-header">Opioid Awareness Chatbot</div>
         <div class="chat-box" id="chat-box">
