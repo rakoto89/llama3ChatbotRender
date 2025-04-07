@@ -4,15 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Opioid Awareness Chatbot</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <!-- Sidebar with icons -->
     <div class="sidebar">
-        <img src="{{ url_for('static', filename='images/bowie_state_white_logo.png') }}" alt="Bowie State Logo" class="top-right-image">
-        <div class="icon" onclick="window.location.href='/'">🏠</div>
-        <div class="icon" onclick="alert('School clicked')">🎓</div>
-        <div class="icon" onclick="window.close()">❌</div>
+        <img src="{{ url_for('static', filename='images/bowie_state_logo.png') }}" alt="Bowie State Logo" class="top-right-image">
+        
+        <!-- Icons in the sidebar -->
+        <div class="icon" onclick="window.location.href='/'">
+            <img src="{{ url_for('static', filename='images/home.png') }}" alt="Home" class="icon-img">
+        </div>
+        <div class="icon" onclick="alert('language clicked')">
+            <img src="{{ url_for('static', filename='images/language.png') }}" alt="language" class="icon-img">
+        </div>
+        <div class="icon" onclick="alert('star')">
+            <img src="{{ url_for('static', filename='images/star.png') }}" alt="star" class="icon-img">
+        </div>
+        <div class="icon" onclick="alert('bulldog')">
+            <img src="{{ url_for('static', filename='images/bulldog.png') }}" alt="bulldog" class="icon-img">
+        </div>
     </div>
 
     <!-- Main Chat UI -->
@@ -30,6 +41,6 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
