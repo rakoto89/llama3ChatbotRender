@@ -14,46 +14,47 @@ body {
     position: absolute;
     top: 10px;
     left: 10px; /* Logo at the top-left */
-    width: 80px; /* Increased width for clarity */
+    width: 80px; /* Logo size remains unchanged */
     height: auto; /* Maintain aspect ratio */
     border-radius: 0; /* No circular shape to prevent distortion */
 }
 
 .feedback-container {
     background: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 30px; /* Increased padding */
+    border-radius: 15px; /* Slightly more rounded corners */
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1); /* Slightly stronger shadow */
     text-align: center;
-    width: 400px;
+    width: 480px; /* Increased width */
     font-family: Arial, sans-serif;
 }
 
 .feedback-card h1 {
     color: #333;
+    font-size: 32px; /* Increased title size */
 }
 
 .feedback-card p {
-    font-size: 14px;
+    font-size: 18px; /* Increased paragraph text size */
     color: #666;
 }
 
 /* Emoji Rating Styling */
 .emoji-rating {
     display: flex;
-    font-size: 15px;
+    font-size: 20px; /* Larger font size for emojis */
     flex-direction: column;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 20px; /* Increased margin */
 }
 
 .emoji-rating label {
     display: flex;
     align-items: center;
     cursor: pointer;
-    font-size: 20px;
-    padding: 5px 10px;
-    border-radius: 5px;
+    font-size: 26px; /* Larger font size for emoji labels */
+    padding: 9px 15px; /* Slightly bigger padding */
+    border-radius: 7px; /* Slightly more rounded */
     transition: background 0.3s;
     width: 100%;
 }
@@ -67,34 +68,34 @@ body {
     background-color: rgba(173, 216, 230, 0.5); /* Light blue with 50% transparency */
     color: black;
     font-weight: bold;
-    padding: 5px;
-    border-radius: 5px;
+    padding: 9px;
+    border-radius: 7px;
 }
 
 /* Textarea Styling */
 textarea {
-    width: calc(100% - 20px);
-    padding: 10px;
-    margin-top: 10px;
+    width: calc(100% - 30px); /* Increased width */
+    padding: 14px; /* Increased padding */
+    margin-top: 14px; /* Increased margin */
     border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px;
+    border-radius: 7px; /* Slightly more rounded corners */
+    font-size: 18px; /* Larger font size */
     resize: none;
 }
 
 /* Buttons Styling */
 .button-container {
-    margin-top: 15px;
+    margin-top: 25px; /* Increased margin */
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 15px; /* Increased gap */
 }
 
 button {
-    padding: 10px;
-    font-size: 16px;
+    padding: 14px;
+    font-size: 20px; /* Larger font size */
     border: none;
-    border-radius: 5px;
+    border-radius: 7px; /* Slightly more rounded */
     cursor: pointer;
     transition: background 0.3s;
 }
@@ -129,8 +130,8 @@ button {
 /* Success Message */
 #success-message {
     color: #1f2420;
-    font-size: 18px;
+    font-size: 22px; /* Larger font size */
     font-weight: bold;
-    margin-top: 15px;
+    margin-top: 20px; /* Increased margin */
     display: none;
 }
