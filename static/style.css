@@ -173,8 +173,8 @@ button {
 
 /* Sidebar icons */
 .sidebar .icon {
-    width: 30px;
-    height: 30px;
+    width: 40px; /* Increased size of icons */
+    height: 40px;
     background-color: #34495e;
     color: white;
     display: flex;
@@ -185,10 +185,7 @@ button {
     font-size: 14px;
     cursor: pointer;
     transition: background-color 0.3s;
-}
-
-.sidebar .icon:hover {
-    background-color: #1abc9c;
+    padding: 5px; /* Prevents edge cut-off */
 }
 
 /* Sidebar icon images */
@@ -197,10 +194,27 @@ button {
     height: 30px;
     object-fit: contain;
     border-radius: 50%;
-    filter: brightness(0) invert(1); /* Makes them white */
+    filter: brightness(0) invert(1); /* Makes icons white */
 }
 
-/* Exclude bull_dog icon from white filter */
+/* Exclude bulldog icon from white filter */
 .sidebar .sidebar-icon.no-filter {
     filter: none;
+}
+
+/* Make the bulldog icon bigger */
+.sidebar .icon[title="bull_dog"] .sidebar-icon {
+    width: 50px; /* Increased size for bulldog */
+    height: 50px;
+}
+
+/* Move the house icon further down */
+.sidebar .icon[title="Home"] {
+    margin-top: 40px; /* Adjusted margin to move it down */
+}
+
+/* Make sure the language and star icons are not cut off */
+.sidebar .icon[title="language"],
+.sidebar .icon[title="star"] {
+    margin-top: 30px; /* Adjusted margin for these icons */
 }
