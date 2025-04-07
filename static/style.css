@@ -174,13 +174,14 @@ button {
 /* Sidebar icons */
 .sidebar .icon {
     width: 40px;
-    height: 40px;
-    background-color: transparent; /* Blends with sidebar */
+    height: auto;
+    background-color: transparent;
     color: white;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin-top: 20px;
+    margin-top: 30px; /* Increased spacing */
     border-radius: 6px;
     font-size: 14px;
     cursor: pointer;
@@ -197,10 +198,18 @@ button {
     height: 30px;
     object-fit: contain;
     border-radius: 50%;
-    filter: brightness(0) invert(1); /* Makes icons white on dark background */
+    filter: brightness(0) invert(1);
 }
 
 /* Exclude specific icons from white filter */
 .sidebar .sidebar-icon.no-filter {
     filter: none;
+}
+
+/* Icon label text */
+.icon-label {
+    color: white;
+    font-size: 12px;
+    margin-top: 5px;
+    text-align: center;
 }
