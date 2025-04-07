@@ -176,8 +176,8 @@ button {
 
 /* Sidebar icon buttons */
 .sidebar .icon {
-    width: 30px;
-    height: 30px;
+    width: 40px; /* Increase width */
+    height: 40px; /* Increase height */
     background-color: #34495e;
     color: white;
     display: flex;
@@ -190,6 +190,14 @@ button {
     transition: background-color 0.3s;
 }
 
+/* Hover effect for sidebar icons */
 .sidebar .icon:hover {
     background-color: #1abc9c;
+}
+
+/* Sidebar icon images */
+.icon-img {
+    width: 30px;  /* Consistent width */
+    height: 30px; /* Consistent height */
+    object-fit: contain; /* Preserve aspect ratio */
 }
