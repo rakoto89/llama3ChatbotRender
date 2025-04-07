@@ -221,4 +221,14 @@ document.addEventListener("DOMContentLoaded", function () {
     [userInput, sendBtn, voiceBtn, stopBtn, endBtn].forEach(element => {
         element.addEventListener("keydown", handleTabKey);
     });
+
+    // ✅ Optional: Handle sidebar icon clicks
+    const sidebarIcons = document.querySelectorAll(".sidebar .icon");
+    sidebarIcons.forEach((icon, index) => {
+        icon.addEventListener("click", () => {
+            const utterance = new SpeechSynthesisUtterance(`Sidebar button ${index + 1} clicked`);
+            utterance.rate = 0.9;
+            synth.speak(utterance);
+        });
+    });
 });
