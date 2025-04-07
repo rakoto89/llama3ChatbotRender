@@ -203,7 +203,7 @@ button {
 }
 
 /* Make the bulldog icon bigger */
-.sidebar .icon[title="resources"] .sidebar-icon {
+.sidebar .icon[title="Resources"] .sidebar-icon {
     width: 50px; /* Increased size for bulldog */
     height: 50px;
 }
