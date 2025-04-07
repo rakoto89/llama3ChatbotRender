@@ -1,49 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Opioid Awareness Chatbot</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opioid Awareness Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <div class="sidebar">
-    <a href="#" class="nav-item">
-      <img src="images/home.png" alt="Home Icon"/>
-      <span>Home</span>
-    </a>
-    <a href="#" class="nav-item">
-      <img src="images/language.png" alt="Language Icon"/>
-      <span>Language</span>
-    </a>
-    <a href="#" class="nav-item">
-      <img src="images/favorites.png" alt="Favorites Icon"/>
-      <span>Favorites</span>
-    </a>
-    <a href="#" class="nav-item">
-      <img src="images/mascot.png" alt="Mascot Icon"/>
-      <span>Mascot</span>
-    </a>
-    <a href="#" class="nav-item">
-      <img src="images/exit.png" alt="Exit Icon"/>
-      <span>Exit</span>
-    </a>
-  </div>
+    <!-- Sidebar with images -->
+    <div class="sidebar">
+        <img src="{{ url_for('static', filename='images/bowie_state_white_logo.png') }}" alt="Bowie State Logo" class="top-right-image">
+        <div class="icon" onclick="location.href='/'" title="Home">
+            <img src="{{ url_for('static', filename='images/home_icon.png') }}" alt="Home Icon" class="sidebar-icon">
+        </div>
+        <div class="icon" title="language">
+            <img src="{{ url_for('static', filename='images/language.png') }}" alt="language" class="sidebar-icon">
+        </div>
+        <div class="icon" title="star">
+            <img src="{{ url_for('static', filename='images/star.png') }}" alt="star" class="sidebar-icon">
+        </div>
+        <div class="icon" title="bull_dog">
+            <img src="{{ url_for('static', filename='images/bull_dog.png') }}" alt="bull_dog" class="sidebar-icon no-filter">
+        </div>
+        <div class="icon" title="exit">
+            <img src="{{ url_for('static', filename='images/exit.png') }}" alt="exit" class="sidebar-icon">
+        </div>
+    </div>
 
-  <div class="main">
-    <h1>Opioid Awareness Chatbot</h1>
-    <div class="chatbox">
-      <div class="bot-message">
-        🤖 Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!
-      </div>
+    <div class="chat-container">
+        <div class="chat-header">Opioid Awareness Chatbot</div>
+        <div class="chat-box" id="chat-box">
+            <div class="bot-message">Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!</div>
+        </div>
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="Enter your question...">
+            <button id="send-btn">Send</button>
+            <button id="voice-btn">Voice</button>
+            <button id="stop-btn">Stop</button>
+            <button id="end-btn">End Chat</button>
+        </div>
     </div>
-    <div class="input-section">
-      <input type="text" placeholder="Enter your question..." />
-      <button class="send">Send</button>
-      <button class="voice">Voice</button>
-      <button class="stop">Stop</button>
-      <button class="end">End Chat</button>
-    </div>
-  </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
