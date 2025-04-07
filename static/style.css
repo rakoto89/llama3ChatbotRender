@@ -1,7 +1,7 @@
 /* General body styling */
 body {
     font-family: Arial, sans-serif;
-    background: linear-gradient(to bottom, #fffde8, #fff9c4, #fff59d, #ffeb3b, #ffca28); /* Gradient to mimic the image */
+    background: linear-gradient(to bottom, #fffde8, #fff9c4, #fff59d, #ffeb3b, #ffca28);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -11,101 +11,97 @@ body {
 
 /* Title styling */
 h1 {
-    font-size: 30px; /* Size of the header */
+    font-size: 30px;
     font-weight: bold;
     color: black;
     text-align: center;
-    margin-top: 10px; /* Reduced margin to move the header up */
+    margin-top: 10px;
 }
 
 /* Bowie State Logo styling */
 .top-right-image {
     position: absolute;
     top: 10px;
-    left: 10px; /* Logo at the top-left */
-    width: 80px; /* Increased width for clarity */
-    height: auto; /* Maintain aspect ratio */
-    border-radius: 0; /* No circular shape to prevent distortion */
+    left: 10px;
+    width: 80px;
+    height: auto;
+    border-radius: 0;
 }
 
 /* Updated: No box around chat and no header background */
 .chat-container {
-    width: auto; /* Full width with no fixed container */
-    background: transparent; /* No background to remove box */
-    border-radius: 0; /* No rounded corners */
-    box-shadow: none; /* Remove shadow */
+    width: auto;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
     text-align: center;
     overflow: visible;
-    padding-top: 20px; /* Optional spacing for better alignment */
+    padding-top: 20px;
 }
 
 /* Chat header with no background */
 .chat-header {
-    background: transparent; /* No background */
-    color: black; /* Text in black */
-    padding: 15px 0; /* Space at the top and bottom */
-    font-size: 40px; /* Increased font size */
+    background: transparent;
+    color: black;
+    padding: 15px 0;
+    font-size: 40px;
     font-weight: bold;
-
     display: flex;
     justify-content: center;
     align-items: center;
-    
     margin-left: -20px;
 }
 
 /* Chat box with no background */
 .chat-box {
-    height: 400px; /* Keep height */
+    height: 400px;
     overflow-y: auto;
     padding: 15px;
-    background: transparent; /* No background */
+    background: transparent;
     text-align: left;
     display: flex;
     flex-direction: column;
-    border: none; /* Remove any borders */
+    border: none;
 }
 
 /* Bot message style */
 .bot-message {
     background: black;
     color: white;
-    padding: 15px; /* Increased padding */
+    padding: 15px;
     border-radius: 10px;
-    margin: 8px 0; /* Increased margin */
+    margin: 8px 0;
     max-width: 80%;
     align-self: flex-start;
     word-wrap: break-word;
-
     font-size: 22px;
 }
 
 /* User message style */
 .user-message {
-    background: #d3d3d3; /* Lighter gray */
+    background: #d3d3d3;
     color: black;
-    padding: 15px; /* Increased padding */
+    padding: 15px;
     border-radius: 10px;
-    margin: 8px 0; /* Increased margin */
+    margin: 8px 0;
     max-width: 80%;
     align-self: flex-end;
     word-wrap: break-word;
-
     font-size: 22px;
 }
 
 /* Input and button container */
 .input-container {
     display: flex;
-    padding: 15px; /* Increased padding */
-    background: transparent; /* No background */
+    padding: 15px;
+    background: transparent;
 }
 
 /* Input field with white background and black text */
 input {
     flex: 1;
     padding: 16px 24px; /* Wider padding */
-    font-size: 30px; /* Match greeting size */
+    font-size: 22px; /* Updated font size */
     border: 1px solid #ccc;
     border-radius: 10px; /* More rounded */
     background: white;
@@ -114,53 +110,53 @@ input {
 
 /* Button styles with no background */
 button {
-    margin-left: 10px; /* Increased margin */
+    margin-left: 10px;
     padding: 14px 22px; /* Wider and taller */
     border: none;
     cursor: pointer;
     border-radius: 10px; /* More rounded */
-    background: transparent; /* No background */
-    color: white; /* Text color set to white */
-    font-size: 30px; /* Match greeting size */
+    background: transparent;
+    color: white;
+    font-size: 22px; /* Updated font size */
 }
 
 /* Send button */
 #send-btn {
-    background: green; /* Green background */
-    color: white; /* White text */
+    background: green;
+    color: white;
     border: 1px solid green;
 }
 
 /* Voice button */
 #voice-btn {
-    background: blue; /* Blue background */
-    color: white; /* White text */
+    background: blue;
+    color: white;
     border: 1px solid blue;
 }
 
 /* Stop button */
 #stop-btn {
-    background: red; /* Red background */
-    color: white; /* White text */
+    background: red;
+    color: white;
     border: 1px solid red;
 }
 
 /* End Chat button */
 #end-btn {
-    background: gray; /* Gray background */
-    color: white; /* White text */
+    background: gray;
+    color: white;
     border: 1px solid gray;
-    margin-left: 10px; /* Same margin as other buttons */
-    padding: 14px 22px; /* Matching button padding */
-    border-radius: 10px; /* Rounded corners */
+    margin-left: 10px;
+    padding: 14px 22px;
+    border-radius: 10px;
     cursor: pointer;
 }
 
 /* Add emoji support */
 .bot-message::before {
-    content: "🤖 "; /* Robot emoji */
+    content: "🤖 ";
 }
 
 .user-message::before {
-    content: "👤 "; /* User emoji */
+    content: "👤 ";
 }
