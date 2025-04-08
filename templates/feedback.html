@@ -1,140 +1,66 @@
-/* General Page Styling */
-body {
-    font-family: Arial, sans-serif;
-    background: linear-gradient(to bottom, #fffde8, #fff9c4, #fff59d, #ffeb3b, #ffca28);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-}
+!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rate your experience</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='feedback.css') }}">
+</head>
+<body>
+    <!-- Sidebar with images -->
+    <div class="sidebar">
+        <img src="{{ url_for('static', filename='images/bowie_state_white_logo.png') }}" alt="Bowie State Logo" class="top-right-image">
+        <div class="icon" onclick="location.href='/'" title="Home">
+            <img src="{{ url_for('static', filename='images/Home.png') }}" alt="Home Icon" class="sidebar-icon">
+        </div>
+        <div class="icon" id="lang-btn" title="Language Preferences">
+            <img src="{{ url_for('static', filename='images/Language Preferences.png') }}" alt="Language Preferences" class="sidebar-icon">
+        </div>
+        <div class="icon" onclick="location.href='/feedback'" title="Feedback">
+            <img src="{{ url_for('static', filename='images/Feedback.png') }}" alt="Feedback" class="sidebar-icon">
+        </div>
+        <div class="icon" onclick="location.href='https://www.bowiestate.edu/campus-life/health-and-wellness/'" title="Resources">
+            <img src="{{ url_for('static', filename='images/Resources.png') }}" alt="Resources" class="sidebar-icon no-filter">
+        </div>
+        <div class="icon" onclick="location.href='https://www.bowiestate.edu'" title="Exit">
+            <img src="{{ url_for('static', filename='images/Exit.png') }}" alt="Exit" class="sidebar-icon">
+        </div>
+    </div>
 
-/* Bowie State Logo styling */
-.top-right-image {
-    position: absolute;
-    top: 10px;
-    left: 10px; /* Logo at the top-left */
-    width: 80px; /* Logo size remains unchanged */
-    height: auto; /* Maintain aspect ratio */
-    border-radius: 0; /* No circular shape to prevent distortion */
-}
+  <div class="feedback-container">
+    <div class="feedback-card">
+      <h1 id="rate-experience" tabindex="0">Rate your experience</h1>
+      <p id="rate-description">We highly value your feedback! Rate your experience and provide us with your valuable feedback.</p>
 
-.feedback-container {
-    background: #fff;
-    padding: 30px; /* Increased padding */
-    border-radius: 15px; /* Slightly more rounded corners */
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1); /* Slightly stronger shadow */
-    text-align: center;
-    width: 480px; /* Increased width */
-    font-family: Arial, sans-serif;
-}
+      <form id="feedback-form" method="POST" action="/feedback">
+        <div class="emoji-rating">
+          <div class="rating-row" id="rating-5" tabindex="0">
+            <label><input type="radio" name="rate" value="5" /><span>😁 ⭐⭐⭐⭐⭐</span></label>
+          </div>
+          <div class="rating-row" id="rating-4" tabindex="0">
+            <label><input type="radio" name="rate" value="4" /><span>🙂 ⭐⭐⭐⭐</span></label>
+          </div>
+          <div class="rating-row" id="rating-3" tabindex="0">
+            <label><input type="radio" name="rate" value="3" /><span>😐 ⭐⭐⭐</span></label>
+          </div>
+          <div class="rating-row" id="rating-2" tabindex="0">
+            <label><input type="radio" name="rate" value="2" /><span>🙁 ⭐⭐</span></label>
+          </div>
+          <div class="rating-row" id="rating-1" tabindex="0">
+            <label><input type="radio" name="rate" value="1" /><span>😢 ⭐</span></label>
+          </div>
+        </div>
 
-.feedback-card h1 {
-    color: #333;
-    font-size: 32px; /* Increased title size */
-}
+        <textarea id="comments" name="feedback" rows="4" placeholder="Write your feedback here..." tabindex="0"></textarea>
 
-.feedback-card p {
-    font-size: 18px; /* Increased paragraph text size */
-    color: #666;
-}
+        <div class="button-container">
+          <button type="submit" class="btn-submit" id="send-feedback" tabindex="0">Send Feedback</button>
+          <button type="button" id="return-chatbot" class="btn-return" tabindex="0">Return to Chatbot</button>
+          <button type="button" id="skip-feedback" class="btn-skip" tabindex="0">Exit</button>
+        </div>
+      </form>
 
-/* Emoji Rating Styling */
-.emoji-rating {
-    display: flex;
-    font-size: 20px; /* Larger font size for emojis */
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 20px; /* Increased margin */
-}
-
-.emoji-rating label {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    font-size: 26px; /* Larger font size for emoji labels */
-    padding: 9px 15px; /* Slightly bigger padding */
-    border-radius: 7px; /* Slightly more rounded */
-    transition: background 0.3s;
-    width: 100%;
-}
-
-.emoji-rating input {
-    display: none;
-}
-
-/* Highlight selected rating */
-.emoji-rating input:checked + span {
-    background-color: rgba(173, 216, 230, 0.5); /* Light blue with 50% transparency */
-    color: black;
-    font-weight: bold;
-    padding: 9px;
-    border-radius: 7px;
-}
-
-/* Textarea Styling */
-textarea {
-    width: calc(100% - 30px); /* Increased width */
-    padding: 14px; /* Increased padding */
-    margin-top: 14px; /* Increased margin */
-    border: 1px solid #ccc;
-    border-radius: 7px; /* Slightly more rounded corners */
-    font-size: 18px; /* Larger font size */
-    resize: none;
-}
-
-/* Buttons Styling */
-.button-container {
-    margin-top: 25px; /* Increased margin */
-    display: flex;
-    flex-direction: column;
-    gap: 15px; /* Increased gap */
-}
-
-button {
-    padding: 14px;
-    font-size: 20px; /* Larger font size */
-    border: none;
-    border-radius: 7px; /* Slightly more rounded */
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-.btn-submit {
-    background-color: #28a745;
-    color: white;
-}
-
-.btn-submit:hover {
-    background-color: #218838;
-}
-
-.btn-return {
-    background-color: #007bff;
-    color: white;
-}
-
-.btn-return:hover {
-    background-color: #0056b3;
-}
-
-.btn-skip {
-    background-color: #dc3545;
-    color: white;
-}
-
-.btn-skip:hover {
-    background-color: #c82333;
-}
-
-/* Success Message */
-#success-message {
-    color: #1f2420;
-    font-size: 22px; /* Larger font size */
-    font-weight: bold;
-    margin-top: 20px; /* Increased margin */
-    display: none;
-}
+      <div id="success-message" style="display: none;">
         <h2>Thank you for your feedback!</h2>
       </div>
     </div>
