@@ -1,162 +1,225 @@
-/* General body styling */
-body {
-    font-family: Arial, sans-serif;
-    background: linear-gradient(to bottom, #fffde8, #fff9c4, #fff59d, #ffeb3b, #ffca28);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-}
 
-/* Title styling */
-h1 {
-    font-size: 30px;
-    font-weight: bold;
-    color: black;
-    text-align: center;
-    margin-top: 10px;
-}
+document.addEventListener("DOMContentLoaded", function () {
+    const chatBox = document.getElementById("chat-box");
+    const userInput = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-btn");
+    const voiceBtn = document.getElementById("voice-btn");
+    const stopBtn = document.getElementById("stop-btn");
+    const endBtn = document.getElementById("end-btn");
 
-/* Bowie State Logo styling */
-.top-right-image {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    width: 80px;
-    height: auto;
-    border-radius: 0;
-}
+    let recognition;
+    let isSpeaking = false;
+    let usingVoice = false;
+    const synth = window.speechSynthesis;
+    let silenceTimeout;
+    let lastInputWasKeyboard = false; // ✅ Added to track focus method
 
-/* Updated: No box around chat and no header background */
-.chat-container {
-    width: auto;
-    background: transparent;
-    border-radius: 0;
-    box-shadow: none;
-    text-align: center;
-    overflow: visible;
-    padding-top: 20px;
-}
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Tab") {
+            lastInputWasKeyboard = true;
+        }
+    });
 
-/* Chat header with no background */
-.chat-header {
-    background: transparent;
-    color: black;
-    padding: 15px 0;
-    font-size: 40px;
-    font-weight: bold;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-left: -20px;
-}
+    document.addEventListener("mousedown", () => {
+        lastInputWasKeyboard = false;
+    });
 
-/* Chat box with no background */
-.chat-box {
-    height: 400px;
-    overflow-y: auto;
-    padding: 15px;
-    background: transparent;
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-    border: none;
-}
+    function appendMessage(sender, message) {
+        const msgDiv = document.createElement("div");
+        msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
+        msgDiv.innerHTML = message;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
 
-/* Bot message style */
-.bot-message {
-    background: black;
-    color: white;
-    padding: 15px;
-    border-radius: 10px;
-    margin: 8px 0;
-    max-width: 80%;
-    align-self: flex-start;
-    word-wrap: break-word;
-    font-size: 22px;
-}
+        if (sender === "bot" && usingVoice && message === "Listening...") {
+            speakResponse(message, () => {
+                playBeep();
+                startVoiceRecognition();
+            });
+        }
+    }
 
-/* User message style */
-.user-message {
-    background: #d3d3d3;
-    color: black;
-    padding: 15px;
-    border-radius: 10px;
-    margin: 8px 0;
-    max-width: 80%;
-    align-self: flex-end;
-    word-wrap: break-word;
-    font-size: 22px;
-}
+    function removePreviousThinkingMessage() {
+        const lastThinkingMessage = document.querySelector(".bot-message:last-child");
+        if (lastThinkingMessage && lastThinkingMessage.textContent === "Thinking...") {
+            lastThinkingMessage.remove();
+        }
+    }
 
-/* Input and button container */
-.input-container {
-    display: flex;
-    padding: 15px;
-    background: transparent;
-}
+    function sendMessage(text, useVoice = false) {
+        if (!text.trim()) return;
 
-/* Input field with white background and black text */
-input {
-    flex: 1;
-    padding: 16px 24px; /* Wider padding */
-    font-size: 22px; /* Updated font size */
-    border: 1px solid #ccc;
-    border-radius: 10px; /* More rounded */
-    background: white;
-    color: black;
-}
+        appendMessage("user", text);
+        userInput.value = "";
 
-/* Button styles with no background */
-button {
-    margin-left: 10px;
-    padding: 14px 22px; /* Wider and taller */
-    border: none;
-    cursor: pointer;
-    border-radius: 10px; /* More rounded */
-    background: transparent;
-    color: white;
-    font-size: 22px; /* Updated font size */
-}
+        removePreviousThinkingMessage();
+        const thinkingMsg = document.createElement("div");
+        thinkingMsg.classList.add("bot-message");
+        thinkingMsg.textContent = "Thinking...";
+        chatBox.appendChild(thinkingMsg);
+        chatBox.scrollTop = chatBox.scrollHeight;
 
-/* Send button */
-#send-btn {
-    background: green;
-    color: white;
-    border: 1px solid green;
-}
+        if (useVoice) speakResponse("Thinking...");
 
-/* Voice button */
-#voice-btn {
-    background: blue;
-    color: white;
-    border: 1px solid blue;
-}
+        fetch("/ask", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question: text }),
+        })
+            .then(response => response.json())
+            .then(data => {
+                removePreviousThinkingMessage();
+                appendMessage("bot", data.answer);
+                if (useVoice) speakResponse(data.answer);
+            })
+            .catch(() => {
+                removePreviousThinkingMessage();
+                appendMessage("bot", "Error: Could not get a response.");
+            });
+    }
 
-/* Stop button */
-#stop-btn {
-    background: red;
-    color: white;
-    border: 1px solid red;
-}
+    function speakResponse(text, callback) {
+        if ("speechSynthesis" in window) {
+            const cleanText = text.replace(/<br\s*\/?>/g, " ");
 
-/* End Chat button */
-#end-btn {
-    background: gray;
-    color: white;
-    border: 1px solid gray;
-    margin-left: 10px;
-    padding: 14px 22px;
-    border-radius: 10px;
-    cursor: pointer;
-}
+            if (cleanText.trim() === "") return;
 
-/* Add emoji support */
-.bot-message::before {
-    content: "🤖 ";
-}
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.onend = () => {
+                isSpeaking = false;
+                if (callback) callback();
+            };
+            synth.speak(utterance);
+            isSpeaking = true;
+        }
+    }
 
-.user-message::before {
-    content: "👤 ";
-}
+    function stopSpeaking() {
+        if (isSpeaking) {
+            synth.cancel();
+            isSpeaking = false;
+        }
+    }
+
+    function startVoiceRecognition() {
+        if ("webkitSpeechRecognition" in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = false;
+            recognition.lang = "en-US";
+
+            recognition.onresult = (event) => {
+                clearTimeout(silenceTimeout);
+                const transcript = event.results[event.results.length - 1][0].transcript;
+
+                silenceTimeout = setTimeout(() => {
+                    sendMessage(transcript, true);
+                    recognition.stop();
+                    usingVoice = false;
+                }, 1500);
+            };
+
+            recognition.onerror = () => {
+                appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
+                usingVoice = false;
+            };
+
+            recognition.onend = () => {
+                clearTimeout(silenceTimeout);
+                if (usingVoice) {
+                    appendMessage("bot", "Voice input ended. Please try again.");
+                    usingVoice = false;
+                }
+            };
+
+            recognition.start();
+        } else {
+            alert("Voice recognition is not supported in this browser.");
+        }
+    }
+
+    function playBeep() {
+        const beep = new Audio("/static/beep2.mp3");
+        beep.play();
+    }
+
+    function speakElementText(element) {
+        if ("speechSynthesis" in window) {
+            let text = "";
+
+            if (element.id === "send-btn") {
+                text = "Send button.";
+            } else if (element.id === "voice-btn") {
+                text = "Voice button.";
+            } else if (element.id === "stop-btn") {
+                text = "Stop button.";
+            } else if (element.id === "end-btn") {
+                text = "End chat button.";
+            }
+
+            if (text) {
+                let utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9;
+                synth.speak(utterance);
+            }
+        }
+    }
+
+    function handleTabKey(event) {
+        if (event.key === "Tab") {
+            event.preventDefault();
+
+            const elements = [userInput, sendBtn, voiceBtn, stopBtn, endBtn];
+            let currentIndex = elements.indexOf(document.activeElement);
+            let nextIndex = (currentIndex + 1) % elements.length;
+            let nextElement = elements[nextIndex];
+            nextElement.focus();
+
+            setTimeout(() => {
+                speakElementText(nextElement);
+            }, 200);
+        }
+    }
+
+    voiceBtn.addEventListener("click", () => {
+        usingVoice = true;
+        appendMessage("bot", "Listening...");
+    });
+
+    stopBtn.addEventListener("click", stopSpeaking);
+
+    sendBtn.addEventListener("click", () => {
+        sendBtn.disabled = true;
+        sendMessage(userInput.value, false);
+        setTimeout(() => sendBtn.disabled = false, 700);
+    });
+
+    endBtn.addEventListener("click", () => {
+        if (isSpeaking) {
+            synth.cancel();
+            isSpeaking = false;
+        }
+        window.location.href = "/feedback";
+    });
+
+    userInput.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            sendBtn.click();
+        }
+    });
+
+    // ✅ Speak "Enter your question" only when tabbing into input field
+    userInput.addEventListener("focus", () => {
+        if (lastInputWasKeyboard) {
+            let utterance = new SpeechSynthesisUtterance("Enter your question");
+            utterance.rate = 0.9;
+            synth.speak(utterance);
+        }
+    });
+
+    // ✅ Attach tab key handler
+    [userInput, sendBtn, voiceBtn, stopBtn, endBtn].forEach(element => {
+        element.addEventListener("keydown", handleTabKey);
+    });
+});
