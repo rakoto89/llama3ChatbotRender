@@ -42,6 +42,7 @@
 
     <!-- Hidden language options for Spanish, French, Mandarin -->
     <div id="language-options" class="language-options" style="display: none;">
+        <button onclick="changeLanguage('en')">English</button>
         <button onclick="changeLanguage('es')">Español</button>
         <button onclick="changeLanguage('fr')">Français</button>
         <button onclick="changeLanguage('zh')">中文</button>
@@ -62,11 +63,19 @@
 
             // Function to change the language
             function changeLanguage(language) {
-                // You can add logic here to change the language of the chatbot interface
-                // For example, by updating the page content or triggering voice synthesis in the selected language.
-                console.log("Language changed to: " + language);
+                // Update chatbot's messages to match the new language
+                const botMessage = document.querySelector('.bot-message');
+                if (language === 'es') {
+                    botMessage.textContent = "¡Bienvenido al Chatbot de Concientización sobre los Opioides! ¡Aquí aprenderás todo sobre los opioides!";
+                } else if (language === 'fr') {
+                    botMessage.textContent = "Bienvenue dans le chatbot de sensibilisation aux opioïdes ! Ici, vous apprendrez tout sur les opioïdes !";
+                } else if (language === 'zh') {
+                    botMessage.textContent = "欢迎使用阿片类药物意识聊天机器人！在这里，您将学习所有关于阿片类药物的知识！";
+                } else {
+                    botMessage.textContent = "Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!";
+                }
 
-                // Hide the language options after selection
+                // Close the language options
                 document.getElementById("language-options").style.display = "none";
             }
 
