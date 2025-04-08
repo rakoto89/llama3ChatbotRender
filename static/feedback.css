@@ -43,7 +43,7 @@ body {
     margin-bottom: 40px;
 }
 
-/* Center white feedback container */
+/* Feedback container — centered and smaller */
 .feedback-container {
     margin-left: 70px;
     width: calc(100% - 70px);
@@ -55,17 +55,29 @@ body {
 
 .feedback-card {
     background-color: white;
-    padding: 30px;
+    padding: 25px;
     border-radius: 12px;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
     width: 100%;
-    max-width: 500px;
+    max-width: 400px;
     text-align: center;
 }
 
 .rating-row {
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-radius: 8px;
+    padding: 6px;
     margin: 10px 0;
     font-size: 18px;
+}
+
+.rating-row.selected {
+    background-color: #e0f0ff;
+}
+
+.rating-row input[type="radio"] {
+    display: none;
 }
 
 textarea {
