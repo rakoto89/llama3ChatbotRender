@@ -71,24 +71,20 @@ document.addEventListener("DOMContentLoaded", function () {
     })
       .then((response) => {
         if (response.ok) {
-          // Hide form & text
           document.getElementById("feedback-form").style.display = "none";
           document.getElementById("rate-experience").style.display = "none";
           document.getElementById("rate-description").style.display = "none";
 
-          // Show thank-you message
           const successMessage = document.getElementById("success-message");
           successMessage.style.display = "block";
-          successMessage.tabIndex = "0"; // Make it focusable for accessibility
+          successMessage.tabIndex = "0";
 
-          // Speak "Thank you for your feedback!" when tabbed
           successMessage.addEventListener("focus", () => {
             if (lastInteractionWasKeyboard) {
               speak("Thank you for your feedback!");
             }
           });
 
-          // Dynamically create and add Exit button
           const exitButton = document.createElement("button");
           exitButton.textContent = "Exit";
           exitButton.id = "skip-feedback";
@@ -102,26 +98,22 @@ document.addEventListener("DOMContentLoaded", function () {
           exitButton.style.borderRadius = "5px";
           exitButton.style.marginTop = "20px";
           exitButton.style.display = "block";
-          exitButton.style.margin = "20px auto"; // ✅ Center the button
+          exitButton.style.margin = "20px auto";
           exitButton.style.textAlign = "center";
-          exitButton.style.width = "fit-content"; // ✅ Prevents button from stretching too much
+          exitButton.style.width = "fit-content";
 
-          // Add event listener to make the Exit button speak "Exit" when tabbed
           exitButton.addEventListener("focus", () => {
             if (lastInteractionWasKeyboard) {
               speak("Exit");
             }
           });
 
-          // Redirect to Bowie State when Exit button is clicked
           exitButton.addEventListener("click", function () {
             window.location.href = "https://www.bowiestate.edu";
           });
 
-          // Append the Exit button below the thank-you message
           successMessage.appendChild(exitButton);
 
-          // Confetti burst
           confetti({
             particleCount: 150,
             spread: 70,
@@ -136,12 +128,15 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   });
 
-  // Redirect buttons
-  document.getElementById("return-chatbot").addEventListener("click", function () {
-    window.location.href = "https://llama2chatbotrender.onrender.com/";
+  // Highlight selected rating row
+  const ratingRows = document.querySelectorAll(".rating-row");
+
+  ratingRows.forEach(row => {
+    const radio = row.querySelector("input[type='radio']");
+    row.addEventListener("click", () => {
+      radio.checked = true;
+      ratingRows.forEach(r => r.classList.remove("selected"));
+      row.classList.add("selected");
+    });
   });
-  
-  document.getElementById("skip-feedback").addEventListener("click", function () {
-    window.location.href = "https://www.bowiestate.edu";
-  });
-});  
+});
