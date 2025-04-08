@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const synth = window.speechSynthesis;
     let recognitionInProgress = false; // To track if recognition is in progress
     let silenceTimeout;
+    let recognitionErrorCount = 0; // To count consecutive errors in recognition
 
     // Append messages to chatbox
     function appendMessage(sender, message) {
@@ -95,22 +96,32 @@ document.addEventListener("DOMContentLoaded", function () {
     // Start voice recognition
     function startVoiceRecognition() {
         if ("webkitSpeechRecognition" in window) {
+            if (recognitionInProgress) return; // Prevent starting a new recognition if already in progress
+
             recognition = new webkitSpeechRecognition();
             recognition.continuous = false;
             recognition.interimResults = false;
             recognition.lang = "en-US";
 
             recognition.onstart = () => {
+                recognitionInProgress = true;
                 appendMessage("bot", "Listening...");
             };
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 sendMessage(transcript, true);
+                recognitionErrorCount = 0; // Reset error count on success
             };
 
             recognition.onerror = (event) => {
-                appendMessage("bot", "Error recognizing speech.");
+                recognitionErrorCount++;
+                if (recognitionErrorCount >= 3) {
+                    appendMessage("bot", "I couldn't recognize your speech. Please try again.");
+                    recognitionErrorCount = 0; // Reset error count after 3 errors
+                } else {
+                    appendMessage("bot", "Error recognizing speech. Please try again.");
+                }
             };
 
             recognition.onend = () => {
@@ -118,7 +129,6 @@ document.addEventListener("DOMContentLoaded", function () {
             };
 
             recognition.start();
-            recognitionInProgress = true;
         } else {
             alert("Your browser does not support speech recognition.");
         }
@@ -147,9 +157,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Send message button click event
     sendBtn.addEventListener("click", () => {
+        if (!userInput.value.trim()) return; // Don't send empty messages
         sendBtn.disabled = true;
-        sendMessage(userInput.value, false);
-        setTimeout(() => sendBtn.disabled = false, 700);
+        sendMessage(userInput.value, false); // Send the message typed by user
+        setTimeout(() => sendBtn.disabled = false, 700); // Re-enable send button after a brief delay
     });
 
     // User input handle 'Enter' keypress
