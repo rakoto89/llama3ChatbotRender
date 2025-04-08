@@ -3,11 +3,22 @@ document.addEventListener("DOMContentLoaded", function () {
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
+    const cancelVoiceBtn = document.getElementById("cancel-voice-btn");
 
     let recognition;
     let isSpeaking = false;
     let usingVoice = false;
     const synth = window.speechSynthesis;
+    let silenceTimeout;
+    let lastInputWasKeyboard = false;
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Tab") lastInputWasKeyboard = true;
+    });
+
+    document.addEventListener("mousedown", () => {
+        lastInputWasKeyboard = false;
+    });
 
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
@@ -78,6 +89,13 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function stopSpeaking() {
+        if (isSpeaking) {
+            synth.cancel();
+            isSpeaking = false;
+        }
+    }
+
     function startVoiceRecognition() {
         if ("webkitSpeechRecognition" in window) {
             recognition = new webkitSpeechRecognition();
@@ -98,6 +116,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 appendMessage("bot", "Error recognizing speech.");
             };
 
+            recognition.onend = () => {
+                // auto-restart can be added here
+            };
+
             recognition.start();
         } else {
             alert("Your browser does not support speech recognition.");
@@ -111,5 +133,9 @@ document.addEventListener("DOMContentLoaded", function () {
     voiceBtn.addEventListener("click", () => {
         usingVoice = true;
         startVoiceRecognition();
+    });
+
+    cancelVoiceBtn.addEventListener("click", () => {
+        stopSpeaking();
     });
 });
