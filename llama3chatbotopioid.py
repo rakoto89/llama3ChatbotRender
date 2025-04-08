@@ -67,23 +67,38 @@ def extract_all_tables_first(folder):
                 tables_output += f"=== Tables from {filename} ===\n{tables}\n\n"
     return tables_output
 
-def read_excel_as_text(excel_path):
-    try:
-        excel_data = pd.read_excel(excel_path, header=1, sheet_name=None)
-        output = "=== Excel Data ===\n"
-        for sheet, df in excel_data.items():
-            output += f"\n--- Sheet: {sheet} ---\n"
-            output += df.to_string(index=False) + "\n"
-        return output.strip()
-    except Exception as e:
-        return f"Error reading Excel: {str(e)}"
+def read_excel_as_text(excel_files):
+    output = "=== Excel Data ===\n"
+    for file in excel_files:
+        try:
+            data = pd.read_excel(file, header=1, sheet_name=None)
+            for sheet, df in data.items():
+                output += f"\n--- Sheet: {sheet} ({os.path.basename(file)}) ---\n"
+                output += df.to_string(index=False) + "\n"
+        except Exception as e:
+            output += f"Error reading {file}: {str(e)}\n"
+    return output.strip()
+
+def load_excels_to_df(excel_files):
+    df_list = []
+    for file in excel_files:
+        try:
+            df = pd.read_excel(file, header=1)
+            df_list.append(df)
+        except Exception:
+            continue
+    return pd.concat(df_list, ignore_index=True) if df_list else None
 
 # === Load PDFs and Excel ===
 pdf_folder = "pdfs"
-excel_path = os.path.join(pdf_folder, "KFF_Opioid_Overdose_Deaths_2022.xlsx", "KFF_Opioid_Overdose_Deaths_by_Age_Group_2022.xlsx", "KFF_Opioid_Overdose_Deaths_by_Race_and_Ethnicity_2022.xlsx")
+excel_files = [
+    os.path.join(pdf_folder, "KFF_Opioid_Overdose_Deaths_by_Age_Group_2022.xlsx"),
+    os.path.join(pdf_folder, "KFF_Opioid_Overdose_Deaths_by_Race_and_Ethnicity_2022.xlsx"),
+    os.path.join(pdf_folder, "KFF_Opioid_Overdose_Deaths_2022.xls")
+]
 
-excel_text = read_excel_as_text(excel_path) if os.path.exists(excel_path) else ""
-excel_df = pd.read_excel(excel_path, header=1) if os.path.exists(excel_path) else None
+excel_text = read_excel_as_text(excel_files)
+excel_df = load_excels_to_df(excel_files)
 pdf_texts = read_pdfs_in_folder(pdf_folder)
 all_table_text = extract_all_tables_first(pdf_folder)
 
@@ -107,20 +122,40 @@ relevant_topics = [
 def is_question_relevant(question):
     return any(topic in question.lower() for topic in relevant_topics)
 
-# === Excel Answer Lookup (PRIORITY) ===
+# === Excel Answer Lookup (IMPROVED FOR FULL DATA MATCHING) ===
 def search_excel(question):
     if excel_df is not None:
         question_lower = question.lower()
-        matches = []
+        result = ""
+
+        # Try matching column headers
+        header_matches = []
         for col in excel_df.columns:
             if col.lower() in question_lower:
-                matches.append(col)
-        if matches:
-            result = ""
-            for match in matches:
+                header_matches.append(col)
+
+        if header_matches:
+            for match in header_matches:
                 result += f"\n--- Column: {match} ---\n"
-                result += excel_df[match].dropna().astype(str).to_string(index=False)[:1000]  # Limit length
+                result += excel_df[match].dropna().astype(str).to_string(index=False)[:1000]
             return result.strip()
+
+        # If no header match, scan all cells for text match
+        search_hits = []
+        for i, row in excel_df.iterrows():
+            row_str = row.astype(str).str.lower().tolist()
+            if any(q in cell for cell in row_str for q in question_lower.split()):
+                search_hits.append(row.astype(str).to_dict())
+            if len(search_hits) >= 5:
+                break
+
+        if search_hits:
+            for match in search_hits:
+                result += "\n--- Row Match ---\n"
+                for k, v in match.items():
+                    result += f"{k}: {v}\n"
+            return result.strip()
+
     return None
 
 # === Llama 3 API Call ===
@@ -128,7 +163,6 @@ def get_llama3_response(question):
     if not is_question_relevant(question):
         return "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment."
 
-    # PRIORITIZE Excel Lookup
     excel_result = search_excel(question)
     if excel_result:
         return f"Based on the Excel data:\n\n{excel_result}"
