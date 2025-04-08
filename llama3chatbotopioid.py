@@ -91,8 +91,16 @@ combined_text = f"{excel_text}\n\n{all_table_text}\n\n{pdf_texts}"[:5000]
 
 # === Relevance Keywords ===
 relevant_topics = [
-    "opioid", "fentanyl", "overdose", "withdrawal", "addiction", "pain", "treatment",
-    "MAT", "naloxone", "rehab", "opioid misuse", "teens", "college", "BSU", "substance abuse"
+    "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin",
+    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium",
+    "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance",
+    "support", "support for opioid addiction", "drug use", "email", "campus", "phone number",
+    "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication",
+    "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
+    "medication-assisted treatment", "MAT", "opioid epidemic", "teen", "dangers", "genetic", 
+    "environmental factors", "pain management", "socioeconomic factors", "consequences", 
+    "adult", "death", "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", 
+    "brands", "treatment programs", "medication", "young people", "peer pressure"
 ]
 
 def is_question_relevant(question):
