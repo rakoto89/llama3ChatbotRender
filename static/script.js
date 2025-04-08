@@ -157,6 +157,21 @@ document.addEventListener("DOMContentLoaded", function () {
         appendMessage("bot", languageData[currentLanguage].voiceMessage);
     });
 
+    // ✅ Cancel Voice Listener (New Code Added)
+    cancelVoiceBtn.addEventListener("click", () => {
+        if (recognition && usingVoice) {
+            recognition.abort(); // or recognition.stop();
+            usingVoice = false;
+            appendMessage("bot", "Voice input canceled.");
+        }
+
+        if (synth.speaking) {
+            synth.cancel();
+            isSpeaking = false;
+            appendMessage("bot", "Speech synthesis canceled.");
+        }
+    });
+
     // Language toggle button
     document.getElementById("lang-btn").addEventListener("click", () => {
         const langOptions = document.getElementById("language-options");
