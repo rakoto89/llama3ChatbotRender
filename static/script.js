@@ -13,6 +13,61 @@ document.addEventListener("DOMContentLoaded", function () {
     let lastInputWasKeyboard = false;
     let currentLanguage = 'en'; // Default language (English)
 
+    const languageData = {
+        en: {
+            botMessage: "Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!",
+            chatbotTitle: "Opioid Awareness Chatbot",
+            placeholder: "Enter your question...",
+            thinkingMessage: "Thinking...",
+            voiceMessage: "Listening...",
+            errorMessage: "Error: Could not get a response.",
+            feedback: "Feedback",
+            resources: "Resources",
+            home: "Home",
+            language: "Language Preferences",
+            exit: "Exit",
+        },
+        es: {
+            botMessage: "¡Bienvenido al Chatbot de Concientización sobre los Opioides! ¡Aquí aprenderás todo sobre los opioides!",
+            chatbotTitle: "Chatbot de Concientización sobre los Opioides",
+            placeholder: "Ingresa tu pregunta...",
+            thinkingMessage: "Pensando...",
+            voiceMessage: "Escuchando...",
+            errorMessage: "Error: No se pudo obtener una respuesta.",
+            feedback: "Retroalimentación",
+            resources: "Recursos",
+            home: "Inicio",
+            language: "Preferencias de Idioma",
+            exit: "Salir",
+        },
+        fr: {
+            botMessage: "Bienvenue dans le chatbot de sensibilisation aux opioïdes ! Ici, vous apprendrez tout sur les opioïdes !",
+            chatbotTitle: "Chatbot de Sensibilisation aux Opioïdes",
+            placeholder: "Entrez votre question...",
+            thinkingMessage: "En réflexion...",
+            voiceMessage: "Écoute...",
+            errorMessage: "Erreur : Impossible d'obtenir une réponse.",
+            feedback: "Retour d'information",
+            resources: "Ressources",
+            home: "Accueil",
+            language: "Préférences linguistiques",
+            exit: "Sortie",
+        },
+        zh: {
+            botMessage: "欢迎使用阿片类药物意识聊天机器人！在这里，您将学习所有关于阿片类药物的知识！",
+            chatbotTitle: "阿片类药物意识聊天机器人",
+            placeholder: "输入您的问题...",
+            thinkingMessage: "思考中...",
+            voiceMessage: "正在监听...",
+            errorMessage: "错误：无法获取响应。",
+            feedback: "反馈",
+            resources: "资源",
+            home: "首页",
+            language: "语言偏好",
+            exit: "退出",
+        }
+    };
+
     document.addEventListener("keydown", (e) => {
         if (e.key === "Tab") {
             lastInputWasKeyboard = true;
@@ -54,11 +109,11 @@ document.addEventListener("DOMContentLoaded", function () {
         removePreviousThinkingMessage();
         const thinkingMsg = document.createElement("div");
         thinkingMsg.classList.add("bot-message");
-        thinkingMsg.textContent = "Thinking...";
+        thinkingMsg.textContent = languageData[currentLanguage].thinkingMessage;
         chatBox.appendChild(thinkingMsg);
         chatBox.scrollTop = chatBox.scrollHeight;
 
-        if (useVoice) speakResponse("Thinking...");
+        if (useVoice) speakResponse(languageData[currentLanguage].thinkingMessage);
 
         fetch("/ask", {
             method: "POST",
@@ -73,7 +128,7 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .catch(() => {
                 removePreviousThinkingMessage();
-                appendMessage("bot", "Error: Could not get a response.");
+                appendMessage("bot", languageData[currentLanguage].errorMessage);
             });
     }
 
@@ -120,7 +175,7 @@ document.addEventListener("DOMContentLoaded", function () {
             };
 
             recognition.onerror = () => {
-                appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
+                appendMessage("bot", languageData[currentLanguage].errorMessage);
                 usingVoice = false;
             };
 
@@ -143,80 +198,38 @@ document.addEventListener("DOMContentLoaded", function () {
         beep.play();
     }
 
-    function speakElementText(element) {
-        if ("speechSynthesis" in window) {
-            let text = "";
+    function changeLanguage(language) {
+        currentLanguage = language;
 
-            if (element.id === "send-btn") {
-                text = "Send button.";
-            } else if (element.id === "voice-btn") {
-                text = "Voice button.";
-            } else if (element.id === "cancel-voice-btn") {
-                text = "Cancel voice button.";
-            }
+        // Update UI with new language
+        document.querySelector('.chat-header').textContent = languageData[language].chatbotTitle;
+        document.getElementById("user-input").placeholder = languageData[language].placeholder;
+        document.querySelector(".bot-message").textContent = languageData[language].botMessage;
 
-            if (text) {
-                let utterance = new SpeechSynthesisUtterance(text);
-                utterance.rate = 0.9;
-                synth.speak(utterance);
-            }
+        // Update sidebar items
+        document.querySelectorAll('.sidebar-icon[title="Home"]')[0].alt = languageData[language].home;
+        document.querySelectorAll('.sidebar-icon[title="Language Preferences"]')[0].alt = languageData[language].language;
+        document.querySelectorAll('.sidebar-icon[title="Feedback"]')[0].alt = languageData[language].feedback;
+        document.querySelectorAll('.sidebar-icon[title="Resources"]')[0].alt = languageData[language].resources;
+        document.querySelectorAll('.sidebar-icon[title="Exit"]')[0].alt = languageData[language].exit;
+
+        // Optionally, you can also translate the "Thinking..." and "Error: Could not get a response." messages in other parts of the chatbot.
+    }
+
+    // Add event listeners for language changes
+    document.getElementById("lang-btn").addEventListener("click", toggleLanguageOptions);
+
+    function toggleLanguageOptions() {
+        const languageOptions = document.getElementById("language-options");
+        if (languageOptions.style.display === "none" || languageOptions.style.display === "") {
+            languageOptions.style.display = "block";
+        } else {
+            languageOptions.style.display = "none";
         }
     }
 
-    function handleTabKey(event) {
-        if (event.key === "Tab") {
-            event.preventDefault();
-
-            const elements = [userInput, sendBtn, voiceBtn, cancelVoiceBtn];
-            let currentIndex = elements.indexOf(document.activeElement);
-            let nextIndex = (currentIndex + 1) % elements.length;
-            let nextElement = elements[nextIndex];
-            nextElement.focus();
-
-            setTimeout(() => {
-                speakElementText(nextElement);
-            }, 200);
-        }
-    }
-
-    voiceBtn.addEventListener("click", () => {
-        usingVoice = true;
-
-        // Check if "Listening..." message already exists, if so remove it
-        const existingMessage = document.querySelector(".bot-message");
-        if (existingMessage && existingMessage.textContent === "Listening...") {
-            existingMessage.remove();
-        }
-
-        appendMessage("bot", "Listening...");
-    });
-
-    cancelVoiceBtn.addEventListener("click", stopSpeaking);
-
-    sendBtn.addEventListener("click", () => {
-        sendBtn.disabled = true;
-        sendMessage(userInput.value, false);
-        setTimeout(() => sendBtn.disabled = false, 700);
-    });
-
-    userInput.addEventListener("keypress", function (event) {
-        if (event.key === "Enter") {
-            event.preventDefault();
-            sendBtn.click();
-        }
-    });
-
-    // Speak "Enter your question" only when tabbing into input field
-    userInput.addEventListener("focus", () => {
-        if (lastInputWasKeyboard) {
-            let utterance = new SpeechSynthesisUtterance("Enter your question");
-            utterance.rate = 0.9;
-            synth.speak(utterance);
-        }
-    });
-
-    // Attach tab key handler
-    [userInput, sendBtn, voiceBtn, cancelVoiceBtn].forEach(element => {
-        element.addEventListener("keydown", handleTabKey);
+    // Attach functions to change language on button click
+    document.getElementById("language-options").querySelectorAll("button").forEach(button => {
+        button.addEventListener("click", () => changeLanguage(button.getAttribute("data-lang")));
     });
 });
