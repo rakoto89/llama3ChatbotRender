@@ -3,7 +3,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
-    const cancelVoiceBtn = document.getElementById("cancel-voice-btn");
+    const stopBtn = document.getElementById("stop-btn");
+    const endBtn = document.getElementById("end-btn");
 
     let recognition;
     let isSpeaking = false;
@@ -13,7 +14,9 @@ document.addEventListener("DOMContentLoaded", function () {
     let lastInputWasKeyboard = false;
 
     document.addEventListener("keydown", (e) => {
-        if (e.key === "Tab") lastInputWasKeyboard = true;
+        if (e.key === "Tab") {
+            lastInputWasKeyboard = true;
+        }
     });
 
     document.addEventListener("mousedown", () => {
@@ -29,7 +32,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (sender === "bot" && usingVoice && message === "Listening...") {
             speakResponse(message, () => {
-                playBeep();  // Play beep sound when "Listening..." is spoken
+                playBeep();
                 startVoiceRecognition();
             });
         }
@@ -77,6 +80,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function speakResponse(text, callback) {
         if ("speechSynthesis" in window) {
             const cleanText = text.replace(/<br\s*\/?>/g, " ");
+
             if (cleanText.trim() === "") return;
 
             const utterance = new SpeechSynthesisUtterance(cleanText);
@@ -99,13 +103,13 @@ document.addEventListener("DOMContentLoaded", function () {
     function startVoiceRecognition() {
         if ("webkitSpeechRecognition" in window) {
             recognition = new webkitSpeechRecognition();
-            recognition.continuous = false;
+            recognition.continuous = false;  // Stops recognition after one result
             recognition.interimResults = false;
             recognition.lang = "en-US";
 
             recognition.onstart = () => {
                 appendMessage("bot", "Listening...");
-                playBeep();  // Play beep sound when it starts listening
+                playBeep();
             };
 
             recognition.onresult = (event) => {
@@ -113,36 +117,100 @@ document.addEventListener("DOMContentLoaded", function () {
                 sendMessage(transcript, true);
             };
 
-            recognition.onerror = (event) => {
+            recognition.onerror = () => {
                 appendMessage("bot", "Error recognizing speech.");
             };
 
             recognition.onend = () => {
-                // auto-restart can be added here
+                clearTimeout(silenceTimeout);
             };
 
             recognition.start();
         } else {
-            alert("Your browser does not support speech recognition.");
+            alert("Voice recognition is not supported in this browser.");
         }
     }
 
-    // Function to play beep sound
     function playBeep() {
-        const beep = new Audio("/static/beep2.mp3");  // Path to the beep file in the static folder
+        const beep = new Audio("/static/beep.mp3");  // Path to beep sound
         beep.play();
     }
 
-    sendBtn.addEventListener("click", () => {
-        sendMessage(userInput.value, false);
-    });
+    function speakElementText(element) {
+        if ("speechSynthesis" in window) {
+            let text = "";
+
+            if (element.id === "send-btn") {
+                text = "Send button.";
+            } else if (element.id === "voice-btn") {
+                text = "Voice button.";
+            } else if (element.id === "stop-btn") {
+                text = "Stop button.";
+            } else if (element.id === "end-btn") {
+                text = "End chat button.";
+            }
+
+            if (text) {
+                let utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9;
+                synth.speak(utterance);
+            }
+        }
+    }
+
+    function handleTabKey(event) {
+        if (event.key === "Tab") {
+            event.preventDefault();
+
+            const elements = [userInput, sendBtn, voiceBtn, stopBtn, endBtn];
+            let currentIndex = elements.indexOf(document.activeElement);
+            let nextIndex = (currentIndex + 1) % elements.length;
+            let nextElement = elements[nextIndex];
+            nextElement.focus();
+
+            setTimeout(() => {
+                speakElementText(nextElement);
+            }, 200);
+        }
+    }
 
     voiceBtn.addEventListener("click", () => {
         usingVoice = true;
-        startVoiceRecognition();
+        appendMessage("bot", "Listening...");
     });
 
-    cancelVoiceBtn.addEventListener("click", () => {
-        stopSpeaking();
+    stopBtn.addEventListener("click", stopSpeaking);
+
+    sendBtn.addEventListener("click", () => {
+        sendBtn.disabled = true;
+        sendMessage(userInput.value, false);
+        setTimeout(() => sendBtn.disabled = false, 700);
+    });
+
+    endBtn.addEventListener("click", () => {
+        if (isSpeaking) {
+            synth.cancel();
+            isSpeaking = false;
+        }
+        window.location.href = "/feedback";
+    });
+
+    userInput.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            sendBtn.click();
+        }
+    });
+
+    userInput.addEventListener("focus", () => {
+        if (lastInputWasKeyboard) {
+            let utterance = new SpeechSynthesisUtterance("Enter your question");
+            utterance.rate = 0.9;
+            synth.speak(utterance);
+        }
+    });
+
+    [userInput, sendBtn, voiceBtn, stopBtn, endBtn].forEach(element => {
+        element.addEventListener("keydown", handleTabKey);
     });
 });
