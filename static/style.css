@@ -1,123 +1,134 @@
+/* Reset and base */
 body {
-    font-family: Arial, sans-serif;
-    background: linear-gradient(to bottom, #fffde8, #fff9c4, #fff59d, #ffeb3b, #ffca28);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
     margin: 0;
-}
-
-h1 {
-    font-size: 30px;
-    font-weight: bold;
-    color: black;
-    text-align: center;
-    margin-top: 10px;
-}
-
-.top-right-image {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    width: 40px;
-    height: 40px;
-    object-fit: contain;
-    border-radius: 4px;
-}
-
-.chat-container {
-    width: auto;
-    background: transparent;
-    border-radius: 0;
-    box-shadow: none;
-    text-align: center;
-    overflow: visible;
-    padding-top: 20px;
-    margin-left: 60px;
-}
-
-.chat-header {
-    background: transparent;
-    color: black;
-    padding: 15px 0;
-    font-size: 40px;
-    font-weight: bold;
+    font-family: Arial, sans-serif;
+    background-color: #f1f1f1;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-left: -20px;
 }
 
-.chat-box {
-    height: 400px;
-    overflow-y: auto;
-    padding: 15px;
-    background: transparent;
-    text-align: left;
+/* Sidebar */
+.sidebar {
+    width: 70px;
+    background-color: #1a1a1a;
     display: flex;
     flex-direction: column;
-    border: none;
+    align-items: center;
+    padding-top: 20px;
+    position: fixed;
+    height: 100vh;
+    z-index: 2;
+}
+
+.sidebar-icon {
+    width: 28px;
+    height: 28px;
+    margin: 20px 0;
+    filter: invert(100%);
+    transition: transform 0.2s ease;
+}
+
+.sidebar-icon:hover {
+    transform: scale(1.1);
+    cursor: pointer;
+}
+
+.no-filter {
+    filter: none !important;
+}
+
+/* Top right logo */
+.top-right-image {
+    width: 55px;
+    height: auto;
+    margin-bottom: 40px;
+}
+
+/* Chat container */
+.chat-container {
+    margin-left: 70px;
+    width: calc(100% - 70px);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Header */
+.chat-header {
+    background-color: #004080;
+    color: white;
+    padding: 15px 25px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* Chat box */
+.chat-box {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Chat bubbles */
+.bot-message,
+.user-message {
+    max-width: 75%;
+    margin-bottom: 15px;
+    padding: 12px 15px;
+    border-radius: 18px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    white-space: pre-wrap;
 }
 
 .bot-message {
-    background: black;
-    color: white;
-    padding: 15px;
-    border-radius: 10px;
-    margin: 8px 0;
-    max-width: 80%;
     align-self: flex-start;
-    word-wrap: break-word;
-    font-size: 22px;
+    background-color: #e6f2ff;
+    color: #003366;
+    border-top-left-radius: 0;
 }
 
 .user-message {
-    background: #d3d3d3;
-    color: black;
-    padding: 15px;
-    border-radius: 10px;
-    margin: 8px 0;
-    max-width: 80%;
     align-self: flex-end;
-    word-wrap: break-word;
-    font-size: 22px;
+    background-color: #cce5ff;
+    color: #004080;
+    border-top-right-radius: 0;
 }
 
+/* Input area */
 .input-container {
     display: flex;
-    justify-content: center;
     align-items: center;
-    gap: 12px;
-    padding: 20px;
-    flex-wrap: wrap;
+    padding: 12px 20px;
+    background-color: #f9f9f9;
+    border-top: 1px solid #ddd;
 }
 
-input#user-input {
-    width: 280px;
+.input-container input {
+    flex: 1;
     padding: 10px 14px;
-    font-size: 16px;
+    font-size: 14px;
     border: 1px solid #ccc;
-    border-radius: 6px;
-    background-color: white;
-    color: black;
+    border-radius: 8px;
+    outline: none;
+    margin-right: 10px;
 }
 
+/* Buttons */
 .input-container button {
-    padding: 8px 12px;
+    padding: 8px;
     font-size: 14px;
     border-radius: 6px;
-    border: 1px solid #ccc;
-    background-color: #f0f0f0;
+    border: none;
+    background-color: transparent;
     color: black;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.input-container button:hover {
-    background-color: #e0e0e0;
+    transition: transform 0.2s ease;
 }
 
 .input-container button img {
@@ -126,91 +137,27 @@ input#user-input {
     object-fit: contain;
 }
 
-#send-btn {
-    background-color: #4CAF50;
-    border-color: #4CAF50;
-    color: white;
-}
-
-#voice-btn {
-    background-color: #2196F3;
-    border-color: #2196F3;
-    color: white;
-}
-
-.bot-message::before {
-    content: "🤖 ";
-}
-
-.user-message::before {
-    content: "👤 ";
-}
-
-.sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 60px;
-    height: 100%;
-    background-color: #2c3e50;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 20px;
-    z-index: 1000;
-}
-
-.sidebar .icon {
-    width: 40px;
-    height: 40px;
+.input-container button:hover {
     background-color: transparent;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 20px;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    padding: 5px;
+    transform: scale(1.1);
 }
 
-.sidebar .sidebar-icon {
-    width: 30px;
-    height: 30px;
-    object-fit: contain;
-    border-radius: 50%;
-    filter: brightness(0) invert(1);
+/* Specific button overrides */
+#send-btn,
+#voice-btn,
+#cancel-voice-btn {
+    background-color: transparent;
+    border: none;
 }
 
-.sidebar .sidebar-icon.no-filter {
-    filter: none;
+/* Scrollbar styling for chat box */
+.chat-box::-webkit-scrollbar {
+    width: 8px;
 }
-
-.sidebar .icon[title="Resources"] .sidebar-icon {
-    width: 50px;
-    height: 50px;
+.chat-box::-webkit-scrollbar-thumb {
+    background-color: #cccccc;
+    border-radius: 4px;
 }
-
-.sidebar .icon[title="Home"] {
-    margin-top: 80px;
+.chat-box::-webkit-scrollbar-thumb:hover {
+    background-color: #999999;
 }
-
-.sidebar .icon[title="Language Preferences"],
-.sidebar .icon[title="Feedback"] {
-    margin-top: 30px;
-}
-
-.sidebar .icon[title="Language Preferences"] img,
-.sidebar .icon[title="Feedback"] img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-.sidebar .icon[title="Home"] .sidebar-icon,
-.sidebar .icon[title="Feedback"] .sidebar-icon {
-    border-radius: 0;
-    background: none;
-} 
