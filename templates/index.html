@@ -10,13 +10,13 @@
     <!-- Sidebar with images -->
     <div class="sidebar">
         <img src="{{ url_for('static', filename='images/bowie_state_white_logo.png') }}" alt="Bowie State Logo" class="top-right-image">
-        <div class="icon" onclick="location.href='https://llama2chatbotrender.onrender.com/'" title="Home">
+        <div class="icon" onclick="location.href='/'" title="Home">
             <img src="{{ url_for('static', filename='images/Home.png') }}" alt="Home Icon" class="sidebar-icon">
         </div>
-        <div class="icon" id="lang-btn" onclick="toggleLanguageOptions()" title="Language Preferences">
+        <div class="icon" id="lang-btn" title="Language Preferences">
             <img src="{{ url_for('static', filename='images/Language Preferences.png') }}" alt="Language Preferences" class="sidebar-icon">
         </div>
-        <div class="icon" onclick="location.href='https://llama2chatbotrender.onrender.com/feedback'" title="Feedback">
+        <div class="icon" onclick="location.href='/feedback'" title="Feedback">
             <img src="{{ url_for('static', filename='images/Feedback.png') }}" alt="Feedback" class="sidebar-icon">
         </div>
         <div class="icon" onclick="location.href='https://www.bowiestate.edu/campus-life/health-and-wellness/'" title="Resources">
@@ -40,49 +40,14 @@
         </div>
     </div>
 
-    <!-- Hidden language options for Spanish, French, Mandarin -->
+    <!-- Language options (fixed for JavaScript compatibility) -->
     <div id="language-options" class="language-options" style="display: none;">
-        <button onclick="changeLanguage('en')">English</button>
-        <button onclick="changeLanguage('es')">Español</button>
-        <button onclick="changeLanguage('fr')">Français</button>
-        <button onclick="changeLanguage('zh')">中文</button>
+        <button data-lang="en">English</button>
+        <button data-lang="es">Español</button>
+        <button data-lang="fr">Français</button>
+        <button data-lang="zh">中文</button>
     </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // Function to toggle language options visibility
-            function toggleLanguageOptions() {
-                const languageOptions = document.getElementById("language-options");
-                if (languageOptions.style.display === "none" || languageOptions.style.display === "") {
-                    languageOptions.style.display = "block";
-                } else {
-                    languageOptions.style.display = "none";
-                }
-            }
-
-            // Function to change the language
-            function changeLanguage(language) {
-                // Update chatbot's messages to match the new language
-                const botMessage = document.querySelector('.bot-message');
-                if (language === 'es') {
-                    botMessage.textContent = "¡Bienvenido al Chatbot de Concientización sobre los Opioides! ¡Aquí aprenderás todo sobre los opioides!";
-                } else if (language === 'fr') {
-                    botMessage.textContent = "Bienvenue dans le chatbot de sensibilisation aux opioïdes ! Ici, vous apprendrez tout sur les opioïdes !";
-                } else if (language === 'zh') {
-                    botMessage.textContent = "欢迎使用阿片类药物意识聊天机器人！在这里，您将学习所有关于阿片类药物的知识！";
-                } else {
-                    botMessage.textContent = "Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!";
-                }
-
-                // Close the language options
-                document.getElementById("language-options").style.display = "none";
-            }
-
-            // Add the functions to the window object so they are accessible in the HTML
-            window.toggleLanguageOptions = toggleLanguageOptions;
-            window.changeLanguage = changeLanguage;
-        });
-    </script>
 </body>
 </html>
