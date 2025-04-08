@@ -227,31 +227,17 @@ button {
     object-fit: contain; /* Ensure the images are not cropped */
 }
 
-/* RESPONSIVE FIX FOR MOBILE - icons cut off */
-@media (max-width: 768px) {
-    .sidebar {
-        width: 50px; /* Narrower sidebar on mobile */
-        padding-top: 20px;
-    }
+/* NEW: Make Home and Feedback icons smaller so they fully show */
+.sidebar .icon[title="Home"] .sidebar-icon,
+.sidebar .icon[title="Feedback"] .sidebar-icon {
+    width: 22px;
+    height: 22px;
+}
 
-    .sidebar .icon {
-        width: 35px;
-        height: 35px;
-        padding: 4px;
-        margin-top: 15px;
-    }
-
-    .sidebar .sidebar-icon {
-        width: 25px;
-        height: 25px;
-    }
-
-    .sidebar .icon[title="Resources"] .sidebar-icon {
-        width: 40px;
-        height: 40px;
-    }
-
-    .chat-container {
-        margin-left: 50px;
-    }
+/* NEW: Make Home and Feedback icon containers slightly smaller */
+.sidebar .icon[title="Home"],
+.sidebar .icon[title="Feedback"] {
+    width: 32px;
+    height: 32px;
+    padding: 2px;
 }
