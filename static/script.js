@@ -213,7 +213,8 @@ document.addEventListener("DOMContentLoaded", function () {
         document.querySelectorAll('.sidebar-icon[title="Resources"]')[0].alt = languageData[language].resources;
         document.querySelectorAll('.sidebar-icon[title="Exit"]')[0].alt = languageData[language].exit;
 
-        // Optionally, you can also translate the "Thinking..." and "Error: Could not get a response." messages in other parts of the chatbot.
+        // Update "listening" status
+        voiceBtn.setAttribute('title', languageData[language].voiceMessage);
     }
 
     // Add event listeners for language changes
