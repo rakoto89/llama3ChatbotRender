@@ -1,18 +1,15 @@
-
 document.addEventListener("DOMContentLoaded", function () {
     const chatBox = document.getElementById("chat-box");
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
-    const stopBtn = document.getElementById("stop-btn");
-    const endBtn = document.getElementById("end-btn");
 
     let recognition;
     let isSpeaking = false;
     let usingVoice = false;
     const synth = window.speechSynthesis;
     let silenceTimeout;
-    let lastInputWasKeyboard = false; // ✅ Added to track focus method
+    let lastInputWasKeyboard = false;
 
     document.addEventListener("keydown", (e) => {
         if (e.key === "Tab") {
@@ -81,7 +78,6 @@ document.addEventListener("DOMContentLoaded", function () {
     function speakResponse(text, callback) {
         if ("speechSynthesis" in window) {
             const cleanText = text.replace(/<br\s*\/?>/g, " ");
-
             if (cleanText.trim() === "") return;
 
             const utterance = new SpeechSynthesisUtterance(cleanText);
@@ -143,63 +139,19 @@ document.addEventListener("DOMContentLoaded", function () {
         beep.play();
     }
 
-    function speakElementText(element) {
-        if ("speechSynthesis" in window) {
-            let text = "";
-
-            if (element.id === "send-btn") {
-                text = "Send button.";
-            } else if (element.id === "voice-btn") {
-                text = "Voice button.";
-            } else if (element.id === "stop-btn") {
-                text = "Stop button.";
-            } else if (element.id === "end-btn") {
-                text = "End chat button.";
-            }
-
-            if (text) {
-                let utterance = new SpeechSynthesisUtterance(text);
-                utterance.rate = 0.9;
-                synth.speak(utterance);
-            }
-        }
-    }
-
-    function handleTabKey(event) {
-        if (event.key === "Tab") {
-            event.preventDefault();
-
-            const elements = [userInput, sendBtn, voiceBtn, stopBtn, endBtn];
-            let currentIndex = elements.indexOf(document.activeElement);
-            let nextIndex = (currentIndex + 1) % elements.length;
-            let nextElement = elements[nextIndex];
-            nextElement.focus();
-
-            setTimeout(() => {
-                speakElementText(nextElement);
-            }, 200);
-        }
-    }
-
-    voiceBtn.addEventListener("click", () => {
-        usingVoice = true;
-        appendMessage("bot", "Listening...");
-    });
-
-    stopBtn.addEventListener("click", stopSpeaking);
-
     sendBtn.addEventListener("click", () => {
         sendBtn.disabled = true;
         sendMessage(userInput.value, false);
         setTimeout(() => sendBtn.disabled = false, 700);
     });
 
-    endBtn.addEventListener("click", () => {
+    voiceBtn.addEventListener("click", () => {
         if (isSpeaking) {
-            synth.cancel();
-            isSpeaking = false;
+            stopSpeaking();
+            return;
         }
-        window.location.href = "/feedback";
+        usingVoice = true;
+        appendMessage("bot", "Listening...");
     });
 
     userInput.addEventListener("keypress", function (event) {
@@ -209,17 +161,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // ✅ Speak "Enter your question" only when tabbing into input field
     userInput.addEventListener("focus", () => {
         if (lastInputWasKeyboard) {
             let utterance = new SpeechSynthesisUtterance("Enter your question");
             utterance.rate = 0.9;
             synth.speak(utterance);
         }
-    });
-
-    // ✅ Attach tab key handler
-    [userInput, sendBtn, voiceBtn, stopBtn, endBtn].forEach(element => {
-        element.addEventListener("keydown", handleTabKey);
     });
 });
