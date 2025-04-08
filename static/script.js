@@ -129,7 +129,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Function to play beep sound
     function playBeep() {
-        const beep = new Audio("/static/beep.mp3");  // Path to the beep file in the static folder
+        const beep = new Audio("/static/beep2.mp3");  // Path to the beep file in the static folder
         beep.play();
     }
 
