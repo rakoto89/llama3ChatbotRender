@@ -99,50 +99,52 @@ h1 {
     background: transparent;
 }
 
-/* Input field with white background and black text */
+/* Input field */
 input {
     flex: 1;
-    padding: 16px 24px; /* Wider padding */
-    font-size: 22px; /* Updated font size */
+    padding: 16px 24px;
+    font-size: 22px;
     border: 1px solid #ccc;
-    border-radius: 10px; /* More rounded */
+    border-radius: 10px;
     background: white;
     color: black;
 }
 
-/* Button styles with no background */
+/* General button styling */
 button {
     margin-left: 10px;
-    padding: 14px 22px; /* Wider and taller */
+    padding: 14px 22px;
     border: none;
     cursor: pointer;
-    border-radius: 10px; /* More rounded */
+    border-radius: 10px;
     background: transparent;
     color: white;
-    font-size: 22px; /* Updated font size */
+    font-size: 22px;
 }
 
-button:hover {
-    background-color: #e0e0e0;
-}
-
-/* Submit button */
+/* Specific buttons */
 #send-btn {
-    background-color: #4CAF50; /* green */
+    background: green;
     color: white;
-    
+    border: 1px solid green;
 }
 
-/* Voice button */
 #voice-btn {
-    background-color: #2196F3; /* blue */
+    background: blue;
     color: white;
+    border: 1px solid blue;
 }
 
-/* End Chat button */
-#end-btn {
-    background-color: #9E9E9E; /* gray */
+#stop-btn {
+    background: red;
     color: white;
+    border: 1px solid red;
+}
+
+#end-btn {
+    background: gray;
+    color: white;
+    border: 1px solid gray;
 }
 
 /* Emoji styling */
@@ -171,9 +173,9 @@ button:hover {
 
 /* Sidebar icons */
 .sidebar .icon {
-    width: 40px;
+    width: 40px; /* Increased size of icons */
     height: 40px;
-    background-color: transparent;
+    background-color: transparent; /* Transparent background */
     color: white;
     display: flex;
     align-items: center;
@@ -183,7 +185,7 @@ button:hover {
     font-size: 14px;
     cursor: pointer;
     transition: background-color 0.3s;
-    padding: 5px;
+    padding: 5px; /* Prevents edge cut-off */
 }
 
 /* Sidebar icon images */
@@ -192,7 +194,7 @@ button:hover {
     height: 30px;
     object-fit: contain;
     border-radius: 50%;
-    filter: brightness(0) invert(1);
+    filter: brightness(0) invert(1); /* Makes icons white */
 }
 
 /* Exclude bulldog icon from white filter */
@@ -201,33 +203,26 @@ button:hover {
 }
 
 /* Make the bulldog icon bigger */
-.sidebar .icon[title="Resources"] .sidebar-icon {
-    width: 50px;
+.sidebar .icon[title="bull_dog"] .sidebar-icon {
+    width: 50px; /* Increased size for bulldog */
     height: 50px;
 }
 
 /* Move the house icon further down */
 .sidebar .icon[title="Home"] {
-    margin-top: 80px;
+    margin-top: 40px; /* Adjusted margin to move it down */
 }
 
 /* Make sure the language and star icons are not cut off */
-.sidebar .icon[title="Language Preferences"],
-.sidebar .icon[title="Feedback"] {
-    margin-top: 30px;
+.sidebar .icon[title="language"],
+.sidebar .icon[title="star"] {
+    margin-top: 30px; /* Adjusted margin for these icons */
 }
 
 /* Ensure the language and star icons are not cut off */
-.sidebar .icon[title="Language Preferences"] img,
-.sidebar .icon[title="Feedback"] img {
+.sidebar .icon[title="language"] img,
+.sidebar .icon[title="star"] img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
-}
-
-/* NEW: Remove circular styling from Home and Feedback icons */
-.sidebar .icon[title="Home"] .sidebar-icon,
-.sidebar .icon[title="Feedback"] .sidebar-icon {
-    border-radius: 0;
-    background: none;
+    object-fit: contain; /* Ensure the images are not cropped */
 }
