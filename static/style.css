@@ -1,4 +1,3 @@
-/* General body styling */
 body {
     font-family: Arial, sans-serif;
     background: linear-gradient(to bottom, #fffde8, #fff9c4, #fff59d, #ffeb3b, #ffca28);
@@ -9,7 +8,6 @@ body {
     margin: 0;
 }
 
-/* Title styling */
 h1 {
     font-size: 30px;
     font-weight: bold;
@@ -18,7 +16,6 @@ h1 {
     margin-top: 10px;
 }
 
-/* Bowie State Logo styling inside sidebar */
 .top-right-image {
     position: absolute;
     top: 10px;
@@ -29,7 +26,6 @@ h1 {
     border-radius: 4px;
 }
 
-/* Chat container styling */
 .chat-container {
     width: auto;
     background: transparent;
@@ -38,10 +34,9 @@ h1 {
     text-align: center;
     overflow: visible;
     padding-top: 20px;
-    margin-left: 60px; /* For sidebar space */
+    margin-left: 60px;
 }
 
-/* Chat header styling */
 .chat-header {
     background: transparent;
     color: black;
@@ -54,7 +49,6 @@ h1 {
     margin-left: -20px;
 }
 
-/* Chat box */
 .chat-box {
     height: 400px;
     overflow-y: auto;
@@ -66,7 +60,6 @@ h1 {
     border: none;
 }
 
-/* Bot message */
 .bot-message {
     background: black;
     color: white;
@@ -79,7 +72,6 @@ h1 {
     font-size: 22px;
 }
 
-/* User message */
 .user-message {
     background: #d3d3d3;
     color: black;
@@ -92,60 +84,60 @@ h1 {
     font-size: 22px;
 }
 
-/* Input and button container */
 .input-container {
     display: flex;
-    padding: 15px;
-    background: transparent;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    padding: 20px;
+    flex-wrap: wrap;
 }
 
-/* Input field with white background and black text */
-input {
-    flex: 1;
-    padding: 16px 24px; /* Wider padding */
-    font-size: 22px; /* Updated font size */
+input#user-input {
+    width: 280px;
+    padding: 10px 14px;
+    font-size: 16px;
     border: 1px solid #ccc;
-    border-radius: 10px; /* More rounded */
-    background: white;
+    border-radius: 6px;
+    background-color: white;
     color: black;
 }
 
-/* Button styles with no background */
-button {
-    margin-left: 10px;
-    padding: 14px 22px; /* Wider and taller */
-    border: none;
+.input-container button {
+    padding: 8px 12px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    color: black;
     cursor: pointer;
-    border-radius: 10px; /* More rounded */
-    background: transparent;
-    color: white;
-    font-size: 22px; /* Updated font size */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-button:hover {
+.input-container button:hover {
     background-color: #e0e0e0;
 }
 
-/* Submit button */
+.input-container button img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+}
+
 #send-btn {
-    background-color: #4CAF50; /* green */
+    background-color: #4CAF50;
+    border-color: #4CAF50;
     color: white;
-    
 }
 
-/* Voice button */
 #voice-btn {
-    background-color: #2196F3; /* blue */
+    background-color: #2196F3;
+    border-color: #2196F3;
     color: white;
 }
 
-/* End Chat button */
-#end-btn {
-    background-color: #9E9E9E; /* gray */
-    color: white;
-}
-
-/* Emoji styling */
 .bot-message::before {
     content: "🤖 ";
 }
@@ -154,7 +146,6 @@ button:hover {
     content: "👤 ";
 }
 
-/* Sidebar container */
 .sidebar {
     position: fixed;
     top: 0;
@@ -169,7 +160,6 @@ button:hover {
     z-index: 1000;
 }
 
-/* Sidebar icons */
 .sidebar .icon {
     width: 40px;
     height: 40px;
@@ -186,7 +176,6 @@ button:hover {
     padding: 5px;
 }
 
-/* Sidebar icon images */
 .sidebar .sidebar-icon {
     width: 30px;
     height: 30px;
@@ -195,29 +184,24 @@ button:hover {
     filter: brightness(0) invert(1);
 }
 
-/* Exclude bulldog icon from white filter */
 .sidebar .sidebar-icon.no-filter {
     filter: none;
 }
 
-/* Make the bulldog icon bigger */
 .sidebar .icon[title="Resources"] .sidebar-icon {
     width: 50px;
     height: 50px;
 }
 
-/* Move the house icon further down */
 .sidebar .icon[title="Home"] {
     margin-top: 80px;
 }
 
-/* Make sure the language and star icons are not cut off */
 .sidebar .icon[title="Language Preferences"],
 .sidebar .icon[title="Feedback"] {
     margin-top: 30px;
 }
 
-/* Ensure the language and star icons are not cut off */
 .sidebar .icon[title="Language Preferences"] img,
 .sidebar .icon[title="Feedback"] img {
     width: 100%;
@@ -225,9 +209,8 @@ button:hover {
     object-fit: contain;
 }
 
-/* NEW: Remove circular styling from Home and Feedback icons */
 .sidebar .icon[title="Home"] .sidebar-icon,
 .sidebar .icon[title="Feedback"] .sidebar-icon {
     border-radius: 0;
     background: none;
-}
+} 
