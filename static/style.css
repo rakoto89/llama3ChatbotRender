@@ -99,52 +99,51 @@ h1 {
     background: transparent;
 }
 
-/* Input field */
+/* Input field - normal style */
 input {
     flex: 1;
-    padding: 16px 24px;
-    font-size: 22px;
+    padding: 10px;
+    font-size: 16px;
     border: 1px solid #ccc;
-    border-radius: 10px;
+    border-radius: 4px;
     background: white;
     color: black;
 }
 
-/* General button styling */
+/* General button reset styling */
 button {
-    margin-left: 10px;
-    padding: 14px 22px;
-    border: none;
+    all: unset;
+    display: inline-block;
+    padding: 10px 16px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    color: black;
+    border-radius: 4px;
     cursor: pointer;
-    border-radius: 10px;
-    background: transparent;
-    color: white;
-    font-size: 22px;
+    margin-left: 10px;
 }
 
-/* Specific buttons */
+button:hover {
+    background-color: #e0e0e0;
+}
+
+/* Submit button */
 #send-btn {
-    background: green;
+    background-color: #4CAF50; /* green */
     color: white;
-    border: 1px solid green;
 }
 
+/* Voice button */
 #voice-btn {
-    background: blue;
+    background-color: #2196F3; /* blue */
     color: white;
-    border: 1px solid blue;
 }
 
-#stop-btn {
-    background: red;
-    color: white;
-    border: 1px solid red;
-}
-
+/* End Chat button */
 #end-btn {
-    background: gray;
+    background-color: #9E9E9E; /* gray */
     color: white;
-    border: 1px solid gray;
 }
 
 /* Emoji styling */
