@@ -10,8 +10,8 @@ document.addEventListener("DOMContentLoaded", function () {
     let usingVoice = false;
     const synth = window.speechSynthesis;
     let recognitionInProgress = false; // To track if recognition is in progress
-    let silenceTimeout;
     let recognitionErrorCount = 0; // To count consecutive errors in recognition
+    let listeningMessageAppended = false; // Prevent appending "Listening..." more than once
 
     // Append messages to chatbox
     function appendMessage(sender, message) {
@@ -21,7 +21,8 @@ document.addEventListener("DOMContentLoaded", function () {
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
 
-        if (sender === "bot" && usingVoice && message === "Listening...") {
+        if (sender === "bot" && usingVoice && message === "Listening..." && !listeningMessageAppended) {
+            listeningMessageAppended = true; // Set flag to prevent appending more than once
             speakResponse(message, () => {
                 playBeep();
                 startVoiceRecognition();
@@ -105,6 +106,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             recognition.onstart = () => {
                 recognitionInProgress = true;
+                listeningMessageAppended = false; // Reset flag when recognition starts
                 appendMessage("bot", "Listening...");
             };
 
@@ -126,6 +128,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             recognition.onend = () => {
                 recognitionInProgress = false;
+                listeningMessageAppended = false; // Reset flag when recognition ends
             };
 
             recognition.start();
