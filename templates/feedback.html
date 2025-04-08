@@ -7,76 +7,80 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='feedback.css') }}">
 </head>
 <body>
-    <!-- Sidebar with images -->
-    <div class="sidebar">
-        <img src="{{ url_for('static', filename='images/bowie_state_white_logo.png') }}" alt="Bowie State Logo" class="top-right-image">
-        <div class="icon" onclick="location.href='/'" title="Home">
-            <img src="{{ url_for('static', filename='images/Home.png') }}" alt="Home Icon" class="sidebar-icon">
-        </div>
-        <div class="icon" id="lang-btn" title="Language Preferences">
-            <img src="{{ url_for('static', filename='images/Language Preferences.png') }}" alt="Language Preferences" class="sidebar-icon">
-        </div>
-        <div class="icon" onclick="location.href='/feedback'" title="Feedback">
-            <img src="{{ url_for('static', filename='images/Feedback.png') }}" alt="Feedback" class="sidebar-icon">
-        </div>
-        <div class="icon" onclick="location.href='https://www.bowiestate.edu/campus-life/health-and-wellness/'" title="Resources">
-            <img src="{{ url_for('static', filename='images/Resources.png') }}" alt="Resources" class="sidebar-icon no-filter">
-        </div>
-        <div class="icon" onclick="location.href='https://www.bowiestate.edu'" title="Exit">
-            <img src="{{ url_for('static', filename='images/Exit.png') }}" alt="Exit" class="sidebar-icon">
-        </div>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <img src="{{ url_for('static', filename='images/bowie_state_white_logo.png') }}" alt="Bowie State Logo" class="top-right-image">
+    <div class="icon" onclick="location.href='/'" title="Home">
+      <img src="{{ url_for('static', filename='images/Home.png') }}" alt="Home Icon" class="sidebar-icon">
+    </div>
+    <div class="icon" id="lang-btn" title="Language Preferences">
+      <img src="{{ url_for('static', filename='images/Language Preferences.png') }}" alt="Language Preferences" class="sidebar-icon">
+    </div>
+    <div class="icon" onclick="location.href='/feedback'" title="Feedback">
+      <img src="{{ url_for('static', filename='images/Feedback.png') }}" alt="Feedback" class="sidebar-icon">
+    </div>
+    <div class="icon" onclick="location.href='https://www.bowiestate.edu/campus-life/health-and-wellness/'" title="Resources">
+      <img src="{{ url_for('static', filename='images/Resources.png') }}" alt="Resources" class="sidebar-icon no-filter">
+    </div>
+    <div class="icon" onclick="location.href='https://www.bowiestate.edu'" title="Exit">
+      <img src="{{ url_for('static', filename='images/Exit.png') }}" alt="Exit" class="sidebar-icon">
+    </div>
+  </div>
+
+  <!-- Main Feedback Card -->
+  <div class="chat-container">
+    <div class="chat-header">
+      <h1 id="rate-experience" tabindex="0">Rate your experience</h1>
+      <p id="rate-description">We highly value your feedback! Rate your experience and provide us with your valuable feedback.</p>
     </div>
 
-    <!-- Main Feedback Card -->
-    <div class="feedback-container">
-      <div class="feedback-card">
-        <h1 id="rate-experience" tabindex="0">Rate your experience</h1>
-        <p id="rate-description">We highly value your feedback! Rate your experience and provide us with your valuable feedback.</p>
-
-        <form id="feedback-form" method="POST" action="/feedback">
-          <div class="emoji-rating">
-            <div class="rating-row" id="rating-5" tabindex="0">
-              <input type="radio" name="rate" value="5" />
-              <span>😁 ⭐⭐⭐⭐⭐</span>
-            </div>
-            <div class="rating-row" id="rating-4" tabindex="0">
-              <input type="radio" name="rate" value="4" />
-              <span>🙂 ⭐⭐⭐⭐</span>
-            </div>
-            <div class="rating-row" id="rating-3" tabindex="0">
-              <input type="radio" name="rate" value="3" />
-              <span>😐 ⭐⭐⭐</span>
-            </div>
-            <div class="rating-row" id="rating-2" tabindex="0">
-              <input type="radio" name="rate" value="2" />
-              <span>🙁 ⭐⭐</span>
-            </div>
-            <div class="rating-row" id="rating-1" tabindex="0">
-              <input type="radio" name="rate" value="1" />
-              <span>😢 ⭐</span>
-            </div>
+    <!-- Feedback Form -->
+    <div class="chat-box">
+      <form id="feedback-form" method="POST" action="/feedback">
+        <!-- Emoji Rating -->
+        <div class="emoji-rating">
+          <div class="rating-row" id="rating-5" tabindex="0">
+            <input type="radio" name="rate" value="5" />
+            <span>😁 ⭐⭐⭐⭐⭐</span>
           </div>
-
-          <!-- Centered feedback textarea -->
-          <textarea id="comments" name="feedback" rows="4" placeholder="Write your feedback here..." tabindex="0"></textarea>
-
-          <div class="button-container">
-            <button type="submit" class="btn-submit" id="Send Feedback" tabindex="0">
-              <img src="{{ url_for('static', filename='images/Send Feedback.png') }}" alt="Send Feedback">
-            </button>
+          <div class="rating-row" id="rating-4" tabindex="0">
+            <input type="radio" name="rate" value="4" />
+            <span>🙂 ⭐⭐⭐⭐</span>
           </div>
-        </form>
-
-        <div id="success-message" style="display: none;">
-          <h2>Thank you for your feedback!</h2>
+          <div class="rating-row" id="rating-3" tabindex="0">
+            <input type="radio" name="rate" value="3" />
+            <span>😐 ⭐⭐⭐</span>
+          </div>
+          <div class="rating-row" id="rating-2" tabindex="0">
+            <input type="radio" name="rate" value="2" />
+            <span>🙁 ⭐⭐</span>
+          </div>
+          <div class="rating-row" id="rating-1" tabindex="0">
+            <input type="radio" name="rate" value="1" />
+            <span>😢 ⭐</span>
+          </div>
         </div>
+
+        <!-- Comments Textarea -->
+        <textarea id="comments" name="feedback" rows="4" placeholder="Write your feedback here..." tabindex="0"></textarea>
+
+        <!-- Submit Button -->
+        <div class="input-container">
+          <button type="submit" class="btn-submit" id="Send Feedback" tabindex="0">
+            <img src="{{ url_for('static', filename='images/Send Feedback.png') }}" alt="Send Feedback">
+          </button>
+        </div>
+      </form>
+
+      <!-- Success Message -->
+      <div id="success-message" style="display: none;">
+        <h2>Thank you for your feedback!</h2>
       </div>
     </div>
+  </div>
 
-    <!-- Main JS and Confetti Library -->
-    <script src="{{ url_for('static', filename='feedback.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Main JS and Confetti Library -->
+  <script src="{{ url_for('static', filename='feedback.js') }}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </body>
 </html>
-
-
