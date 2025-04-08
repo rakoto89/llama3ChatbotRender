@@ -1,235 +1,224 @@
-/* General body styling */
-body {
-    font-family: Arial, sans-serif;
-    background: linear-gradient(to bottom, #fffde8, #fff9c4, #fff59d, #ffeb3b, #ffca28);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-}
+document.addEventListener("DOMContentLoaded", function () {
+    const chatBox = document.getElementById("chat-box");
+    const userInput = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-btn");
+    const voiceBtn = document.getElementById("voice-btn");
+    const stopBtn = document.getElementById("stop-btn");
+    const endBtn = document.getElementById("end-btn");
 
-/* Title styling */
-h1 {
-    font-size: 30px;
-    font-weight: bold;
-    color: black;
-    text-align: center;
-    margin-top: 10px;
-}
+    let recognition;
+    let isSpeaking = false;
+    let usingVoice = false;
+    const synth = window.speechSynthesis;
+    let silenceTimeout;
+    let lastInputWasKeyboard = false; // ✅ Added to track focus method
 
-/* Bowie State Logo styling inside sidebar */
-.top-right-image {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    width: 40px;
-    height: 40px;
-    object-fit: contain;
-    border-radius: 4px;
-}
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Tab") {
+            lastInputWasKeyboard = true;
+        }
+    });
 
-/* Chat container styling */
-.chat-container {
-    width: auto;
-    background: transparent;
-    border-radius: 0;
-    box-shadow: none;
-    text-align: center;
-    overflow: visible;
-    padding-top: 20px;
-    margin-left: 60px; /* For sidebar space */
-}
+    document.addEventListener("mousedown", () => {
+        lastInputWasKeyboard = false;
+    });
 
-/* Chat header styling */
-.chat-header {
-    background: transparent;
-    color: black;
-    padding: 15px 0;
-    font-size: 40px;
-    font-weight: bold;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-left: -20px;
-}
+    function appendMessage(sender, message) {
+        const msgDiv = document.createElement("div");
+        msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
+        msgDiv.innerHTML = message;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
 
-/* Chat box */
-.chat-box {
-    height: 400px;
-    overflow-y: auto;
-    padding: 15px;
-    background: transparent;
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-    border: none;
-}
+        if (sender === "bot" && usingVoice && message === "Listening...") {
+            speakResponse(message, () => {
+                playBeep();
+                startVoiceRecognition();
+            });
+        }
+    }
 
-/* Bot message */
-.bot-message {
-    background: black;
-    color: white;
-    padding: 15px;
-    border-radius: 10px;
-    margin: 8px 0;
-    max-width: 80%;
-    align-self: flex-start;
-    word-wrap: break-word;
-    font-size: 22px;
-}
+    function removePreviousThinkingMessage() {
+        const lastThinkingMessage = document.querySelector(".bot-message:last-child");
+        if (lastThinkingMessage && lastThinkingMessage.textContent === "Thinking...") {
+            lastThinkingMessage.remove();
+        }
+    }
 
-/* User message */
-.user-message {
-    background: #d3d3d3;
-    color: black;
-    padding: 15px;
-    border-radius: 10px;
-    margin: 8px 0;
-    max-width: 80%;
-    align-self: flex-end;
-    word-wrap: break-word;
-    font-size: 22px;
-}
+    function sendMessage(text, useVoice = false) {
+        if (!text.trim()) return;
 
-/* Input and button container */
-.input-container {
-    display: flex;
-    padding: 15px;
-    background: transparent;
-}
+        appendMessage("user", text);
+        userInput.value = "";
 
-/* Input field */
-input {
-    flex: 1;
-    padding: 16px 24px;
-    font-size: 22px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    background: white;
-    color: black;
-}
+        removePreviousThinkingMessage();
+        const thinkingMsg = document.createElement("div");
+        thinkingMsg.classList.add("bot-message");
+        thinkingMsg.textContent = "Thinking...";
+        chatBox.appendChild(thinkingMsg);
+        chatBox.scrollTop = chatBox.scrollHeight;
 
-/* General button styling */
-button {
-    margin-left: 10px;
-    padding: 14px 22px;
-    border: none;
-    cursor: pointer;
-    border-radius: 10px;
-    background: transparent;
-    color: white;
-    font-size: 22px;
-}
+        if (useVoice) speakResponse("Thinking...");
 
-/* Specific buttons */
-#send-btn {
-    background: green;
-    color: white;
-    border: 1px solid green;
-}
+        fetch("/ask", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question: text }),
+        })
+            .then(response => response.json())
+            .then(data => {
+                removePreviousThinkingMessage();
+                appendMessage("bot", data.answer);
+                if (useVoice) speakResponse(data.answer);
+            })
+            .catch(() => {
+                removePreviousThinkingMessage();
+                appendMessage("bot", "Error: Could not get a response.");
+            });
+    }
 
-#voice-btn {
-    background: blue;
-    color: white;
-    border: 1px solid blue;
-}
+    function speakResponse(text, callback) {
+        if ("speechSynthesis" in window) {
+            const cleanText = text.replace(/<br\s*\/?>/g, " ");
 
-#stop-btn {
-    background: red;
-    color: white;
-    border: 1px solid red;
-}
+            if (cleanText.trim() === "") return;
 
-#end-btn {
-    background: gray;
-    color: white;
-    border: 1px solid gray;
-}
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.onend = () => {
+                isSpeaking = false;
+                if (callback) callback();
+            };
+            synth.speak(utterance);
+            isSpeaking = true;
+        }
+    }
 
-/* Emoji styling */
-.bot-message::before {
-    content: "🤖 ";
-}
+    function stopSpeaking() {
+        if (isSpeaking) {
+            synth.cancel();
+            isSpeaking = false;
+        }
+    }
 
-.user-message::before {
-    content: "👤 ";
-}
+    function startVoiceRecognition() {
+        if ("webkitSpeechRecognition" in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = false;
+            recognition.lang = "en-US";
 
-/* Sidebar container */
-.sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 60px;
-    height: 100%;
-    background-color: #2c3e50;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 20px;
-    z-index: 1000;
-}
+            recognition.onresult = (event) => {
+                clearTimeout(silenceTimeout);
+                const transcript = event.results[event.results.length - 1][0].transcript;
 
-/* Sidebar icons */
-.sidebar .icon {
-    width: 40px;
-    height: 40px;
-    background-color: transparent;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 20px;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    padding: 5px;
-}
+                silenceTimeout = setTimeout(() => {
+                    sendMessage(transcript, true);
+                    recognition.stop();
+                    usingVoice = false;
+                }, 1500);
+            };
 
-/* Sidebar icon images */
-.sidebar .sidebar-icon {
-    width: 30px;
-    height: 30px;
-    object-fit: contain;
-    border-radius: 50%;
-    filter: brightness(0) invert(1);
-}
+            recognition.onerror = () => {
+                appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
+                usingVoice = false;
+            };
 
-/* Exclude bulldog icon from white filter */
-.sidebar .sidebar-icon.no-filter {
-    filter: none;
-}
+            recognition.onend = () => {
+                clearTimeout(silenceTimeout);
+                if (usingVoice) {
+                    appendMessage("bot", "Voice input ended. Please try again.");
+                    usingVoice = false;
+                }
+            };
 
-/* Make the bulldog icon bigger */
-.sidebar .icon[title="Resources"] .sidebar-icon {
-    width: 50px;
-    height: 50px;
-}
+            recognition.start();
+        } else {
+            alert("Voice recognition is not supported in this browser.");
+        }
+    }
 
-/* Move the house icon further down */
-.sidebar .icon[title="Home"] {
-    margin-top: 80px;
-}
+    function playBeep() {
+        const beep = new Audio("/static/beep2.mp3");
+        beep.play();
+    }
 
-/* Make sure the language and star icons are not cut off */
-.sidebar .icon[title="Language Preferences"],
-.sidebar .icon[title="Feedback"] {
-    margin-top: 30px;
-}
+    function speakElementText(element) {
+        if ("speechSynthesis" in window) {
+            let text = "";
 
-/* Ensure the language and star icons are not cut off */
-.sidebar .icon[title="Language Preferences"] img,
-.sidebar .icon[title="Feedback"] img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
+            if (element.id === "send-btn") {
+                text = "Send button.";
+            } else if (element.id === "voice-btn") {
+                text = "Voice button.";
+            } else if (element.id === "stop-btn") {
+                text = "Stop button.";
+            } else if (element.id === "end-btn") {
+                text = "End chat button.";
+            }
 
-/* NEW: Remove circular styling from Home and Feedback icons */
-.sidebar .icon[title="Home"] .sidebar-icon,
-.sidebar .icon[title="Feedback"] .sidebar-icon {
-    border-radius: 0;
-    background: none;
-}
+            if (text) {
+                let utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9;
+                synth.speak(utterance);
+            }
+        }
+    }
+
+    function handleTabKey(event) {
+        if (event.key === "Tab") {
+            event.preventDefault();
+
+            const elements = [userInput, sendBtn, voiceBtn, stopBtn, endBtn];
+            let currentIndex = elements.indexOf(document.activeElement);
+            let nextIndex = (currentIndex + 1) % elements.length;
+            let nextElement = elements[nextIndex];
+            nextElement.focus();
+
+            setTimeout(() => {
+                speakElementText(nextElement);
+            }, 200);
+        }
+    }
+
+    voiceBtn.addEventListener("click", () => {
+        usingVoice = true;
+        appendMessage("bot", "Listening...");
+    });
+
+    stopBtn.addEventListener("click", stopSpeaking);
+
+    sendBtn.addEventListener("click", () => {
+        sendBtn.disabled = true;
+        sendMessage(userInput.value, false);
+        setTimeout(() => sendBtn.disabled = false, 700);
+    });
+
+    endBtn.addEventListener("click", () => {
+        if (isSpeaking) {
+            synth.cancel();
+            isSpeaking = false;
+        }
+        window.location.href = "/feedback";
+    });
+
+    userInput.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            sendBtn.click();
+        }
+    });
+
+    // ✅ Speak "Enter your question" only when tabbing into input field
+    userInput.addEventListener("focus", () => {
+        if (lastInputWasKeyboard) {
+            let utterance = new SpeechSynthesisUtterance("Enter your question");
+            utterance.rate = 0.9;
+            synth.speak(utterance);
+        }
+    });
+
+    // ✅ Attach tab key handler
+    [userInput, sendBtn, voiceBtn, stopBtn, endBtn].forEach(element => {
+        element.addEventListener("keydown", handleTabKey);
+    });
+});
