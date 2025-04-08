@@ -4,13 +4,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
     const cancelVoiceBtn = document.getElementById("cancel-voice-btn");
-
+    const langBtn = document.getElementById("lang-btn");  // Your existing language preferences button/icon
+    
     let recognition;
     let isSpeaking = false;
     let usingVoice = false;
     const synth = window.speechSynthesis;
     let silenceTimeout;
     let lastInputWasKeyboard = false;
+    let currentLanguage = "en-US";  // Default to English
 
     document.addEventListener("keydown", (e) => {
         if (e.key === "Tab") {
@@ -83,6 +85,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (cleanText.trim() === "") return;
 
             const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = currentLanguage;  // Apply the current language setting
             utterance.onend = () => {
                 isSpeaking = false;
                 if (callback) callback();
@@ -104,7 +107,7 @@ document.addEventListener("DOMContentLoaded", function () {
             recognition = new webkitSpeechRecognition();
             recognition.continuous = true;
             recognition.interimResults = false;
-            recognition.lang = "en-US";
+            recognition.lang = currentLanguage;  // Apply the current language setting
 
             recognition.onresult = (event) => {
                 clearTimeout(silenceTimeout);
@@ -177,6 +180,19 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    langBtn.addEventListener("click", () => {
+        const newLang = currentLanguage === "en-US" ? "es-ES" : "en-US"; // Toggle between English and Spanish
+        currentLanguage = newLang;
+        alert(`Language changed to ${newLang === "en-US" ? "English" : "Spanish"}.`);
+
+        // Optionally update UI to reflect the language change
+        if (newLang === "es-ES") {
+            appendMessage("bot", "Idioma cambiado a Español.");
+        } else {
+            appendMessage("bot", "Language changed to English.");
+        }
+    });
+
     voiceBtn.addEventListener("click", () => {
         usingVoice = true;
 
@@ -213,5 +229,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    document.addEventListener("keydown", handleTabKey);
+    // Attach tab key handler
+    [userInput, sendBtn, voiceBtn, cancelVoiceBtn].forEach(element => {
+        element.addEventListener("keydown", handleTabKey);
+    });
 });
