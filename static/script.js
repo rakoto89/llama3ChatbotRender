@@ -213,8 +213,5 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Attach tab key handler
-    [userInput, sendBtn, voiceBtn, cancelVoiceBtn].forEach(element => {
-        element.addEventListener("keydown", handleTabKey);
-    });
+    document.addEventListener("keydown", handleTabKey);
 });
