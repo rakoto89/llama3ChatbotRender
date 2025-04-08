@@ -2,7 +2,7 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background-color: #f1f1f1;
+    background: linear-gradient(to bottom, #fffde8, #fff9c4, #fff59d, #ffeb3b, #ffca28);
     display: flex;
 }
 
@@ -54,7 +54,7 @@ body {
 
 /* Header */
 .chat-header {
-    background-color: #000000; /* changed from #004080 to black */
+    background-color: #004080;
     color: white;
     padding: 15px 25px;
     font-size: 20px;
@@ -66,7 +66,7 @@ body {
     flex: 1;
     padding: 20px;
     overflow-y: auto;
-    background-color: white;
+    background-color: transparent;
     display: flex;
     flex-direction: column;
 }
@@ -81,20 +81,32 @@ body {
     line-height: 1.4;
     word-wrap: break-word;
     white-space: pre-wrap;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
 }
 
 .bot-message {
     align-self: flex-start;
-    background-color: #e6f2ff;
-    color: #003366;
+    background-color: #000000;
+    color: #ffffff;
     border-top-left-radius: 0;
 }
 
 .user-message {
     align-self: flex-end;
-    background-color: #cce5ff;
-    color: #004080;
+    background-color: #e0e0e0;
+    color: #000000;
     border-top-right-radius: 0;
+}
+
+/* Add emoji support */
+.bot-message::before {
+    content: "🤖 ";
+}
+
+.user-message::before {
+    content: "👤 ";
 }
 
 /* Input area */
@@ -144,7 +156,8 @@ body {
 
 /* Specific button overrides */
 #send-btn,
-#voice-btn {
+#voice-btn,
+#cancel-voice-btn {
     background-color: transparent;
     border: none;
 }
@@ -160,3 +173,4 @@ body {
 .chat-box::-webkit-scrollbar-thumb:hover {
     background-color: #999999;
 }
+
