@@ -4,18 +4,22 @@ document.addEventListener("DOMContentLoaded", function () {
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
     const cancelVoiceBtn = document.getElementById("cancel-voice-btn");
-    const languageOptions = document.getElementById("language-options");
+    const beepSound = document.getElementById("beep-sound");
 
     let recognition;
     let isSpeaking = false;
     let usingVoice = false;
     const synth = window.speechSynthesis;
+    let silenceTimeout;
+    let lastInputWasKeyboard = false;
 
-    // Play beep sound when voice recording starts
-    function playBeep() {
-        const audio = new Audio('beep.mp3');
-        audio.play();
-    }
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Tab") lastInputWasKeyboard = true;
+    });
+
+    document.addEventListener("mousedown", () => {
+        lastInputWasKeyboard = false;
+    });
 
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
@@ -32,6 +36,71 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function removePreviousThinkingMessage() {
+        const lastThinkingMessage = document.querySelector(".bot-message:last-child");
+        if (lastThinkingMessage && lastThinkingMessage.textContent === "Thinking...") {
+            lastThinkingMessage.remove();
+        }
+    }
+
+    function sendMessage(text, useVoice = false) {
+        if (!text.trim()) return;
+
+        appendMessage("user", text);
+        userInput.value = "";
+
+        removePreviousThinkingMessage();
+        const thinkingMsg = document.createElement("div");
+        thinkingMsg.classList.add("bot-message");
+        thinkingMsg.textContent = "Thinking...";
+        chatBox.appendChild(thinkingMsg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        if (useVoice) speakResponse("Thinking...");
+
+        fetch("/ask", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question: text }),
+        })
+            .then(response => response.json())
+            .then(data => {
+                removePreviousThinkingMessage();
+                appendMessage("bot", data.answer);
+                if (useVoice) speakResponse(data.answer);
+            })
+            .catch(() => {
+                removePreviousThinkingMessage();
+                appendMessage("bot", "Error: Could not get a response.");
+            });
+    }
+
+    function speakResponse(text, callback) {
+        if ("speechSynthesis" in window) {
+            const cleanText = text.replace(/<br\s*\/?>/g, " ");
+            if (cleanText.trim() === "") return;
+
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.onend = () => {
+                isSpeaking = false;
+                if (callback) callback();
+            };
+            synth.speak(utterance);
+            isSpeaking = true;
+        }
+    }
+
+    function stopSpeaking() {
+        if (isSpeaking) {
+            synth.cancel();
+            isSpeaking = false;
+        }
+    }
+
+    function playBeep() {
+        beepSound.play();
+    }
+
     function startVoiceRecognition() {
         if ("webkitSpeechRecognition" in window) {
             recognition = new webkitSpeechRecognition();
@@ -41,6 +110,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             recognition.onstart = () => {
                 appendMessage("bot", "Listening...");
+                playBeep();  // Play beep when recording starts
             };
 
             recognition.onresult = (event) => {
@@ -60,24 +130,6 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
             alert("Your browser does not support speech recognition.");
         }
-    }
-
-    function changeLanguage(language) {
-        // Set language for chatbot
-        if (language === "en") {
-            // Set to English
-        } else if (language === "es") {
-            // Set to Spanish
-        } else if (language === "fr") {
-            // Set to French
-        } else if (language === "zh") {
-            // Set to Chinese
-        }
-        alert("Language changed to " + language);
-    }
-
-    function showLanguageOptions() {
-        languageOptions.style.display = "block";
     }
 
     sendBtn.addEventListener("click", () => {
