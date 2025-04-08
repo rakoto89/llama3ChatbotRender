@@ -9,14 +9,50 @@ body {
     margin: 0;
 }
 
-/* Bowie State Logo styling */
+/* Sidebar */
+.sidebar {
+    width: 70px;
+    background-color: #1a1a1a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 20px;
+    position: fixed;
+    height: 100vh;
+    z-index: 2;
+}
+
+.sidebar-icon {
+    width: 28px;
+    height: 28px;
+    margin: 20px 0;
+    filter: invert(100%);
+    transition: transform 0.2s ease;
+}
+
+.sidebar-icon:hover {
+    transform: scale(1.1);
+    cursor: pointer;
+}
+
+.no-filter {
+    filter: none !important;
+}
+
+/* Top right logo */
 .top-right-image {
-    position: absolute;
-    top: 10px;
-    left: 10px; /* Logo at the top-left */
-    width: 80px; /* Logo size remains unchanged */
-    height: auto; /* Maintain aspect ratio */
-    border-radius: 0; /* No circular shape to prevent distortion */
+    width: 55px;
+    height: auto;
+    margin-bottom: 40px;
+}
+
+/* Chat container */
+.chat-container {
+    margin-left: 70px;
+    width: calc(100% - 70px);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
 }
 
 .feedback-container {
