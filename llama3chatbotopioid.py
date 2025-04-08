@@ -178,7 +178,7 @@ all_table_text = extract_all_tables_first(pdf_folder)
 
 # === PRIORITIZE EXCEL FIRST ===
 
-combined_text = f"{excel_text}\n\n{pdf_texts}\n\n{all_table_text}"[:5000]
+combined_text = f"{excel_text}\n\n{pdf_texts}\n\n{all_table_text}"[:12000]
 
 
 
@@ -240,7 +240,7 @@ def search_excel(question):
 
                 result += f"\n--- Column: {match} ---\n"
 
-                result += excel_df[match].dropna().astype(str).to_string(index=False)[:1000]  # Limit length
+                result += excel_df[match].dropna().astype(str).to_string(index=False)[:12000]  # Limit length
 
             return result.strip()
 
