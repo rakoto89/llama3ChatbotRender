@@ -3,26 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Opioid Chatbot Awareness</title>
+    <title>Opioid Awareness Chatbot</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <!-- Sidebar with images -->
     <div class="sidebar">
         <img src="{{ url_for('static', filename='images/bowie_state_white_logo.png') }}" alt="Bowie State Logo" class="top-right-image">
-        <div class="icon" onclick="location.href='https://llama2chatbotrender.onrender.com/'" title="Home">
+        <div class="icon" onclick="location.href='/'" title="Home">
             <img src="{{ url_for('static', filename='images/Home.png') }}" alt="Home Icon" class="sidebar-icon">
         </div>
-        <div class="icon" onclick="showLanguageOptions()" title="Language Preferences">
+        <div class="icon" title="Language Preferences">
             <img src="{{ url_for('static', filename='images/Language Preferences.png') }}" alt="Language Preferences" class="sidebar-icon">
         </div>
-        <div class="icon" onclick="location.href='https://llama2chatbotrender.onrender.com/feedback'" title="Feedback">
+        <div class="icon" title="Feedback">
             <img src="{{ url_for('static', filename='images/Feedback.png') }}" alt="Feedback" class="sidebar-icon">
         </div>
-        <div class="icon" onclick="location.href='https://www.bowiestate.edu/campus-life/health-and-wellness/'" title="Resources">
+        <div class="icon" title="Resources">
             <img src="{{ url_for('static', filename='images/Resources.png') }}" alt="Resources" class="sidebar-icon no-filter">
         </div>
-        <div class="icon" onclick="location.href='https://www.bowiestate.edu'" title="Exit">
+        <div class="icon" title="Exit">
             <img src="{{ url_for('static', filename='images/Exit.png') }}" alt="Exit" class="sidebar-icon">
         </div>
     </div>
@@ -40,12 +40,7 @@
         </div>
     </div>
 
-    <div id="language-options" class="language-options">
-        <button onclick="changeLanguage('en')">English</button>
-        <button onclick="changeLanguage('es')">Español</button>
-        <button onclick="changeLanguage('fr')">Français</button>
-        <button onclick="changeLanguage('zh')">中文</button>
-    </div>
+    <audio id="beep-sound" src="{{ url_for('static', filename='beep2.mp3') }}" preload="auto"></audio>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
