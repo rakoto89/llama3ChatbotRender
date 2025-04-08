@@ -43,7 +43,6 @@ body {
     margin-bottom: 40px;
 }
 
-/* Feedback container — centered and smaller */
 .feedback-container {
     margin-left: 70px;
     width: calc(100% - 70px);
@@ -51,6 +50,7 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
+    padding: 0 20px; /* Add some padding to prevent content from touching edges */
 }
 
 .feedback-card {
