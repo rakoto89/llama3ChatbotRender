@@ -107,10 +107,31 @@ relevant_topics = [
 def is_question_relevant(question):
     return any(topic in question.lower() for topic in relevant_topics)
 
+# === Excel Answer Lookup (PRIORITY) ===
+def search_excel(question):
+    if excel_df is not None:
+        question_lower = question.lower()
+        matches = []
+        for col in excel_df.columns:
+            if col.lower() in question_lower:
+                matches.append(col)
+        if matches:
+            result = ""
+            for match in matches:
+                result += f"\n--- Column: {match} ---\n"
+                result += excel_df[match].dropna().astype(str).to_string(index=False)[:1000]  # Limit length
+            return result.strip()
+    return None
+
 # === Llama 3 API Call ===
 def get_llama3_response(question):
     if not is_question_relevant(question):
         return "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment."
+
+    # PRIORITIZE Excel Lookup
+    excel_result = search_excel(question)
+    if excel_result:
+        return f"Based on the Excel data:\n\n{excel_result}"
 
     conversation_history.append({"role": "user", "content": question})
 
