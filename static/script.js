@@ -168,7 +168,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (synth.speaking) {
             synth.cancel();
             isSpeaking = false;
-            appendMessage("bot", "Bot was asked to stop talking.");
+            appendMessage("bot", "I have stopped talking.");
         }
     });
 
