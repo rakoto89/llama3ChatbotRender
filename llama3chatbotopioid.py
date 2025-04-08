@@ -87,7 +87,8 @@ excel_df = pd.read_excel(excel_path, header=1) if os.path.exists(excel_path) els
 pdf_texts = read_pdfs_in_folder(pdf_folder)
 all_table_text = extract_all_tables_first(pdf_folder)
 
-combined_text = f"{excel_text}\n\n{all_table_text}\n\n{pdf_texts}"[:5000]
+# === PRIORITIZE EXCEL FIRST ===
+combined_text = f"{excel_text}\n\n{pdf_texts}\n\n{all_table_text}"[:5000]
 
 # === Relevance Keywords ===
 relevant_topics = [
