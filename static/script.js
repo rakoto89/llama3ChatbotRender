@@ -3,8 +3,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
-    const stopBtn = document.getElementById("stop-btn");
-    const endBtn = document.getElementById("end-btn");
+    const cancelVoiceBtn = document.getElementById("cancel-voice-btn");
+
 
     let recognition;
     let isSpeaking = false;
@@ -107,22 +107,28 @@ document.addEventListener("DOMContentLoaded", function () {
             recognition.interimResults = false;
             recognition.lang = "en-US";
 
-            recognition.onstart = () => {
-                appendMessage("bot", "Listening...");
-                playBeep();
-            };
-
             recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                sendMessage(transcript, true);
+                clearTimeout(silenceTimeout);
+                const transcript = event.results[event.results.length - 1][0].transcript;
+
+                silenceTimeout = setTimeout(() => {
+                    sendMessage(transcript, true);
+                    recognition.stop();
+                    usingVoice = false;
+                }, 1500);
             };
 
             recognition.onerror = () => {
-                appendMessage("bot", "Error recognizing speech.");
+                appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
+                usingVoice = false;
             };
 
             recognition.onend = () => {
                 clearTimeout(silenceTimeout);
+                if (usingVoice) {
+                    appendMessage("bot", "Voice input ended. Please try again.");
+                    usingVoice = false;
+                }
             };
 
             recognition.start();
@@ -132,7 +138,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function playBeep() {
-        const beep = new Audio("/static/beep.mp3");  // Path to beep sound
+        const beep = new Audio("/static/beep2.mp3");
         beep.play();
     }
 
@@ -202,15 +208,3 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    userInput.addEventListener("focus", () => {
-        if (lastInputWasKeyboard) {
-            let utterance = new SpeechSynthesisUtterance("Enter your question");
-            utterance.rate = 0.9;
-            synth.speak(utterance);
-        }
-    });
-
-    [userInput, sendBtn, voiceBtn, stopBtn, endBtn].forEach(element => {
-        element.addEventListener("keydown", handleTabKey);
-    });
-});
