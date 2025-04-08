@@ -1,52 +1,162 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const chatBox = document.getElementById("chat-box");
-    const userInput = document.getElementById("user-input");
-    const sendBtn = document.getElementById("send-btn");
-    const voiceBtn = document.getElementById("voice-btn");
+/* General body styling */
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to bottom, #fffde8, #fff9c4, #fff59d, #ffeb3b, #ffca28);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
 
-    let recognition;
-    let isSpeaking = false;
-    let usingVoice = false;
-    const synth = window.speechSynthesis;
+/* Title styling */
+h1 {
+    font-size: 30px;
+    font-weight: bold;
+    color: black;
+    text-align: center;
+    margin-top: 10px;
+}
 
-    function appendMessage(sender, message) {
-        const msgDiv = document.createElement("div");
-        msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
-        msgDiv.innerHTML = message;
-        chatBox.appendChild(msgDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
+/* Bowie State Logo styling */
+.top-right-image {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 80px;
+    height: auto;
+    border-radius: 0;
+}
 
-    sendBtn.addEventListener("click", function () {
-        const message = userInput.value.trim();
-        if (message) {
-            appendMessage("user", message);
-            userInput.value = '';
-        }
-    });
+/* Updated: No box around chat and no header background */
+.chat-container {
+    width: auto;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    text-align: center;
+    overflow: visible;
+    padding-top: 20px;
+}
 
-    voiceBtn.addEventListener("click", function () {
-        if (!isSpeaking) {
-            startVoiceRecognition();
-        } else {
-            stopVoiceRecognition();
-        }
-    });
+/* Chat header with no background */
+.chat-header {
+    background: transparent;
+    color: black;
+    padding: 15px 0;
+    font-size: 40px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: -20px;
+}
 
-    function startVoiceRecognition() {
-        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.start();
+/* Chat box with no background */
+.chat-box {
+    height: 400px;
+    overflow-y: auto;
+    padding: 15px;
+    background: transparent;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    border: none;
+}
 
-        recognition.onresult = function (event) {
-            const userSpeech = event.results[0][0].transcript;
-            userInput.value = userSpeech;
-            appendMessage("user", userSpeech);
-        };
-    }
+/* Bot message style */
+.bot-message {
+    background: black;
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin: 8px 0;
+    max-width: 80%;
+    align-self: flex-start;
+    word-wrap: break-word;
+    font-size: 22px;
+}
 
-    function stopVoiceRecognition() {
-        if (recognition) {
-            recognition.stop();
-        }
-    }
-});
+/* User message style */
+.user-message {
+    background: #d3d3d3;
+    color: black;
+    padding: 15px;
+    border-radius: 10px;
+    margin: 8px 0;
+    max-width: 80%;
+    align-self: flex-end;
+    word-wrap: break-word;
+    font-size: 22px;
+}
+
+/* Input and button container */
+.input-container {
+    display: flex;
+    padding: 15px;
+    background: transparent;
+}
+
+/* Input field with white background and black text */
+input {
+    flex: 1;
+    padding: 16px 24px; /* Wider padding */
+    font-size: 22px; /* Updated font size */
+    border: 1px solid #ccc;
+    border-radius: 10px; /* More rounded */
+    background: white;
+    color: black;
+}
+
+/* Button styles with no background */
+button {
+    margin-left: 10px;
+    padding: 14px 22px; /* Wider and taller */
+    border: none;
+    cursor: pointer;
+    border-radius: 10px; /* More rounded */
+    background: transparent;
+    color: white;
+    font-size: 22px; /* Updated font size */
+}
+
+/* Send button */
+#send-btn {
+    background: green;
+    color: white;
+    border: 1px solid green;
+}
+
+/* Voice button */
+#voice-btn {
+    background: blue;
+    color: white;
+    border: 1px solid blue;
+}
+
+/* Stop button */
+#stop-btn {
+    background: red;
+    color: white;
+    border: 1px solid red;
+}
+
+/* End Chat button */
+#end-btn {
+    background: gray;
+    color: white;
+    border: 1px solid gray;
+    margin-left: 10px;
+    padding: 14px 22px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+/* Add emoji support */
+.bot-message::before {
+    content: "🤖 ";
+}
+
+.user-message::before {
+    content: "👤 ";
+}
