@@ -141,10 +141,9 @@ button {
     border: 1px solid red;
 }
 
+/* Remove the End Chat button styling */
 #end-btn {
-    background: gray;
-    color: white;
-    border: 1px solid gray;
+    display: none;
 }
 
 /* Emoji styling */
