@@ -1,12 +1,9 @@
-/* General Page Styling */
+/* Reset and base */
 body {
+    margin: 0;
     font-family: Arial, sans-serif;
     background: linear-gradient(to bottom, #fffde8, #fff9c4, #fff59d, #ffeb3b, #ffca28);
     display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
 }
 
 /* Sidebar */
@@ -20,15 +17,6 @@ body {
     position: fixed;
     height: 100vh;
     z-index: 2;
-    left: 0;
-    top: 0;
-}
-
-/* Top right logo */
-.top-right-image {
-    width: 55px;
-    height: auto;
-    margin-bottom: 40px;
 }
 
 .sidebar-icon {
@@ -48,130 +36,68 @@ body {
     filter: none !important;
 }
 
-/* Chat container */
-.chat-container {
+/* Top right logo */
+.top-right-image {
+    width: 55px;
+    height: auto;
+    margin-bottom: 40px;
+}
+
+/* Center white feedback container */
+.feedback-container {
     margin-left: 70px;
     width: calc(100% - 70px);
     display: flex;
-    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     height: 100vh;
 }
 
-/* Feedback Container */
-.feedback-container {
-    background: #fff;
-    padding: 20px;
+.feedback-card {
+    background-color: white;
+    padding: 30px;
     border-radius: 12px;
-    box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    width: 360px;
-    margin-left: 100px; /* Spacing from sidebar */
-}
-
-/* Feedback Card Title & Description */
-.feedback-card h1 {
-    color: #333;
-    font-size: 30px;
-}
-
-.feedback-card p {
-    font-size: 16px;
-    color: #666;
-}
-
-/* Emoji Rating Styling */
-.emoji-rating {
-    display: flex;
-    font-size: 20px;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.emoji-rating label {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    font-size: 24px;
-    padding: 8px 14px;
-    border-radius: 6px;
-    transition: background 0.3s;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
     width: 100%;
+    max-width: 500px;
+    text-align: center;
 }
 
-.emoji-rating input {
-    display: none;
-}
-
-/* Highlight selected rating */
-.emoji-rating input:checked + span {
-    background-color: rgba(173, 216, 230, 0.5);
-    color: black;
-    font-weight: bold;
-    padding: 9px;
-    border-radius: 6px;
-}
-
-/* Textarea Styling */
-textarea {
-    width: calc(100% - 20px);
-    padding: 12px;
-    margin-top: 12px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 16px;
-    resize: none;
-}
-
-/* Buttons Styling */
-.button-container {
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-button {
-    padding: 12px;
+.rating-row {
+    margin: 10px 0;
     font-size: 18px;
-    border: none;
+}
+
+textarea {
+    width: 100%;
+    padding: 10px;
     border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.3s;
+    border: 1px solid #ccc;
+    margin-top: 15px;
+    resize: vertical;
 }
 
-.btn-submit {
-    background-color: #28a745;
-    color: white;
-}
-
-.btn-submit:hover {
-    background-color: #218838;
-}
-
-.btn-return {
-    background-color: #007bff;
-    color: white;
-}
-
-.btn-return:hover {
-    background-color: #0056b3;
-}
-
+/* Hide Exit and Return buttons */
+.btn-return,
 .btn-skip {
-    background-color: #dc3545;
-    color: white;
+    display: none !important;
 }
 
-.btn-skip:hover {
-    background-color: #c82333;
+/* Submit button with image */
+#send-feedback {
+    background: none;
+    border: none;
+    padding: 0;
+    margin-top: 20px;
 }
 
-/* Success Message */
+#send-feedback img {
+    width: 160px;
+    height: auto;
+    cursor: pointer;
+}
+
+/* Success message styling */
 #success-message {
-    color: #1f2420;
-    font-size: 20px;
-    font-weight: bold;
-    margin-top: 18px;
-    display: none;
+    text-align: center;
 }
