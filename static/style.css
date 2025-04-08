@@ -1,3 +1,8 @@
+/* Apply box-sizing globally */
+* {
+    box-sizing: border-box;
+}
+
 /* General body styling */
 body {
     font-family: Arial, sans-serif;
@@ -38,7 +43,7 @@ h1 {
     text-align: center;
     overflow: visible;
     padding-top: 20px;
-    margin-left: 60px; /* For sidebar space */
+    margin-left: 70px; /* Adjusted for wider sidebar */
 }
 
 /* Chat header styling */
@@ -161,31 +166,31 @@ button {
     position: fixed;
     top: 0;
     left: 0;
-    width: 60px;
+    width: 70px; /* Increased sidebar width */
     height: 100%;
     background-color: #2c3e50;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-top: 20px;
+    padding-top: 40px; /* More space at top to prevent clipping */
     z-index: 1000;
 }
 
 /* Sidebar icons */
 .sidebar .icon {
-    width: 40px; /* Increased size of icons */
-    height: 40px;
-    background-color: transparent; /* Transparent background */
+    width: 50px; /* Larger clickable area */
+    height: 50px;
+    background-color: transparent;
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-top: 20px;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 16px;
     cursor: pointer;
     transition: background-color 0.3s;
-    padding: 5px; /* Prevents edge cut-off */
+    padding: 8px; /* Prevent edge cut-off */
 }
 
 /* Sidebar icon images */
@@ -194,7 +199,7 @@ button {
     height: 30px;
     object-fit: contain;
     border-radius: 50%;
-    filter: brightness(0) invert(1); /* Makes icons white */
+    filter: brightness(0) invert(1);
 }
 
 /* Exclude bulldog icon from white filter */
@@ -204,25 +209,24 @@ button {
 
 /* Make the bulldog icon bigger */
 .sidebar .icon[title="Resources"] .sidebar-icon {
-    width: 50px; /* Increased size for bulldog */
+    width: 50px;
     height: 50px;
 }
 
-/* Move the house icon further down */
+/* Adjust margins of sidebar icons for clarity */
 .sidebar .icon[title="Home"] {
-    margin-top: 40px; /* Adjusted margin to move it down */
+    margin-top: 40px;
 }
 
-/* Make sure the language and star icons are not cut off */
 .sidebar .icon[title="Language Preferences"],
 .sidebar .icon[title="Feedback"] {
-    margin-top: 30px; /* Adjusted margin for these icons */
+    margin-top: 30px;
 }
 
-/* Ensure the language and star icons are not cut off */
+/* Prevent image icons from being cropped */
 .sidebar .icon[title="Language Preferences"] img,
 .sidebar .icon[title="Feedback"] img {
     width: 100%;
     height: 100%;
-    object-fit: contain; /* Ensure the images are not cropped */
+    object-fit: contain;
 }
