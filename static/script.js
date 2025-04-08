@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
+    const cancelVoiceBtn = document.getElementById("cancel-voice-btn");
 
     let recognition;
     let isSpeaking = false;
@@ -12,9 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let lastInputWasKeyboard = false;
 
     document.addEventListener("keydown", (e) => {
-        if (e.key === "Tab") {
-            lastInputWasKeyboard = true;
-        }
+        if (e.key === "Tab") lastInputWasKeyboard = true;
     });
 
     document.addEventListener("mousedown", () => {
@@ -100,72 +99,43 @@ document.addEventListener("DOMContentLoaded", function () {
     function startVoiceRecognition() {
         if ("webkitSpeechRecognition" in window) {
             recognition = new webkitSpeechRecognition();
-            recognition.continuous = true;
+            recognition.continuous = false;
             recognition.interimResults = false;
             recognition.lang = "en-US";
 
-            recognition.onresult = (event) => {
-                clearTimeout(silenceTimeout);
-                const transcript = event.results[event.results.length - 1][0].transcript;
-
-                silenceTimeout = setTimeout(() => {
-                    sendMessage(transcript, true);
-                    recognition.stop();
-                    usingVoice = false;
-                }, 1500);
+            recognition.onstart = () => {
+                appendMessage("bot", "Listening...");
             };
 
-            recognition.onerror = () => {
-                appendMessage("bot", "Sorry, I couldn't hear you. Please try again.");
-                usingVoice = false;
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                sendMessage(transcript, true);
+            };
+
+            recognition.onerror = (event) => {
+                appendMessage("bot", "Error recognizing speech.");
             };
 
             recognition.onend = () => {
-                clearTimeout(silenceTimeout);
-                if (usingVoice) {
-                    appendMessage("bot", "Voice input ended. Please try again.");
-                    usingVoice = false;
-                }
+                // auto-restart can be added here
             };
 
             recognition.start();
         } else {
-            alert("Voice recognition is not supported in this browser.");
+            alert("Your browser does not support speech recognition.");
         }
-    }
-
-    function playBeep() {
-        const beep = new Audio("/static/beep2.mp3");
-        beep.play();
     }
 
     sendBtn.addEventListener("click", () => {
-        sendBtn.disabled = true;
         sendMessage(userInput.value, false);
-        setTimeout(() => sendBtn.disabled = false, 700);
     });
 
     voiceBtn.addEventListener("click", () => {
-        if (isSpeaking) {
-            stopSpeaking();
-            return;
-        }
         usingVoice = true;
-        appendMessage("bot", "Listening...");
+        startVoiceRecognition();
     });
 
-    userInput.addEventListener("keypress", function (event) {
-        if (event.key === "Enter") {
-            event.preventDefault();
-            sendBtn.click();
-        }
-    });
-
-    userInput.addEventListener("focus", () => {
-        if (lastInputWasKeyboard) {
-            let utterance = new SpeechSynthesisUtterance("Enter your question");
-            utterance.rate = 0.9;
-            synth.speak(utterance);
-        }
+    cancelVoiceBtn.addEventListener("click", () => {
+        stopSpeaking();
     });
 });
