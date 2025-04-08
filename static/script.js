@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
     const cancelVoiceBtn = document.getElementById("cancel-voice-btn");
-    const beepSound = document.getElementById("beep-sound");
 
     let recognition;
     let isSpeaking = false;
@@ -30,7 +29,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (sender === "bot" && usingVoice && message === "Listening...") {
             speakResponse(message, () => {
-                playBeep();
+                playBeep();  // Play beep sound when "Listening..." is spoken
                 startVoiceRecognition();
             });
         }
@@ -97,10 +96,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    function playBeep() {
-        beepSound.play();
-    }
-
     function startVoiceRecognition() {
         if ("webkitSpeechRecognition" in window) {
             recognition = new webkitSpeechRecognition();
@@ -110,7 +105,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             recognition.onstart = () => {
                 appendMessage("bot", "Listening...");
-                playBeep();  // Play beep when recording starts
+                playBeep();  // Play beep sound when it starts listening
             };
 
             recognition.onresult = (event) => {
@@ -130,6 +125,12 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
             alert("Your browser does not support speech recognition.");
         }
+    }
+
+    // Function to play beep sound
+    function playBeep() {
+        const beep = new Audio("/static/beep.mp3");  // Path to the beep file in the static folder
+        beep.play();
     }
 
     sendBtn.addEventListener("click", () => {
