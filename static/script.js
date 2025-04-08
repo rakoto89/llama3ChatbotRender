@@ -4,15 +4,14 @@ document.addEventListener("DOMContentLoaded", function () {
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
     const cancelVoiceBtn = document.getElementById("cancel-voice-btn");
-    const langBtn = document.getElementById("lang-btn");  // Your existing language preferences button/icon
-    
+
     let recognition;
     let isSpeaking = false;
     let usingVoice = false;
     const synth = window.speechSynthesis;
     let silenceTimeout;
     let lastInputWasKeyboard = false;
-    let currentLanguage = "en-US";  // Default to English
+    let currentLanguage = 'en'; // Default language (English)
 
     document.addEventListener("keydown", (e) => {
         if (e.key === "Tab") {
@@ -85,7 +84,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (cleanText.trim() === "") return;
 
             const utterance = new SpeechSynthesisUtterance(cleanText);
-            utterance.lang = currentLanguage;  // Apply the current language setting
+            utterance.lang = currentLanguage; // Set language dynamically based on user selection
             utterance.onend = () => {
                 isSpeaking = false;
                 if (callback) callback();
@@ -107,7 +106,7 @@ document.addEventListener("DOMContentLoaded", function () {
             recognition = new webkitSpeechRecognition();
             recognition.continuous = true;
             recognition.interimResults = false;
-            recognition.lang = currentLanguage;  // Apply the current language setting
+            recognition.lang = currentLanguage;
 
             recognition.onresult = (event) => {
                 clearTimeout(silenceTimeout);
@@ -180,19 +179,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    langBtn.addEventListener("click", () => {
-        const newLang = currentLanguage === "en-US" ? "es-ES" : "en-US"; // Toggle between English and Spanish
-        currentLanguage = newLang;
-        alert(`Language changed to ${newLang === "en-US" ? "English" : "Spanish"}.`);
-
-        // Optionally update UI to reflect the language change
-        if (newLang === "es-ES") {
-            appendMessage("bot", "Idioma cambiado a Español.");
-        } else {
-            appendMessage("bot", "Language changed to English.");
-        }
-    });
-
     voiceBtn.addEventListener("click", () => {
         usingVoice = true;
 
@@ -233,4 +219,17 @@ document.addEventListener("DOMContentLoaded", function () {
     [userInput, sendBtn, voiceBtn, cancelVoiceBtn].forEach(element => {
         element.addEventListener("keydown", handleTabKey);
     });
+
+    // Update the language when a user selects a new one
+    window.changeLanguage = function(language) {
+        currentLanguage = language;
+        // Update chatbot's messages to match the new language
+        if (language === 'es') {
+            document.querySelector('.bot-message').textContent = "¡Bienvenido al Chatbot de Concientización sobre los Opioides! ¡Aquí aprenderás todo sobre los opioides!";
+        } else if (language === 'fr') {
+            document.querySelector('.bot-message').textContent = "Bienvenue dans le chatbot de sensibilisation aux opioïdes ! Ici, vous apprendrez tout sur les opioïdes !";
+        } else if (language === 'zh') {
+            document.querySelector('.bot-message').textContent = "欢迎使用阿片类药物意识聊天机器人！在这里，您将学习所有关于阿片类药物的知识！";
+        }
+    };
 });
