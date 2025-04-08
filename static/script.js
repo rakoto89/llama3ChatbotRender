@@ -219,17 +219,4 @@ document.addEventListener("DOMContentLoaded", function () {
     [userInput, sendBtn, voiceBtn, cancelVoiceBtn].forEach(element => {
         element.addEventListener("keydown", handleTabKey);
     });
-
-    // Update the language when a user selects a new one
-    window.changeLanguage = function(language) {
-        currentLanguage = language;
-        // Update chatbot's messages to match the new language
-        if (language === 'es') {
-            document.querySelector('.bot-message').textContent = "¡Bienvenido al Chatbot de Concientización sobre los Opioides! ¡Aquí aprenderás todo sobre los opioides!";
-        } else if (language === 'fr') {
-            document.querySelector('.bot-message').textContent = "Bienvenue dans le chatbot de sensibilisation aux opioïdes ! Ici, vous apprendrez tout sur les opioïdes !";
-        } else if (language === 'zh') {
-            document.querySelector('.bot-message').textContent = "欢迎使用阿片类药物意识聊天机器人！在这里，您将学习所有关于阿片类药物的知识！";
-        }
-    };
 });
