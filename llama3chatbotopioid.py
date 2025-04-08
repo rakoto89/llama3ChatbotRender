@@ -80,7 +80,7 @@ def read_excel_as_text(excel_path):
 
 # === Load PDFs and Excel ===
 pdf_folder = "pdfs"
-excel_path = os.path.join(pdf_folder, "KFF_Opioid_Overdose_Deaths_by_Age_Group_2022.xlsx")
+excel_path = os.path.join(pdf_folder, "KFF_Opioid_Overdose_Deaths_2022.xlsx", "KFF_Opioid_Overdose_Deaths_by_Age_Group_2022.xlsx", "KFF_Opioid_Overdose_Deaths_by_Race_and_Ethnicity_2022.xlsx")
 
 excel_text = read_excel_as_text(excel_path) if os.path.exists(excel_path) else ""
 excel_df = pd.read_excel(excel_path, header=1) if os.path.exists(excel_path) else None
