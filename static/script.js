@@ -150,7 +150,7 @@ document.addEventListener("DOMContentLoaded", function () {
             } else if (element.id === "voice-btn") {
                 text = "Voice button.";
             } else if (element.id === "cancel-voice-btn") {
-                text = "Cancel Voice button.";
+                text = "Cancel voice button.";
             }
 
             if (text) {
@@ -179,6 +179,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     voiceBtn.addEventListener("click", () => {
         usingVoice = true;
+
+        // Check if "Listening..." message already exists, if so remove it
+        const existingMessage = document.querySelector(".bot-message");
+        if (existingMessage && existingMessage.textContent === "Listening...") {
+            existingMessage.remove();
+        }
+
         appendMessage("bot", "Listening...");
     });
 
@@ -197,6 +204,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    // Speak "Enter your question" only when tabbing into input field
     userInput.addEventListener("focus", () => {
         if (lastInputWasKeyboard) {
             let utterance = new SpeechSynthesisUtterance("Enter your question");
@@ -205,6 +213,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    // Attach tab key handler
     [userInput, sendBtn, voiceBtn, cancelVoiceBtn].forEach(element => {
         element.addEventListener("keydown", handleTabKey);
     });
