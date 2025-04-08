@@ -7,6 +7,7 @@ import pandas as pd
 from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
 import json
+from googletrans import Translator  # Importing googletrans
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
@@ -192,40 +193,23 @@ def format_response(response_text, for_voice=False):
     return formatted_text.replace("<br>", " ").replace("\n", " ") if for_voice else formatted_text.replace("\n", "<br>")
 
 # ==== Routes ====
-@app.route("/")
-def index():
-    intro_message = "🤖 Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!"
-    return render_template("index.html", intro_message=intro_message)
-
-@app.route("/ask", methods=["POST"])
-def ask():
+@app.route("/translate", methods=["POST"])
+def translate_text():
     data = request.json
-    user_question = data.get("question", "").strip()
-    if not user_question:
-        return jsonify({"answer": "Please ask a valid question."})
+    text_to_translate = data.get("text", "")
+    target_lang = data.get("target_lang", "en")
 
-    # Optional: direct lookup
-    if "alaska" in user_question.lower() and ("0-24" in user_question or "0 to 24" in user_question):
-        return jsonify({"answer": get_excel_value("Alaska", "Age 0-24")})
+    if not text_to_translate:
+        return jsonify({"error": "Text to translate is required"}), 400
 
-    if is_question_relevant(user_question):
-        answer = get_llama3_response(user_question)
-    else:
-        answer = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
-    return jsonify({"answer": answer})
+    # Create a Translator instance
+    translator = Translator()
 
-@app.route("/voice", methods=["POST"])
-def voice_response():
-    data = request.json
-    user_question = data.get("question", "").strip()
-    if not user_question:
-        return jsonify({"answer": "Please ask a valid question."})
-    if is_question_relevant(user_question):
-        answer = get_llama3_response(user_question)
-        clean_voice_response = format_response(answer, for_voice=True)
-    else:
-        clean_voice_response = "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
-    return jsonify({"answer": clean_voice_response})
+    try:
+        translation = translator.translate(text_to_translate, dest=target_lang)
+        return jsonify({"translated_text": translation.text})
+    except Exception as e:
+        return jsonify({"error": f"Translation error: {str(e)}"}), 500
 
 @app.route("/feedback", methods=["GET", "POST"])
 def feedback():
@@ -250,29 +234,6 @@ def feedback():
                 app.logger.error(f"Database insert error: {e}")
                 return render_template("feedback.html", success=False)
     return render_template("feedback.html", success=False)
-
-@app.route("/view_feedback", methods=["GET"])
-def view_feedback():
-    key = request.args.get("key", "")
-    if key != FEEDBACK_SECRET_KEY:
-        return jsonify({"error": "Unauthorized access"}), 401
-
-    try:
-        conn = psycopg2.connect(**db_config)
-        cur = conn.cursor()
-        cur.execute("SELECT user_id, rating, comments, submitted_at FROM feedback ORDER BY submitted_at DESC;")
-        rows = cur.fetchall()
-        cur.close()
-        conn.close()
-
-        feedback_data = [
-            {"user_id": row[0], "rating": row[1], "comments": row[2], "submitted_at": str(row[3])}
-            for row in rows
-        ]
-        return jsonify({"feedback": feedback_data})
-    except Exception as e:
-        app.logger.error(f"Database fetch error: {e}")
-        return jsonify({"error": "Could not fetch feedback"}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
