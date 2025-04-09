@@ -79,14 +79,14 @@ def read_excel_as_text(excel_path):
 
 # === Load PDFs and Excel ===
 pdf_folder = "pdfs"
-excel_path = os.path.join(pdf_folder, "KFF_Opioid_Overdose_Deaths_2022.xlsx", "KFF_Opioid_Overdose_Deaths_by_Age_Group_2022.xlsx", "KFF_Opioid_Overdose_Deaths_by_Race_and_Ethnicity_2022.xlsx")
+excel_path = os.path.join(pdf_folder, "KFF_Opioid_Overdose_Deaths_2022.xlsx")
 excel_text = read_excel_as_text(excel_path) if os.path.exists(excel_path) else ""
 excel_df = pd.read_excel(excel_path, header=1) if os.path.exists(excel_path) else None
 pdf_texts = read_pdfs_in_folder(pdf_folder)
 all_table_text = extract_all_tables_first(pdf_folder)
 
 # === PRIORITIZE EXCEL FIRST ===
-combined_text = f"{excel_text}\n\n{pdf_texts}\n\n{all_table_text}"[:12000]
+combined_text = f"{excel_text}\n\n{pdf_texts}\n\n{all_table_text}"[:5000]
 
 # === Relevance Keywords ===
 relevant_topics = [
