@@ -6,6 +6,10 @@ import pdfplumber
 
 import psycopg2
 
+import urllib.parse as urlparse
+
+import pandas as pd
+
 from flask import Flask, request, render_template, jsonify
 
 from flask_cors import CORS
