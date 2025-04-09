@@ -7,7 +7,8 @@ import pandas as pd
 from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
 from googletrans import Translator
-import re  # <-- Added for improved word matching
+import re
+from difflib import get_close_matches
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
@@ -136,30 +137,91 @@ def update_conversation_context(question):
     if keywords:
         conversation_context['last_topic'] = keywords[-1]
 
-# === EXCEL LOOKUP DETECTION (UPDATED FUNCTION) ===
-from difflib import get_close_matches
-
+# === EXCEL LOOKUP DETECTION (UPDATED FUNCTION WITH RACE SYNONYMS) ===
 def try_excel_lookup(question):
     if excel_df is None:
         return None
 
     question = question.lower()
-
     known_states = excel_df["Location"].dropna().str.lower().tolist()
     known_races = [col.lower() for col in excel_df.columns if col.lower() != "location"]
+    words = re.findall(r'\b\w+\b', question)
 
     state = None
     race = None
 
-    for s in known_states:
-        if re.search(r'\b' + re.escape(s) + r'\b', question):
-            state = s.title()
+    # === Normalize race terms ===
+    race_synonyms = {
+        # Asian
+        "asian": "Asian",
+        "asians": "Asian",
+        "asian american": "Asian",
+        "asian americans": "Asian",
+        "asian people": "Asian",
+        "asian individuals": "Asian",
+        "asian ethnicity": "Asian",
+        "pacific islanders": "Asian",
+
+        # Black / African American
+        "black": "Black",
+        "blacks": "Black",
+        "african american": "Black",
+        "african americans": "Black",
+        "black people": "Black",
+        "black individuals": "Black",
+
+        # White
+        "white": "White",
+        "whites": "White",
+        "white people": "White",
+        "white individuals": "White",
+
+        # Hispanic / Latino
+        "hispanic": "Hispanic",
+        "hispanics": "Hispanic",
+        "latino": "Hispanic",
+        "latinos": "Hispanic",
+        "latina": "Hispanic",
+        "latinas": "Hispanic",
+
+        # Native American
+        "native american": "American Indian or Alaska Native",
+        "native americans": "American Indian or Alaska Native",
+        "indigenous": "American Indian or Alaska Native",
+        "indian": "American Indian or Alaska Native",
+        "american indian": "American Indian or Alaska Native",
+        "alaska native": "American Indian or Alaska Native",
+
+        # Other / Multiracial
+        "other": "Other",
+        "mixed": "Other",
+        "multiracial": "Other"
+    }
+
+    # Match state
+    for word in words:
+        if word in known_states:
+            state = word.title()
+            break
+    if not state:
+        matches = get_close_matches(" ".join(words), known_states, n=1, cutoff=0.6)
+        if matches:
+            state = matches[0].title()
+
+    # Match normalized race using synonyms
+    for phrase, mapped_race in race_synonyms.items():
+        if phrase in question:
+            race = mapped_race
             break
 
-    for r in known_races:
-        if r in question or (r + "s") in question:
-            race = r.title()
-            break
+    # Fallback match using column names
+    if not race:
+        for r in known_races:
+            if r in question or (r + "s") in question:
+                race = r.title()
+                break
+
+    print(f"[DEBUG] Matched state: {state}, race: {race}")
 
     if state and race:
         try:
@@ -219,7 +281,7 @@ def get_llama3_response(question):
 
         response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
 
-        banned_terms = ["lady gaga", "michael jackson", "taylor swift", "elvis", "beyoncé", "celebrity"]
+        banned_terms = ["lady gaga", "michael jackson", "taylor swift", "elvis", "beyoncÃ©", "celebrity"]
         if any(term in response_text.lower() for term in banned_terms):
             return "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
