@@ -107,7 +107,7 @@ Only answer questions related to opioids, addiction, overdose, and treatment usi
             LLAMA3_ENDPOINT,
             headers=headers,
             json={"model": "meta-llama/llama-3.1-8b-instruct:free", "messages": messages},
-            timeout=30
+            timeout=25
         )
         res.raise_for_status()
         data = res.json()
