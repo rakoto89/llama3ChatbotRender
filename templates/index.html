@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Opioid Awareness Chatbot</title>
+    <title>Opioid Chatbot Awareness</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -48,62 +48,6 @@
         <button data-lang="zh">中文</button>
     </div>
 
-    <!-- Existing JS file -->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
-
-    <!-- Language handling script (NEW) -->
-    <script>
-        let selectedLanguage = "en"; // Default to English
-
-        // Toggle language options
-        document.getElementById("lang-btn").addEventListener("click", () => {
-            const langOptions = document.getElementById("language-options");
-            langOptions.style.display = langOptions.style.display === "none" ? "block" : "none";
-        });
-
-        // Set selected language
-        document.querySelectorAll("#language-options button").forEach(button => {
-            button.addEventListener("click", () => {
-                selectedLanguage = button.getAttribute("data-lang");
-                document.getElementById("language-options").style.display = "none";
-
-                const chatBox = document.getElementById("chat-box");
-                const msg = document.createElement("div");
-                msg.className = "bot-message";
-                msg.innerText = `Language set to ${button.innerText}.`;
-                chatBox.appendChild(msg);
-            });
-        });
-
-        // Intercept and send message with language
-        document.getElementById("send-btn").addEventListener("click", async () => {
-            const input = document.getElementById("user-input").value.trim();
-            if (!input) return;
-
-            const chatBox = document.getElementById("chat-box");
-
-            const userMsg = document.createElement("div");
-            userMsg.className = "user-message";
-            userMsg.innerText = input;
-            chatBox.appendChild(userMsg);
-
-            document.getElementById("user-input").value = "";
-
-            const response = await fetch("/ask", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    message: input,
-                    language: selectedLanguage
-                })
-            });
-
-            const data = await response.json();
-            const botMsg = document.createElement("div");
-            botMsg.className = "bot-message";
-            botMsg.innerText = data.response;
-            chatBox.appendChild(botMsg);
-        });
-    </script>
 </body>
 </html>
