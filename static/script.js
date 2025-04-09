@@ -65,8 +65,8 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(res => res.json())
             .then(data => {
                 removePreviousThinkingMessage();
-                appendMessage("bot", data.response);
-                if (useVoice) speakResponse(data.response);
+                appendMessage("bot", data.answer);
+                if (useVoice) speakResponse(data.answer);
             })
             .catch(() => {
                 removePreviousThinkingMessage();
