@@ -7,6 +7,7 @@ import pandas as pd
 from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
 from googletrans import Translator
+from langdetect import detect  # <--- ADDED
 import re
 from difflib import get_close_matches
 
@@ -150,55 +151,27 @@ def try_excel_lookup(question):
     state = None
     race = None
 
-    # === Normalize race terms ===
     race_synonyms = {
-        # Asian
         "asian": "Asian",
         "asians": "Asian",
         "asian american": "Asian",
         "asian americans": "Asian",
-        "asian people": "Asian",
-        "asian individuals": "Asian",
-        "asian ethnicity": "Asian",
         "pacific islanders": "Asian",
-
-        # Black / African American
         "black": "Black",
         "blacks": "Black",
         "african american": "Black",
         "african americans": "Black",
-        "black people": "Black",
-        "black individuals": "Black",
-
-        # White
         "white": "White",
         "whites": "White",
-        "white people": "White",
-        "white individuals": "White",
-
-        # Hispanic / Latino
         "hispanic": "Hispanic",
-        "hispanics": "Hispanic",
         "latino": "Hispanic",
-        "latinos": "Hispanic",
         "latina": "Hispanic",
-        "latinas": "Hispanic",
-
-        # Native American
         "native american": "American Indian or Alaska Native",
-        "native americans": "American Indian or Alaska Native",
         "indigenous": "American Indian or Alaska Native",
-        "indian": "American Indian or Alaska Native",
-        "american indian": "American Indian or Alaska Native",
-        "alaska native": "American Indian or Alaska Native",
-
-        # Other / Multiracial
-        "other": "Other",
         "mixed": "Other",
         "multiracial": "Other"
     }
 
-    # Match state
     for word in words:
         if word in known_states:
             state = word.title()
@@ -208,13 +181,11 @@ def try_excel_lookup(question):
         if matches:
             state = matches[0].title()
 
-    # Match normalized race using synonyms
     for phrase, mapped_race in race_synonyms.items():
         if phrase in question:
             race = mapped_race
             break
 
-    # Fallback match using column names
     if not race:
         for r in known_races:
             if r in question or (r + "s") in question:
@@ -240,7 +211,6 @@ def get_llama3_response(question):
     update_conversation_context(question)
     conversation_history.append({"role": "user", "content": question})
 
-    # === TRY EXCEL ANSWER FIRST ===
     excel_response = try_excel_lookup(question)
     if excel_response:
         conversation_history.append({"role": "assistant", "content": excel_response})
@@ -308,7 +278,27 @@ def ask():
     question = data.get("question", "")
     if not question:
         return jsonify({"error": "No question provided"}), 400
+
+    # Detect the language
+    try:
+        detected_lang = detect(question)
+    except:
+        detected_lang = "en"
+
+    # Reset conversation when language changes
+    global conversation_history
+    conversation_history = []
+
     answer = get_llama3_response(question)
+
+    # Translate response if not English
+    if detected_lang != "en":
+        try:
+            translated = Translator().translate(answer, dest=detected_lang)
+            answer = translated.text
+        except Exception as e:
+            app.logger.error(f"Translation error: {e}")
+
     return jsonify({"answer": answer})
 
 @app.route("/translate", methods=["POST"])
