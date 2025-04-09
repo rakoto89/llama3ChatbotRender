@@ -129,16 +129,20 @@ def read_excel_as_text(excel_path):
     except Exception as e:
         return f"Error reading Excel file: {str(e)}"
 
-def get_excel_value(state, age_range):
+def get_excel_value(state, age_range, race=None):
     if excel_df is None:
         return "Excel file not found."
     try:
-        value = excel_df.loc[excel_df["Location"].str.lower() == state.lower(), age_range].values[0]
+        # Filtering by state, age range, and optionally race
+        filter_conditions = excel_df["Location"].str.lower() == state.lower()
+        
+        if race:
+            filter_conditions &= excel_df["Race"].str.lower() == race.lower()
+        
+        value = excel_df.loc[filter_conditions, age_range].values[0]
         return str(value)
     except:
-        return f"Sorry, I couldn't find data for {state} and category '{age_range}'."
-
-
+        return f"Sorry, I couldn't find data for {state}, category '{age_range}', and race '{race}'."
 
 # === COMBINE PDF + Excel ===
 pdf_folder = 'pdfs'
