@@ -3,18 +3,26 @@ import requests
 import pdfplumber
 import psycopg2
 import urllib.parse as urlparse
+import logging
 from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
+from googletrans import Translator  # Added missing import
 
+# === App Setup ===
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
 
-# === ENVIRONMENT VARIABLES ===
+# === Logging Setup ===
+logging.basicConfig(level=logging.INFO)
+
+# === Environment Variables ===
 LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions").strip()
 REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
+MODEL_NAME = os.environ.get("LLAMA3_MODEL", "meta-llama/llama-3.1-8b-instruct:free")
 FEEDBACK_SECRET_KEY = os.environ.get("FEEDBACK_SECRET_KEY", "test-key")
-
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
+
+# === Database Config ===
 url = urlparse.urlparse(DATABASE_URL)
 db_config = {
     "dbname": url.path[1:],
@@ -25,20 +33,11 @@ db_config = {
 }
 
 conversation_history = []
-conversation_context = {}
 
-# === PDF TEXT EXTRACTION ===
+# === PDF Text Extraction ===
 def extract_text_from_pdf(pdf_path):
     text = ""
     with pdfplumber.open(pdf_path) as pdf:
-        for page in pdf.pages:
-            if page.extract_text():
-                text += page.extract_text() + "\n"
-    return text.strip()
-
-def extract_text_from_pdf(pdf_paths):
-    text = ""
-    with pdfplumber.open(pdf_paths) as pdf:
         for page in pdf.pages:
             extracted_text = page.extract_text()
             if extracted_text:
@@ -77,7 +76,7 @@ def is_question_relevant(question):
 
 # === Llama 3 API Call ===
 def get_llama3_response(question):
-    print("QUESTION:", question)  # Debugging
+    app.logger.info(f"User Question: {question}")
 
     if not is_question_relevant(question):
         return "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment."
@@ -99,23 +98,20 @@ Only answer questions related to opioids, addiction, overdose, and treatment usi
         "Content-Type": "application/json"
     }
 
-    print("REN_API_KEY:", REN_API_KEY)  # Debugging – Remove in production
-
     try:
         res = requests.post(
             LLAMA3_ENDPOINT,
             headers=headers,
-            json={"model": "meta-llama/llama-3.1-8b-instruct:free", "messages": messages},
+            json={"model": MODEL_NAME, "messages": messages},
             timeout=25
         )
         res.raise_for_status()
         data = res.json()
         content = data.get("choices", [{}])[0].get("message", {}).get("content", "No response.")
-        print("API RESPONSE:", content)  # Debugging
         conversation_history.append({"role": "assistant", "content": content})
         return content.strip()
     except Exception as e:
-        print("API ERROR:", str(e))  # Debugging
+        app.logger.error(f"API Error: {e}")
         return f"ERROR: {str(e)}"
 
 # === Flask Routes ===
@@ -130,7 +126,7 @@ def ask():
     if not question:
         return jsonify({"error": "No question provided"}), 400
     answer = get_llama3_response(question)
-    return jsonify({"response": answer})  # Correct key
+    return jsonify({"response": answer})
 
 @app.route("/translate", methods=["POST"])
 def translate():
@@ -146,20 +142,33 @@ def translate():
 @app.route("/feedback", methods=["GET", "POST"])
 def feedback():
     if request.method == "POST":
+        # Optional: uncomment this to protect feedback route
+        # if request.form.get("key") != FEEDBACK_SECRET_KEY:
+        #     return "Unauthorized", 403
+
         rating = request.form.get("rate")
         feedback_text = request.form.get("feedback")
         user_id = request.remote_addr
+
+        try:
+            rating = int(rating)
+        except (ValueError, TypeError):
+            app.logger.warning("Invalid rating value")
+            return render_template("feedback.html", success=False)
+
         try:
             conn = psycopg2.connect(**db_config)
             cur = conn.cursor()
-            cur.execute("INSERT INTO feedback (user_id, rating, comments) VALUES (%s, %s, %s);",
-                        (user_id, int(rating), feedback_text))
+            cur.execute(
+                "INSERT INTO feedback (user_id, rating, comments) VALUES (%s, %s, %s);",
+                (user_id, rating, feedback_text)
+            )
             conn.commit()
             cur.close()
             conn.close()
             return render_template("feedback.html", success=True)
         except Exception as e:
-            app.logger.error(f"DB Error: {e}")
+            app.logger.error(f"Database error: {e}")
             return render_template("feedback.html", success=False)
     return render_template("feedback.html", success=False)
 
