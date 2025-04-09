@@ -39,42 +39,17 @@ def extract_text_from_pdf(pdf_path):
                 text += page.extract_text() + "\n"
     return text.strip()
 
-def extract_tables_from_pdf(pdf_path):
-    table_text = ""
-    with pdfplumber.open(pdf_path) as pdf:
-        for page in pdf.pages:
-            tables = page.extract_tables()
-            for table in tables:
-                for row in table:
-                    table_text += " | ".join(cell or "" for cell in row) + "\n"
-    return table_text.strip()
-
 def read_pdfs_in_folder(folder):
     output = ""
     for filename in os.listdir(folder):
         if filename.endswith(".pdf"):
             path = os.path.join(folder, filename)
             output += extract_text_from_pdf(path) + "\n\n"
-            output += extract_tables_from_pdf(path) + "\n\n"
     return output
-
-def extract_all_tables_first(folder):
-    tables_output = ""
-    for filename in os.listdir(folder):
-        if filename.endswith(".pdf"):
-            path = os.path.join(folder, filename)
-            tables = extract_tables_from_pdf(path)
-            if tables:
-                tables_output += f"=== Tables from {filename} ===\n{tables}\n\n"
-    return tables_output
 
 # === Load PDFs ===
 pdf_folder = "pdfs"
 pdf_texts = read_pdfs_in_folder(pdf_folder)
-all_table_text = extract_all_tables_first(pdf_folder)
-
-# === PRIORITIZE PDF TEXT ===
-combined_text = f"{pdf_texts}\n\n{all_table_text}"[:5000]
 
 # === Relevance Keywords ===
 relevant_topics = [
