@@ -7,6 +7,7 @@ import pandas as pd
 from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
 from googletrans import Translator
+import re  # <-- Added for improved word matching
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
@@ -135,24 +136,26 @@ def update_conversation_context(question):
     if keywords:
         conversation_context['last_topic'] = keywords[-1]
 
-# === EXCEL LOOKUP DETECTION ===
+# === EXCEL LOOKUP DETECTION (UPDATED FUNCTION) ===
 def try_excel_lookup(question):
     if excel_df is None:
         return None
 
+    question = question.lower()
+
     known_states = excel_df["Location"].dropna().str.lower().tolist()
-    known_races = [col.lower() for col in excel_df.columns if col != "Location"]
+    known_races = [col.lower() for col in excel_df.columns if col.lower() != "location"]
 
     state = None
     race = None
 
     for s in known_states:
-        if s in question.lower():
+        if re.search(r'\b' + re.escape(s) + r'\b', question):
             state = s.title()
             break
 
     for r in known_races:
-        if r in question.lower():
+        if r in question or (r + "s") in question:
             race = r.title()
             break
 
@@ -162,7 +165,7 @@ def try_excel_lookup(question):
             return f"In {state}, the number of opioid overdose deaths in 2022 for the {race} population was {value}."
         except Exception as e:
             return f"Sorry, I couldn't retrieve data for {state} and category {race}. Error: {str(e)}"
-    
+
     return None
 
 # === Llama 3 API Call ===
@@ -212,7 +215,6 @@ def get_llama3_response(question):
         response.raise_for_status()
         data = response.json()
 
-        # === Llama Fallback ===
         response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
 
         banned_terms = ["lady gaga", "michael jackson", "taylor swift", "elvis", "beyoncé", "celebrity"]
