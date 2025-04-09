@@ -276,28 +276,37 @@ def index():
 def ask():
     data = request.get_json()
     question = data.get("question", "")
+    language = data.get("language", "en")  # From frontend: "en", "es", "fr", "zh", etc.
+
     if not question:
         return jsonify({"error": "No question provided"}), 400
 
-    # Detect the language
-    try:
-        detected_lang = detect(question)
-    except:
-        detected_lang = "en"
+    # Translate question to English if needed
+    if language != "en":
+        try:
+            translator = Translator()
+            translated_input = translator.translate(question, src=language, dest="en").text
+        except Exception as e:
+            app.logger.error(f"Input translation error: {e}")
+            translated_input = question  # fallback to original
+    else:
+        translated_input = question
 
-    # Reset conversation when language changes
+    # Reset conversation history on new question
     global conversation_history
     conversation_history = []
 
-    answer = get_llama3_response(question)
+    # Get English answer from LLM
+    answer = get_llama3_response(translated_input)
 
-    # Translate response if not English
-    if detected_lang != "en":
+    # Translate response back to selected language
+    if language != "en":
         try:
-            translated = Translator().translate(answer, dest=detected_lang)
-            answer = translated.text
+            translator = Translator()
+            translated_output = translator.translate(answer, src="en", dest=language).text
+            answer = translated_output
         except Exception as e:
-            app.logger.error(f"Translation error: {e}")
+            app.logger.error(f"Output translation error: {e}")
 
     return jsonify({"answer": answer})
 
