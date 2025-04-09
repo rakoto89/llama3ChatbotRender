@@ -142,7 +142,7 @@ def get_excel_value(state, age_range):
 
 # === COMBINE PDF + Excel ===
 pdf_folder = 'pdfs'
-excel_path = os.path.join(pdf_folder, "KFF_Opioid_Overdose_Deaths_by_Age_Group_2022.xlsx")
+excel_path = os.path.join(pdf_folder, "KFF_Opioid_Overdose_Deaths_by_Age_Group_2022.xlsx", "KFF_Opioid_Overdose_Deaths_2022.xlsx", "KFF_Opioid_Overdose_Deaths_by_Race_and_Ethnicity_2022.xlsx")
 
 all_table_text = extract_all_tables_first(pdf_folder)
 pdf_texts = read_pdfs_in_folder(pdf_folder)
