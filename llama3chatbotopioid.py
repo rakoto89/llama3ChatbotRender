@@ -144,7 +144,7 @@ Only answer questions related to opioids, addiction, overdose, and treatment usi
         res = requests.post(
             LLAMA3_ENDPOINT,
             headers=headers,
-            json={"model": "meta-llama/llama-3.1-8b-instruct:free", "messages": messages},
+            json={"model": "meta-llama-llama-3.1-8b-instruct:free", "messages": messages},
             timeout=30
         )
         res.raise_for_status()
@@ -202,5 +202,5 @@ def feedback():
 
 # === Run App ===
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 1000))
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
