@@ -6,10 +6,6 @@ import pdfplumber
 
 import psycopg2
 
-import urllib.parse as urlparse
-
-import pandas as pd
-
 from flask import Flask, request, render_template, jsonify
 
 from flask_cors import CORS
@@ -79,78 +75,106 @@ def extract_text_from_pdf(pdf_path):
 
 
 def extract_tables_from_pdf(pdf_path):
+
     table_text = ""
+
     with pdfplumber.open(pdf_path) as pdf:
+
         for page in pdf.pages:
+
             tables = page.extract_tables()
+
             for table in tables:
+
                 for row in table:
-                    if row:
-                        table_text += " | ".join(cell if cell else "" for cell in row) + "\n"
+
+                    table_text += " | ".join(cell or "" for cell in row) + "\n"
+
     return table_text.strip()
 
 
 
-def read_pdfs_in_folder(folder_path):
-    concatenated_text = ''
-    for filename in os.listdir(folder_path):
-        if filename.endswith('.pdf'):
-            pdf_path = os.path.join(folder_path, filename)
-            pdf_text = extract_text_from_pdf(pdf_path)
-            table_text = extract_tables_from_pdf(pdf_path)
-            concatenated_text += pdf_text + '\n\n'
-            concatenated_text += table_text + '\n\n'
-    return concatenated_text
+def read_pdfs_in_folder(folder):
+
+    output = ""
+
+    for filename in os.listdir(folder):
+
+        if filename.endswith(".pdf"):
+
+            path = os.path.join(folder, filename)
+
+            output += extract_text_from_pdf(path) + "\n\n"
+
+            output += extract_tables_from_pdf(path) + "\n\n"
+
+    return output
 
 
 
-def extract_all_tables_first(folder_path):
-    combined_table_text = ""
-    for filename in os.listdir(folder_path):
-        if filename.endswith('.pdf'):
-            pdf_path = os.path.join(folder_path, filename)
-            table_text = extract_tables_from_pdf(pdf_path)
-            if table_text.strip():
-                combined_table_text += f"=== Tables from {filename} ===\n{table_text}\n\n"
-    return combined_table_text.strip()
+def extract_all_tables_first(folder):
+
+    tables_output = ""
+
+    for filename in os.listdir(folder):
+
+        if filename.endswith(".pdf"):
+
+            path = os.path.join(folder, filename)
+
+            tables = extract_tables_from_pdf(path)
+
+            if tables:
+
+                tables_output += f"=== Tables from {filename} ===\n{tables}\n\n"
+
+    return tables_output
 
 
 
-# === Excel Support ===
 def read_excel_as_text(excel_path):
+
     try:
+
         excel_data = pd.read_excel(excel_path, header=1, sheet_name=None)
-        full_text = "=== Excel Data ===\n"
-        for sheet_name, df in excel_data.items():
-            full_text += f"\n--- Sheet: {sheet_name} ---\n"
-            full_text += df.to_string(index=False)
-            full_text += "\n\n"
-        return full_text.strip()
+
+        output = "=== Excel Data ===\n"
+
+        for sheet, df in excel_data.items():
+
+            output += f"\n--- Sheet: {sheet} ---\n"
+
+            output += df.to_string(index=False) + "\n"
+
+        return output.strip()
+
     except Exception as e:
-        return f"Error reading Excel file: {str(e)}"
 
-def get_excel_value(state, age_range):
-    if excel_df is None:
-        return "Excel file not found."
-    try:
-        value = excel_df.loc[excel_df["Location"].str.lower() == state.lower(), age_range].values[0]
-        return str(value)
-    except:
-        return f"Sorry, I couldn't find data for {state} and category '{age_range}'."
+        return f"Error reading Excel: {str(e)}"
 
 
 
-# === COMBINE PDF + Excel ===
-pdf_folder = 'pdfs'
-excel_path = os.path.join(pdf_folder, "KFF_Opioid_Overdose_Deaths_by_Age_Group_2022.xlsx")
+# === Load PDFs and Excel ===
 
-all_table_text = extract_all_tables_first(pdf_folder)
-pdf_texts = read_pdfs_in_folder(pdf_folder)
+pdf_folder = "pdfs"
+
+excel_path = os.path.join(pdf_folder, "KFF_Opioid_Overdose_Deaths_2022.xlsx", "KFF_Opioid_Overdose_Deaths_by_Age_Group_2022.xlsx", "KFF_Opioid_Overdose_Deaths_by_Race_and_Ethnicity_2022.xlsx")
+
+
+
 excel_text = read_excel_as_text(excel_path) if os.path.exists(excel_path) else ""
+
 excel_df = pd.read_excel(excel_path, header=1) if os.path.exists(excel_path) else None
 
-# Prioritize Excel text in the context
-pdf_text = (excel_text + "\n\n" + all_table_text + "\n\n" + pdf_texts)[:5000]
+pdf_texts = read_pdfs_in_folder(pdf_folder)
+
+all_table_text = extract_all_tables_first(pdf_folder)
+
+
+
+# === PRIORITIZE EXCEL FIRST ===
+
+combined_text = f"{excel_text}\n\n{pdf_texts}\n\n{all_table_text}"[:12000]
 
 
 
@@ -182,80 +206,127 @@ relevant_topics = [
 
 
 
-# ==== Relevance & Context ====
 def is_question_relevant(question):
-    if any(topic.lower() in question.lower() for topic in relevant_topics):
-        return True
-    for i in range(len(conversation_history) - 2, -1, -2):
-        user_msg = conversation_history[i]
-        if any(topic.lower() in user_msg["content"].lower() for topic in relevant_topics):
-            return True
-    return False
 
-def update_conversation_context(question):
-    keywords = [keyword for keyword in relevant_topics if keyword in question.lower()]
-    if keywords:
-        conversation_context['last_topic'] = keywords[-1]
+    return any(topic in question.lower() for topic in relevant_topics)
+
+
+
+# === Excel Answer Lookup (PRIORITY) ===
+
+def search_excel(question):
+
+    if excel_df is not None:
+
+        question_lower = question.lower()
+
+        matches = []
+
+        for col in excel_df.columns:
+
+            if col.lower() in question_lower:
+
+                matches.append(col)
+
+        if matches:
+
+            result = ""
+
+            for match in matches:
+
+                result += f"\n--- Column: {match} ---\n"
+
+                result += excel_df[match].dropna().astype(str).to_string(index=False)[:12000]  # Limit length
+
+            return result.strip()
+
+    return None
 
 
 
 # === Llama 3 API Call ===
 
 def get_llama3_response(question):
-    if not is_question_relevant(question):
-        return "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
 
-    update_conversation_context(question)
+    if not is_question_relevant(question):
+
+        return "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment."
+
+
+
+    # PRIORITIZE Excel Lookup
+
+    excel_result = search_excel(question)
+
+    if excel_result:
+
+        return f"Based on the Excel data:\n\n{excel_result}"
+
+
+
     conversation_history.append({"role": "user", "content": question})
 
-    combined_text = pdf_text
+
 
     system_prompt = """
-    You are an Opioid Awareness Chatbot developed for Bowie State University.
-    You must ONLY answer questions related to opioids, opioid misuse, pain management, addiction, prevention, or recovery.
 
-    You have access to data extracted from PDFs and Excel spreadsheets, which may include overdose deaths, rates, and trends by state and age group. Use this data to answer questions when relevant.
+You are an Opioid Awareness Chatbot created for Bowie State University.
 
-    Do NOT answer questions about celebrities, entertainment, politics, or anything outside of opioid awareness.
-    """
+Only answer questions related to opioids, addiction, overdose, and treatment using the provided data.
+
+"""
+
+
 
     messages = [
-        {"role": "system", "content": f"{system_prompt}\n\nUse this context: {combined_text}"},
+
+        {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
+
         *conversation_history[-5:]
+
     ]
 
+
+
     headers = {
+
         "Authorization": f"Bearer {REN_API_KEY}",
+
         "Content-Type": "application/json"
+
     }
 
+
+
     try:
-        response = requests.post(
+
+        res = requests.post(
+
             LLAMA3_ENDPOINT,
-            json={
-                "model": "meta-llama/llama-3.1-8b-instruct:free",
-                "messages": messages
-            },
+
             headers=headers,
+
+            json={"model": "meta-llama/llama-3.1-8b-instruct:free", "messages": messages},
+
             timeout=30
+
         )
-        response.raise_for_status()
-        data = response.json()
-        response_text = data.get("choices", [{}])[0].get("message", {}).get("content", "No response").replace("*", "")
 
-        banned_terms = ["lady gaga", "michael jackson", "taylor swift", "elvis", "beyoncé", "celebrity"]
-        if any(term in response_text.lower() for term in banned_terms):
-            return "Sorry, I can only answer questions related to opioids, addiction, overdose, or withdrawal."
+        res.raise_for_status()
 
-        conversation_history.append({"role": "assistant", "content": response_text})
-        return format_response(response_text)
+        data = res.json()
 
-    except requests.exceptions.RequestException as e:
-        return f"ERROR: Failed to connect to Llama 3. Details: {str(e)}"
+        content = data.get("choices", [{}])[0].get("message", {}).get("content", "No response.")
 
-def format_response(response_text, for_voice=False):
-    formatted_text = response_text.strip().replace("brbr", "")
-    return formatted_text.replace("<br>", " ").replace("\n", " ") if for_voice else formatted_text.replace("\n", "<br>")
+        conversation_history.append({"role": "assistant", "content": content})
+
+        return content.strip()
+
+    except Exception as e:
+
+        return f"ERROR: {str(e)}"
+
+
 
 # === Flask Routes ===
 
