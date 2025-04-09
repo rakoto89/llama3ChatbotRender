@@ -137,6 +137,8 @@ def update_conversation_context(question):
         conversation_context['last_topic'] = keywords[-1]
 
 # === EXCEL LOOKUP DETECTION (UPDATED FUNCTION) ===
+from difflib import get_close_matches
+
 def try_excel_lookup(question):
     if excel_df is None:
         return None
