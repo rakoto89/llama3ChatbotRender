@@ -37,40 +37,27 @@ def extract_text_from_pdf(pdf_path):
                 text += page.extract_text() + "\n"
     return text.strip()
 
-def extract_tables_from_pdf(pdf_path):
-    table_text = ""
-    with pdfplumber.open(pdf_path) as pdf:
+def extract_text_from_pdf(pdf_paths):
+    text = ""
+    with pdfplumber.open(pdf_paths) as pdf:
         for page in pdf.pages:
-            tables = page.extract_tables()
-            for table in tables:
-                for row in table:
-                    table_text += " | ".join(cell or "" for cell in row) + "\n"
-    return table_text.strip()
+            extracted_text = page.extract_text()
+            if extracted_text:
+                text += extracted_text + "\n"
+    return text.strip()
 
-def read_pdfs_in_folder(folder):
-    output = ""
-    for filename in os.listdir(folder):
-        if filename.endswith(".pdf"):
-            path = os.path.join(folder, filename)
-            output += extract_text_from_pdf(path) + "\n\n"
-            output += extract_tables_from_pdf(path) + "\n\n"
-    return output
-
-def extract_all_tables_first(folder):
-    tables_output = ""
-    for filename in os.listdir(folder):
-        if filename.endswith(".pdf"):
-            path = os.path.join(folder, filename)
-            tables = extract_tables_from_pdf(path)
-            if tables:
-                tables_output += f"=== Tables from {filename} ===\n{tables}\n\n"
-    return tables_output
+def read_pdfs_in_folder(folder_path):
+    concatenated_text = ''
+    for filename in os.listdir(folder_path):
+        if filename.endswith('.pdf'):
+            pdf_path = os.path.join(folder_path, filename)
+            pdf_text = extract_text_from_pdf(pdf_path)
+            concatenated_text += pdf_text + '\n\n'
+    return concatenated_text
 
 # === Load PDFs ===
 pdf_folder = "pdfs"
 pdf_texts = read_pdfs_in_folder(pdf_folder)
-all_table_text = extract_all_tables_first(pdf_folder)
-combined_text = f"{pdf_texts}\n\n{all_table_text}"[:12000]
 
 # === Relevance Keywords ===
 relevant_topics = [
