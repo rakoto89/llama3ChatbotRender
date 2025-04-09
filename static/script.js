@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch("/ask", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ question: text }),
+            body: JSON.stringify({ question: text, language: currentLanguage }),  // <- ONLY LINE UPDATED
         })
             .then(res => res.json())
             .then(data => {
