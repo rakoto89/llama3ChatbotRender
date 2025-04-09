@@ -91,7 +91,7 @@ Only answer questions related to opioids, addiction, overdose, and treatment usi
 """
 
     messages = [
-        {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
+        {"role": "system", "content": f"{system_prompt}\n\nContext:\n{pdf_texts}"},
         *conversation_history[-5:]
     ]
 
@@ -131,7 +131,7 @@ def ask():
     if not question:
         return jsonify({"error": "No question provided"}), 400
     answer = get_llama3_response(question)
-    return jsonify({"response": answer})  # Changed 'answer' to 'response'
+    return jsonify({"response": answer})  # Correct key
 
 @app.route("/translate", methods=["POST"])
 def translate():
