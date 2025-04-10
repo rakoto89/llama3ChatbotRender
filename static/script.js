@@ -154,9 +154,9 @@ document.addEventListener("DOMContentLoaded", function () {
         appendMessage("bot", languageData[currentLanguage].listeningMessage);
         speakText(languageData[currentLanguage].listeningMessage, () => {
             beep.play();
-            setTimeout(() => {
+            beep.onended = () => {
                 startVoiceRecognition();
-            }, 500);
+            };
         });
     });
 
