@@ -57,16 +57,26 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (useVoice) speakResponse(languageData[currentLanguage].thinkingMessage);
 
+        // ✅ Modified fetch call to include the selected language
         fetch("/ask", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ question: text }),
+            body: JSON.stringify({ 
+                question: text, 
+                language: currentLanguage  // <-- New field added
+            }),
         })
             .then(res => res.json())
             .then(data => {
                 removePreviousThinkingMessage();
-                appendMessage("bot", data.answer);
-                if (useVoice) speakResponse(data.answer);
+
+                let answer = data.answer?.trim();
+                if (!answer || answer.toLowerCase() === "no response.") {
+                    answer = languageData[currentLanguage].errorMessage;
+                }
+
+                appendMessage("bot", answer);
+                if (useVoice) speakResponse(answer);
             })
             .catch(() => {
                 removePreviousThinkingMessage();
@@ -157,10 +167,9 @@ document.addEventListener("DOMContentLoaded", function () {
         appendMessage("bot", languageData[currentLanguage].voiceMessage);
     });
 
-    // ✅ Cancel Voice Listener (New Code Added)
     cancelVoiceBtn.addEventListener("click", () => {
         if (recognition && usingVoice) {
-            recognition.abort(); // or recognition.stop();
+            recognition.abort();
             usingVoice = false;
             appendMessage("bot", "Voice input canceled.");
         }
@@ -186,3 +195,4 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
+    
