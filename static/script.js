@@ -57,13 +57,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (useVoice) speakResponse(languageData[currentLanguage].thinkingMessage);
 
-        // ✅ Modified fetch call to include the selected language
         fetch("/ask", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
                 question: text, 
-                language: currentLanguage  // <-- New field added
+                language: currentLanguage
             }),
         })
             .then(res => res.json())
@@ -110,8 +109,14 @@ document.addEventListener("DOMContentLoaded", function () {
             recognition.onresult = (event) => {
                 clearTimeout(silenceTimeout);
                 const transcript = event.results[event.results.length - 1][0].transcript;
+                console.log("Voice Transcript:", transcript); // Debug log
+
                 silenceTimeout = setTimeout(() => {
-                    sendMessage(transcript, true);
+                    if (transcript.trim()) {
+                        sendMessage(transcript, true);
+                    } else {
+                        appendMessage("bot", "Sorry, I didn’t catch that. Please try again.");
+                    }
                     recognition.stop();
                     usingVoice = false;
                 }, 1500);
@@ -157,7 +162,6 @@ document.addEventListener("DOMContentLoaded", function () {
         voiceBtn.setAttribute('title', languageData[language].voiceMessage);
     }
 
-    // Add listeners
     sendBtn.addEventListener("click", () => sendMessage(userInput.value));
     userInput.addEventListener("keydown", e => {
         if (e.key === "Enter") sendMessage(userInput.value);
@@ -183,13 +187,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Language toggle button
     document.getElementById("lang-btn").addEventListener("click", () => {
         const langOptions = document.getElementById("language-options");
         langOptions.style.display = langOptions.style.display === "block" ? "none" : "block";
     });
 
-    // Language selection buttons
     document.querySelectorAll("#language-options button").forEach(button => {
         button.addEventListener("click", () => {
             changeLanguage(button.getAttribute("data-lang"));
@@ -197,4 +199,3 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
-    
