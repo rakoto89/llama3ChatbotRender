@@ -108,35 +108,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
             recognition.onresult = (event) => {
                 clearTimeout(silenceTimeout);
-                const transcript = event.results[event.results.length - 1][0].transcript;
-                silenceTimeout = setTimeout(() => {
-                    sendMessage(transcript, true);
-                    recognition.stop();
-                    usingVoice = false;
-                }, 1500);
-            };
-
-            recognition.onerror = () => {
-                appendMessage("bot", languageData[currentLanguage].errorMessage);
-                usingVoice = false;
-            };
-
-            recognition.onend = () => {
-                clearTimeout(silenceTimeout);
-                if (usingVoice) {
-                    appendMessage("bot", "Voice input ended. Please try again.");
-                    usingVoice = false;
-                }
-            };
-
-            recognition.start();
-        } else {
-            alert("Voice recognition is not supported in this browser.");
-        }
-    }
-            
-            recognition.onresult = (event) => {
-                clearTimeout(silenceTimeout);
                 let transcript = "";
 
                 try {
