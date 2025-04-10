@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", function () {
         appendMessage("user", text);
         userInput.value = "";
 
-        appendMessage("bot", "Thinking...");
+        appendMessage("bot", languageData[currentLanguage].listeningMessage);
 
         fetch("/ask", {
             method: "POST",
@@ -101,6 +101,9 @@ document.addEventListener("DOMContentLoaded", function () {
         recognition.onresult = (event) => {
             const transcript = event.results[0][0].transcript;
 
+            appendMessage("user", transcript);
+            appendMessage("bot", languageData[currentLanguage].listeningMessage);
+
             fetch("/ask", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -108,12 +111,13 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .then(res => res.json())
             .then(data => {
-                appendMessage("user", transcript);
+                document.querySelector(".bot-message:last-child").remove();
                 const response = data.answer || "Error: Could not get a response.";
                 appendMessage("bot", response);
                 speakText(response);
             })
             .catch(err => {
+                document.querySelector(".bot-message:last-child").remove();
                 appendMessage("bot", "Fetch Error: " + err);
             });
 
