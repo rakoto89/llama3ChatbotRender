@@ -66,6 +66,9 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(data => {
                 removePreviousThinkingMessage();
 
+                // === DEBUG: See response from Flask server
+                console.log("Server response:", data);
+
                 let answer = data.answer?.trim();
                 if (!answer || answer.toLowerCase() === "no response.") {
                     answer = languageData[currentLanguage].errorMessage;
@@ -74,7 +77,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 appendMessage("bot", answer);
                 if (useVoice) speakResponse(answer);
             })
-            .catch(() => {
+            .catch((err) => {
+                // === DEBUG: Catch any network or server errors
+                console.error("Fetch error:", err);
+
                 removePreviousThinkingMessage();
                 appendMessage("bot", languageData[currentLanguage].errorMessage);
             });
@@ -106,14 +112,22 @@ document.addEventListener("DOMContentLoaded", function () {
             recognition.onresult = (event) => {
                 clearTimeout(silenceTimeout);
                 const transcript = event.results[event.results.length - 1][0].transcript;
+
+                // === DEBUG: Log what the user said
+                console.log("Transcript from voice:", transcript);
+
                 silenceTimeout = setTimeout(() => {
+                    // === DEBUG: Confirm we're sending it
+                    console.log("Sending from voice input:", transcript);
+
                     sendMessage(transcript, true);
                     recognition.stop();
                     usingVoice = false;
                 }, 1500);
             };
 
-            recognition.onerror = () => {
+            recognition.onerror = (event) => {
+                console.error("Speech recognition error:", event); // === DEBUG
                 appendMessage("bot", languageData[currentLanguage].errorMessage);
                 usingVoice = false;
             };
@@ -163,10 +177,9 @@ document.addEventListener("DOMContentLoaded", function () {
         appendMessage("bot", languageData[currentLanguage].voiceMessage);
     });
 
-    // ✅ Cancel Voice Listener (New Code Added)
     cancelVoiceBtn.addEventListener("click", () => {
         if (recognition && usingVoice) {
-            recognition.abort(); // or recognition.stop();
+            recognition.abort();
             usingVoice = false;
             appendMessage("bot", "Voice input canceled.");
         }
@@ -178,13 +191,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Language toggle button
     document.getElementById("lang-btn").addEventListener("click", () => {
         const langOptions = document.getElementById("language-options");
         langOptions.style.display = langOptions.style.display === "block" ? "none" : "block";
     });
 
-    // Language selection buttons
     document.querySelectorAll("#language-options button").forEach(button => {
         button.addEventListener("click", () => {
             changeLanguage(button.getAttribute("data-lang"));
