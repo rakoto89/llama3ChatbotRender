@@ -165,6 +165,8 @@ document.addEventListener("DOMContentLoaded", function () {
     voiceBtn.addEventListener("click", () => {
         usingVoice = true;
         appendMessage("bot", languageData[currentLanguage].voiceMessage);
+        playBeep();
+        startVoiceRecognition();
     });
 
     cancelVoiceBtn.addEventListener("click", () => {
