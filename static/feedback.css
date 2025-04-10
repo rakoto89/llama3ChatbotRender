@@ -72,6 +72,13 @@ body {
     font-size: 18px;
 }
 
+.rating-row img {
+    width: 28px;
+    height: 28px;
+    vertical-align: middle;
+    margin-right: 8px;
+}
+
 .rating-row.selected {
     background-color: #e0f0ff;
 }
