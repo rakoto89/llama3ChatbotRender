@@ -149,12 +149,11 @@ document.addEventListener("DOMContentLoaded", function () {
     voiceBtn.addEventListener("click", () => {
         usingVoice = true;
         appendMessage("bot", languageData[currentLanguage].listeningMessage);
-        speakText(languageData[currentLanguage].listeningMessage, () => {
-            beep.play();
-            beep.onended = () => {
-                startVoiceRecognition();
-            };
-        });
+        // Removed extra speakText call to prevent duplicate "Thinking..."
+        beep.play();
+        beep.onended = () => {
+            startVoiceRecognition();
+        };
     });
 
     cancelVoiceBtn.addEventListener("click", () => {
