@@ -47,10 +47,13 @@ document.addEventListener("DOMContentLoaded", function () {
         if (sender === "bot" && usingVoice) speakText(message);
     }
 
-    function speakText(text) {
+    function speakText(text, callback) {
         if (!text.trim()) return;
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = currentLanguage;
+        utterance.onend = () => {
+            if (callback) callback();
+        };
         synth.speak(utterance);
     }
 
@@ -140,8 +143,9 @@ document.addEventListener("DOMContentLoaded", function () {
     voiceBtn.addEventListener("click", () => {
         usingVoice = true;
         appendMessage("bot", languageData[currentLanguage].listeningMessage);
-        speakText(languageData[currentLanguage].listeningMessage);
-        startVoiceRecognition();
+        speakText(languageData[currentLanguage].listeningMessage, () => {
+            startVoiceRecognition();
+        });
     });
 
     cancelVoiceBtn.addEventListener("click", () => {
@@ -157,7 +161,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // === LANGUAGE DROPDOWN TOGGLE + SELECTION ===
     const langBtn = document.getElementById("lang-btn");
     const langOptions = document.getElementById("language-options");
 
