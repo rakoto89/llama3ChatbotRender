@@ -76,7 +76,9 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(res => res.json())
         .then(data => {
             document.querySelector(".bot-message:last-child").remove();
-            appendMessage("bot", data.answer || "Error: Could not get a response.");
+            const response = data.answer || "Error: Could not get a response.";
+            appendMessage("bot", response);
+            if (usingVoice) speakText(response);
         })
         .catch(() => {
             document.querySelector(".bot-message:last-child").remove();
@@ -107,7 +109,9 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(res => res.json())
             .then(data => {
                 appendMessage("user", transcript);
-                appendMessage("bot", data.answer || "Error: Could not get a response.");
+                const response = data.answer || "Error: Could not get a response.";
+                appendMessage("bot", response);
+                speakText(response);
             })
             .catch(err => {
                 appendMessage("bot", "Fetch Error: " + err);
