@@ -11,10 +11,30 @@ document.addEventListener("DOMContentLoaded", function () {
     let currentLanguage = 'en';
 
     const languageData = {
-        en: { placeholder: "Enter your question..." },
-        es: { placeholder: "Ingresa tu pregunta..." },
-        fr: { placeholder: "Entrez votre question..." },
-        zh: { placeholder: "输入您的问题..." }
+        en: {
+            placeholder: "Enter your question...",
+            chatbotTitle: "Opioid Awareness Chatbot",
+            botMessage: "Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!",
+            listeningMessage: "Listening..."
+        },
+        es: {
+            placeholder: "Ingresa tu pregunta...",
+            chatbotTitle: "Chatbot de Concientización sobre los Opioides",
+            botMessage: "¡Bienvenido al Chatbot de Concientización sobre los Opioides! ¡Aquí aprenderás todo sobre los opioides!",
+            listeningMessage: "Escuchando..."
+        },
+        fr: {
+            placeholder: "Entrez votre question...",
+            chatbotTitle: "Chatbot de Sensibilisation aux Opioïdes",
+            botMessage: "Bienvenue dans le chatbot de sensibilisation aux opioïdes ! Ici, vous apprendrez tout sur les opioïdes !",
+            listeningMessage: "Écoute..."
+        },
+        zh: {
+            placeholder: "输入您的问题...",
+            chatbotTitle: "阿片类药物意识聊天机器人",
+            botMessage: "欢迎使用阿片类药物意识聊天机器人！在这里，您将学习所有关于阿片类药物的知识！",
+            listeningMessage: "正在监听..."
+        }
     };
 
     function appendMessage(sender, message) {
@@ -23,6 +43,15 @@ document.addEventListener("DOMContentLoaded", function () {
         msgDiv.innerHTML = message;
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
+
+        if (sender === "bot") speakText(message);
+    }
+
+    function speakText(text) {
+        if (!text.trim()) return;
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = currentLanguage;
+        synth.speak(utterance);
     }
 
     function sendMessage(text) {
@@ -60,7 +89,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         recognition = new SpeechRecognition();
-        recognition.lang = "en-US";
+        recognition.lang = currentLanguage;
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
 
@@ -70,7 +99,7 @@ document.addEventListener("DOMContentLoaded", function () {
             fetch("/ask", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ question: transcript })
+                body: JSON.stringify({ question: transcript, language: currentLanguage })
             })
             .then(res => res.json())
             .then(data => {
@@ -103,7 +132,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     voiceBtn.addEventListener("click", () => {
         usingVoice = true;
-        appendMessage("bot", "Listening...");
+        appendMessage("bot", languageData[currentLanguage].listeningMessage);
+        speakText(languageData[currentLanguage].listeningMessage);
         startVoiceRecognition();
     });
 
@@ -134,9 +164,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 const selectedLang = button.getAttribute("data-lang");
                 currentLanguage = selectedLang;
 
-                // Optional UI feedback
-                userInput.placeholder = languageData[selectedLang]?.placeholder || "Enter your question...";
-                appendMessage("bot", "Language changed to: " + selectedLang.toUpperCase());
+                document.querySelector(".chat-header").textContent = languageData[selectedLang].chatbotTitle;
+                userInput.placeholder = languageData[selectedLang].placeholder;
+
+                chatBox.innerHTML = "";
+                appendMessage("bot", languageData[selectedLang].botMessage);
+
                 langOptions.style.display = "none";
             });
         });
