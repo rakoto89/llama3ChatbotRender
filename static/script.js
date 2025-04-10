@@ -103,7 +103,6 @@ document.addEventListener("DOMContentLoaded", function () {
             const transcript = event.results[0][0].transcript;
 
             appendMessage("user", transcript);
-            appendMessage("bot", languageData[currentLanguage].listeningMessage);
 
             fetch("/ask", {
                 method: "POST",
@@ -112,13 +111,11 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .then(res => res.json())
             .then(data => {
-                document.querySelector(".bot-message:last-child").remove();
                 const response = data.answer || "Error: Could not get a response.";
                 appendMessage("bot", response);
                 speakText(response);
             })
             .catch(err => {
-                document.querySelector(".bot-message:last-child").remove();
                 appendMessage("bot", "Fetch Error: " + err);
             });
 
