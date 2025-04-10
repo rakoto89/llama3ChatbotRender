@@ -136,16 +136,24 @@ def search_excel(question):
             return result.strip()
     return None
 
-# === Llama 3 API Call ===
+# === Llama 3 API Call with Translation Support ===
 def get_llama3_response(question):
-    if not is_question_relevant(question):
+    translator = Translator()
+
+    try:
+        translated_question = translator.translate(question, dest="en").text
+    except Exception as e:
+        print(f"Translation failed: {str(e)}")
+        translated_question = question  # Fallback if translation fails
+
+    if not is_question_relevant(translated_question):
         return "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment."
 
-    excel_result = search_excel(question)
+    excel_result = search_excel(translated_question)
     if excel_result:
         return f"Based on the Excel data:\n\n{excel_result}"
 
-    conversation_history.append({"role": "user", "content": question})
+    conversation_history.append({"role": "user", "content": translated_question})
 
     system_prompt = """
 You are an Opioid Awareness Chatbot created for Bowie State University.
@@ -223,7 +231,6 @@ def feedback():
             return render_template("feedback.html", success=False)
     return render_template("feedback.html", success=False)
 
-# === Debug route (optional) ===
 @app.route("/env")
 def check_env():
     return jsonify({
