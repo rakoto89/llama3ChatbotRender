@@ -178,7 +178,7 @@ all_table_text = extract_all_tables_first(pdf_folder)
 
 # === PRIORITIZE EXCEL FIRST ===
 
-combined_text = f"{excel_text}\n\n{pdf_texts}\n\n{all_table_text}"[:12000]
+combined_text = f"{excel_text}\n\n{pdf_texts}\n\n{all_table_text}"[:5000]
 
 
 
