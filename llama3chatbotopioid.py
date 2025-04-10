@@ -137,21 +137,24 @@ def search_excel(question):
     return None
 
 # === Llama 3 API Call with Translation Support ===
-def get_llama3_response(question):
+def get_llama3_response(question, user_lang="en"):
     translator = Translator()
 
     try:
         translated_question = translator.translate(question, dest="en").text
     except Exception as e:
         print(f"Translation failed: {str(e)}")
-        translated_question = question  # Fallback if translation fails
+        translated_question = question
 
     if not is_question_relevant(translated_question):
-        return "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment."
+        return translator.translate(
+            "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment.",
+            dest=user_lang
+        ).text
 
     excel_result = search_excel(translated_question)
     if excel_result:
-        return f"Based on the Excel data:\n\n{excel_result}"
+        return translator.translate(f"Based on the Excel data:\n\n{excel_result}", dest=user_lang).text
 
     conversation_history.append({"role": "user", "content": translated_question})
 
@@ -181,7 +184,11 @@ Only answer questions related to opioids, addiction, overdose, and treatment usi
         data = res.json()
         content = data.get("choices", [{}])[0].get("message", {}).get("content", "No response.")
         conversation_history.append({"role": "assistant", "content": content})
-        return content.strip()
+
+        # ✅ Translate the final answer back to user's preferred language
+        translated_response = translator.translate(content.strip(), dest=user_lang).text
+        return translated_response
+
     except Exception as e:
         print(f"OpenRouter API Error: {str(e)}")
         return f"ERROR: {str(e)}"
@@ -195,9 +202,10 @@ def index():
 def ask():
     data = request.get_json()
     question = data.get("question", "")
+    lang = data.get("language", "en")  # ✅ Accept user's preferred language
     if not question:
         return jsonify({"error": "No question provided"}), 400
-    answer = get_llama3_response(question)
+    answer = get_llama3_response(question, lang)
     return jsonify({"answer": answer})
 
 @app.route("/translate", methods=["POST"])
