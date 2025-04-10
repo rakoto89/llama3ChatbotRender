@@ -113,14 +113,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 try {
                     transcript = event.results[event.results.length - 1][0].transcript || "";
                 } catch (e) {
-                    console.error("Speech recognition error:", e);
+                    console.error("Voice recognition error:", e);
                     transcript = "";
                 }
 
-                console.log("Voice Transcript:", transcript);
+                console.log("Voice transcript:", transcript);
 
                 silenceTimeout = setTimeout(() => {
-                    if (transcript && transcript.trim().length > 1) {
+                    if (transcript.trim().length > 1) {
                         sendMessage(transcript, true);
                     } else {
                         appendMessage("bot", "Sorry, I didn’t catch that. Please try again.");
