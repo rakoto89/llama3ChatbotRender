@@ -146,6 +146,12 @@ def get_llama3_response(question, user_lang="en"):
         print(f"Translation failed: {str(e)}")
         translated_question = question
 
+    # === Pronoun Resolution ===
+    if conversation_history:
+        last_user_msg = next((msg["content"] for msg in reversed(conversation_history) if msg["role"] == "user"), "")
+        if any(pronoun in translated_question.lower() for pronoun in ["it", "they", "them", "this"]):
+            translated_question = f"{last_user_msg} -> {translated_question}"
+
     if not is_question_relevant(translated_question):
         return translator.translate(
             "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment.",
