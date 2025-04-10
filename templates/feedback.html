@@ -35,25 +35,55 @@
 
         <form id="feedback-form" method="POST" action="/feedback">
           <div class="emoji-rating">
-            <div class="rating-row" id="rating-5" tabindex="0">
-              <input type="radio" name="rate" value="5" />
-              <img src="{{ url_for('static', filename='images/emoji-5.png') }}" alt="Amazing">
-            </div>
-            <div class="rating-row" id="rating-4" tabindex="0">
-              <input type="radio" name="rate" value="4" />
-              <img src="{{ url_for('static', filename='images/emoji-4.png') }}" alt="Good">
-            </div>
-            <div class="rating-row" id="rating-3" tabindex="0">
-              <input type="radio" name="rate" value="3" />
-              <img src="{{ url_for('static', filename='images/emoji-3.png') }}" alt="Okay">
+            <div class="rating-row" id="rating-1" tabindex="0">
+              <input type="radio" name="rate" value="1" />
+              <img src="{{ url_for('static', filename='images/emoji-1.png') }}" alt="Very Bad">
+              <div class="stars">
+                <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+              </div>
+              <div class="rating-label">Terrible</div>
             </div>
             <div class="rating-row" id="rating-2" tabindex="0">
               <input type="radio" name="rate" value="2" />
               <img src="{{ url_for('static', filename='images/emoji-2.png') }}" alt="Bad">
+              <div class="stars">
+                <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+              </div>
+              <div class="rating-label">Bad</div>
             </div>
-            <div class="rating-row" id="rating-1" tabindex="0">
-              <input type="radio" name="rate" value="1" />
-              <img src="{{ url_for('static', filename='images/emoji-1.png') }}" alt="Terrible">
+            <div class="rating-row" id="rating-3" tabindex="0">
+              <input type="radio" name="rate" value="3" />
+              <img src="{{ url_for('static', filename='images/emoji-3.png') }}" alt="Okay">
+              <div class="stars">
+                <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+              </div>
+              <div class="rating-label">Okay</div>
+            </div>
+            <div class="rating-row" id="rating-4" tabindex="0">
+              <input type="radio" name="rate" value="4" />
+              <img src="{{ url_for('static', filename='images/emoji-4.png') }}" alt="Good">
+              <div class="stars">
+                <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+              </div>
+              <div class="rating-label">Good</div>
+            </div>
+            <div class="rating-row" id="rating-5" tabindex="0">
+              <input type="radio" name="rate" value="5" />
+              <img src="{{ url_for('static', filename='images/emoji-5.png') }}" alt="Amazing">
+              <div class="stars">
+                <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+              </div>
+              <div class="rating-label">Amazing</div>
             </div>
           </div>
 
