@@ -60,8 +60,8 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch("/ask", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-                question: text, 
+            body: JSON.stringify({
+                question: text,
                 language: currentLanguage
             }),
         })
@@ -108,11 +108,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
             recognition.onresult = (event) => {
                 clearTimeout(silenceTimeout);
-                const transcript = event.results[event.results.length - 1][0].transcript;
-                console.log("Voice Transcript:", transcript); // Debug log
+                let transcript = "";
+
+                try {
+                    transcript = event.results[event.results.length - 1][0].transcript || "";
+                } catch (e) {
+                    console.error("Speech recognition error:", e);
+                    transcript = "";
+                }
+
+                console.log("Voice Transcript:", transcript);
 
                 silenceTimeout = setTimeout(() => {
-                    if (transcript.trim()) {
+                    if (transcript && transcript.trim().length > 1) {
                         sendMessage(transcript, true);
                     } else {
                         appendMessage("bot", "Sorry, I didn’t catch that. Please try again.");
