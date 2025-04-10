@@ -15,25 +15,25 @@ document.addEventListener("DOMContentLoaded", function () {
             placeholder: "Enter your question...",
             chatbotTitle: "Opioid Awareness Chatbot",
             botMessage: "Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!",
-            listeningMessage: "Listening..."
+            listeningMessage: "Thinking..."
         },
         es: {
             placeholder: "Ingresa tu pregunta...",
             chatbotTitle: "Chatbot de Concientización sobre los Opioides",
             botMessage: "¡Bienvenido al Chatbot de Concientización sobre los Opioides! ¡Aquí aprenderás todo sobre los opioides!",
-            listeningMessage: "Escuchando..."
+            listeningMessage: "Pensando..."
         },
         fr: {
             placeholder: "Entrez votre question...",
             chatbotTitle: "Chatbot de Sensibilisation aux Opioïdes",
             botMessage: "Bienvenue dans le chatbot de sensibilisation aux opioïdes ! Ici, vous apprendrez tout sur les opioïdes !",
-            listeningMessage: "Écoute..."
+            listeningMessage: "En réflexion..."
         },
         zh: {
             placeholder: "输入您的问题...",
             chatbotTitle: "阿片类药物意识聊天机器人",
             botMessage: "欢迎使用阿片类药物意识聊天机器人！在这里，您将学习所有关于阿片类药物的知识！",
-            listeningMessage: "正在监听..."
+            listeningMessage: "思考中..."
         }
     };
 
@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
 
-        if (sender === "bot") speakText(message);
+        if (sender === "bot" && usingVoice) speakText(message);
     }
 
     function speakText(text) {
@@ -125,9 +125,16 @@ document.addEventListener("DOMContentLoaded", function () {
         recognition.start();
     }
 
-    sendBtn.addEventListener("click", () => sendMessage(userInput.value));
+    sendBtn.addEventListener("click", () => {
+        usingVoice = false;
+        sendMessage(userInput.value);
+    });
+
     userInput.addEventListener("keydown", e => {
-        if (e.key === "Enter") sendMessage(userInput.value);
+        if (e.key === "Enter") {
+            usingVoice = false;
+            sendMessage(userInput.value);
+        }
     });
 
     voiceBtn.addEventListener("click", () => {
