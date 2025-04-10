@@ -8,20 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let recognition;
     let usingVoice = false;
     const synth = window.speechSynthesis;
-    let silenceTimeout;
     let currentLanguage = 'en';
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (SpeechRecognition) {
-        recognition = new SpeechRecognition();
-        recognition.lang = currentLanguage;
-        recognition.continuous = true;
-        recognition.interimResults = false;
-    } else {
-        recognition = null;
-        console.warn("Speech recognition not supported in this browser.");
-    }
 
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
@@ -31,7 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    function sendMessage(text, useVoice = false) {
+    function sendMessage(text) {
         if (!text.trim()) return;
 
         appendMessage("user", text);
@@ -59,37 +46,43 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function startVoiceRecognition() {
-        if (!recognition) {
-            appendMessage("bot", "Sorry, voice input isn't supported in this browser. Please type your question.");
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            appendMessage("bot", "Voice recognition not supported.");
             return;
         }
 
-        recognition.lang = currentLanguage;
+        recognition = new SpeechRecognition();
+        recognition.lang = "en-US";
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
 
         recognition.onresult = (event) => {
-            clearTimeout(silenceTimeout);
-            let transcript = event.results[event.results.length - 1][0].transcript || "";
+            const transcript = event.results[0][0].transcript;
 
-            silenceTimeout = setTimeout(() => {
-                if (transcript.trim().length > 1) {
-                    sendMessage(transcript, true);
-                } else {
-                    appendMessage("bot", "Sorry, I didn’t catch that. Please try again.");
-                }
-                recognition.stop();
-                usingVoice = false;
-            }, 1500);
+            fetch("/ask", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ question: transcript })
+            })
+            .then(res => res.json())
+            .then(data => {
+                appendMessage("user", transcript);
+                appendMessage("bot", data.answer || "Error: Could not get a response.");
+            })
+            .catch(err => {
+                appendMessage("bot", "Fetch Error: " + err);
+            });
+
+            recognition.stop();
         };
 
         recognition.onerror = (event) => {
-            console.error("SpeechRecognition error:", event.error);
-            appendMessage("bot", "Voice recognition error occurred. Please try typing your question.");
+            appendMessage("bot", "Recognition Error: " + event.error);
             recognition.stop();
-            usingVoice = false;
         };
 
         recognition.onend = () => {
-            clearTimeout(silenceTimeout);
             usingVoice = false;
         };
 
