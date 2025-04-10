@@ -173,9 +173,11 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     voiceBtn.addEventListener("click", () => {
         usingVoice = true;
-        appendMessage("bot", languageData[currentLanguage].voiceMessage);
-        playBeep();
-        startVoiceRecognition();
+        appendMessage("bot", languageData[currentLanguage].voiceMessage);  // Display "Listening..."
+        playBeep();  // Play beep sound after "Listening..."
+        setTimeout(() => {
+            startVoiceRecognition();  // Start voice recognition after the beep
+        }, 500);  // Adjust this delay (in ms) if necessary to ensure the beep sound plays clearly before recognition starts
     });
     cancelVoiceBtn.addEventListener("click", () => {
         if (recognition && usingVoice) {
