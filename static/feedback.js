@@ -1,5 +1,74 @@
 document.addEventListener("DOMContentLoaded", function () {
   let lastInteractionWasKeyboard = false;
+  let currentLanguage = 'en';
+
+  const translations = {
+    en: {
+      title: "Rate your experience",
+      description: "We highly value your feedback! Rate your experience and provide us with your valuable feedback.",
+      feedbackPlaceholder: "Write your feedback here...",
+      submitAlt: "Submit Feedback",
+      success: "Thank you for your feedback!",
+      exit: "Exit",
+      ratingLabels: ["Terrible", "Bad", "Okay", "Good", "Amazing"]
+    },
+    es: {
+      title: "Califica tu experiencia",
+      description: "¡Valoramos mucho tus comentarios! Califica tu experiencia y proporciónanos tus valiosos comentarios.",
+      feedbackPlaceholder: "Escribe tus comentarios aquí...",
+      submitAlt: "Enviar comentarios",
+      success: "¡Gracias por tus comentarios!",
+      exit: "Salir",
+      ratingLabels: ["Terrible", "Malo", "Regular", "Bueno", "Increíble"]
+    },
+    fr: {
+      title: "Évaluez votre expérience",
+      description: "Nous apprécions beaucoup vos commentaires ! Évaluez votre expérience et fournissez-nous vos précieux retours.",
+      feedbackPlaceholder: "Écrivez vos commentaires ici...",
+      submitAlt: "Soumettre des commentaires",
+      success: "Merci pour vos commentaires !",
+      exit: "Sortie",
+      ratingLabels: ["Terrible", "Mauvais", "Moyen", "Bon", "Incroyable"]
+    },
+    zh: {
+      title: "评价您的体验",
+      description: "我们非常重视您的反馈！请评价您的体验并提供宝贵意见。",
+      feedbackPlaceholder: "请在此写下您的反馈...",
+      submitAlt: "提交反馈",
+      success: "感谢您的反馈！",
+      exit: "退出",
+      ratingLabels: ["糟糕", "差", "一般", "好", "非常好"]
+    }
+  };
+
+  function applyLanguage(lang) {
+    const t = translations[lang];
+    document.getElementById("rate-experience").textContent = t.title;
+    document.getElementById("rate-description").textContent = t.description;
+    document.getElementById("comments").placeholder = t.feedbackPlaceholder;
+    document.querySelector("#send-feedback img").alt = t.submitAlt;
+    document.querySelectorAll(".rating-label").forEach((label, i) => {
+      label.textContent = t.ratingLabels[i];
+    });
+    currentLanguage = lang;
+  }
+
+  const langBtn = document.getElementById("lang-btn");
+  const langOptions = document.getElementById("language-options");
+
+  if (langBtn && langOptions) {
+    langBtn.addEventListener("click", () => {
+      langOptions.style.display = langOptions.style.display === "block" ? "none" : "block";
+    });
+
+    document.querySelectorAll("#language-options button").forEach(button => {
+      button.addEventListener("click", () => {
+        const selectedLang = button.getAttribute("data-lang");
+        applyLanguage(selectedLang);
+        langOptions.style.display = "none";
+      });
+    });
+  }
 
   // Detect Tab vs Mouse
   window.addEventListener("keydown", (e) => {
@@ -12,44 +81,40 @@ document.addEventListener("DOMContentLoaded", function () {
     lastInteractionWasKeyboard = false;
   });
 
-  // Speak function
   const speak = (text) => {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     window.speechSynthesis.speak(utterance);
   };
 
-  // Handle tab navigation speech
   const tabbableElements = document.querySelectorAll('[tabindex="0"]');
   tabbableElements.forEach((el) => {
     el.addEventListener("focus", () => {
       if (!lastInteractionWasKeyboard) return;
 
       let text = "";
-
       if (el.id === "rate-experience") {
-        text = "Rate your experience";
+        text = translations[currentLanguage].title;
       } else if (el.classList.contains("rating-row")) {
         const input = el.querySelector("input[type='radio']");
         const value = input ? input.value : null;
         text = value ? `${value} star${value === "1" ? "" : "s"}` : "Rating option";
       } else if (el.id === "comments") {
-        text = "Write your feedback here";
+        text = translations[currentLanguage].feedbackPlaceholder;
       } else if (el.id === "send-feedback") {
-        text = "Send Feedback";
+        text = translations[currentLanguage].submitAlt;
       } else if (el.id === "return-chatbot") {
         text = "Return to Chatbot";
       } else if (el.id === "skip-feedback") {
-        text = "Exit";
+        text = translations[currentLanguage].exit;
       } else if (el.id === "success-message") {
-        text = "Thank you for your feedback!";
+        text = translations[currentLanguage].success;
       }
 
       if (text) speak(text);
     });
   });
 
-  // Handle form submission
   document.getElementById("send-feedback").addEventListener("click", function (e) {
     e.preventDefault();
 
@@ -81,30 +146,32 @@ document.addEventListener("DOMContentLoaded", function () {
 
           successMessage.addEventListener("focus", () => {
             if (lastInteractionWasKeyboard) {
-              speak("Thank you for your feedback!");
+              speak(translations[currentLanguage].success);
             }
           });
 
           const exitButton = document.createElement("button");
-          exitButton.textContent = "Exit";
+          exitButton.textContent = translations[currentLanguage].exit;
           exitButton.id = "skip-feedback";
           exitButton.tabIndex = "0";
-          exitButton.style.backgroundColor = "red";
-          exitButton.style.color = "white";
-          exitButton.style.padding = "10px 20px";
-          exitButton.style.border = "none";
-          exitButton.style.cursor = "pointer";
-          exitButton.style.fontSize = "16px";
-          exitButton.style.borderRadius = "5px";
-          exitButton.style.marginTop = "20px";
-          exitButton.style.display = "block";
-          exitButton.style.margin = "20px auto";
-          exitButton.style.textAlign = "center";
-          exitButton.style.width = "fit-content";
+          Object.assign(exitButton.style, {
+            backgroundColor: "red",
+            color: "white",
+            padding: "10px 20px",
+            border: "none",
+            cursor: "pointer",
+            fontSize: "16px",
+            borderRadius: "5px",
+            marginTop: "20px",
+            display: "block",
+            margin: "20px auto",
+            textAlign: "center",
+            width: "fit-content"
+          });
 
           exitButton.addEventListener("focus", () => {
             if (lastInteractionWasKeyboard) {
-              speak("Exit");
+              speak(translations[currentLanguage].exit);
             }
           });
 
@@ -128,9 +195,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   });
 
-  // Highlight selected rating row
   const ratingRows = document.querySelectorAll(".rating-row");
-
   ratingRows.forEach(row => {
     const radio = row.querySelector("input[type='radio']");
     row.addEventListener("click", () => {
@@ -141,3 +206,4 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
+          
