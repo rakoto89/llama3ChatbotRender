@@ -10,6 +10,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const synth = window.speechSynthesis;
     let currentLanguage = 'en';
 
+    const languageData = {
+        en: { placeholder: "Enter your question..." },
+        es: { placeholder: "Ingresa tu pregunta..." },
+        fr: { placeholder: "Entrez votre question..." },
+        zh: { placeholder: "输入您的问题..." }
+    };
+
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
         msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
@@ -112,4 +119,26 @@ document.addEventListener("DOMContentLoaded", function () {
             appendMessage("bot", "Voice output canceled.");
         }
     });
+
+    // === LANGUAGE DROPDOWN TOGGLE + SELECTION ===
+    const langBtn = document.getElementById("lang-btn");
+    const langOptions = document.getElementById("language-options");
+
+    if (langBtn && langOptions) {
+        langBtn.addEventListener("click", () => {
+            langOptions.style.display = langOptions.style.display === "block" ? "none" : "block";
+        });
+
+        document.querySelectorAll("#language-options button").forEach(button => {
+            button.addEventListener("click", () => {
+                const selectedLang = button.getAttribute("data-lang");
+                currentLanguage = selectedLang;
+
+                // Optional UI feedback
+                userInput.placeholder = languageData[selectedLang]?.placeholder || "Enter your question...";
+                appendMessage("bot", "Language changed to: " + selectedLang.toUpperCase());
+                langOptions.style.display = "none";
+            });
+        });
+    }
 });
