@@ -48,6 +48,27 @@
         <button data-lang="zh">中文</button>
     </div>
 
+    <!-- Beep sound element -->
+    <audio id="beep" src="{{ url_for('static', filename='beep2.mp3') }}" preload="auto"></audio>
+
+    <script>
+        function playBeep() {
+            const beep = document.getElementById('beep');
+            if (beep) {
+                beep.currentTime = 0;
+                beep.play().catch(err => console.warn('Beep playback failed:', err));
+            }
+        }
+
+        document.getElementById('send-btn').addEventListener('click', () => {
+            playBeep();
+        });
+
+        document.getElementById('voice-btn').addEventListener('click', () => {
+            playBeep();
+        });
+    </script>
+
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
