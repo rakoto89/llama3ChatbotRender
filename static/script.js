@@ -10,7 +10,6 @@ document.addEventListener("DOMContentLoaded", function () {
     let usingVoice = false;
     const synth = window.speechSynthesis;
     let silenceTimeout;
-    let lastInputWasKeyboard = false;
     let currentLanguage = 'en';
 
     const languageData = {
@@ -117,8 +116,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     transcript = "";
                 }
 
-                console.log("Voice transcript:", transcript);
-
                 silenceTimeout = setTimeout(() => {
                     if (transcript.trim().length > 1) {
                         sendMessage(transcript, true);
@@ -180,7 +177,6 @@ document.addEventListener("DOMContentLoaded", function () {
         playBeep();
         startVoiceRecognition();
     });
-
     cancelVoiceBtn.addEventListener("click", () => {
         if (recognition && usingVoice) {
             recognition.abort();
