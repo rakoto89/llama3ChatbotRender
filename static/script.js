@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
     const cancelVoiceBtn = document.getElementById("cancel-voice-btn");
+    const beep = new Audio("/static/beep2.mp3");
 
     let recognition;
     let usingVoice = false;
@@ -152,7 +153,10 @@ document.addEventListener("DOMContentLoaded", function () {
         usingVoice = true;
         appendMessage("bot", languageData[currentLanguage].listeningMessage);
         speakText(languageData[currentLanguage].listeningMessage, () => {
-            startVoiceRecognition();
+            beep.play();
+            setTimeout(() => {
+                startVoiceRecognition();
+            }, 500);
         });
     });
 
