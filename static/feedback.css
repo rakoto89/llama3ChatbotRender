@@ -50,7 +50,7 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
-    padding: 0 20px; /* Add some padding to prevent content from touching edges */
+    padding: 0 20px;
 }
 
 .feedback-card {
@@ -59,24 +59,49 @@ body {
     border-radius: 12px;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
     width: 100%;
-    max-width: 400px;
+    max-width: 500px;
     text-align: center;
 }
 
+.emoji-rating {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
 .rating-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     cursor: pointer;
     transition: background-color 0.3s ease;
     border-radius: 8px;
     padding: 6px;
-    margin: 10px 0;
-    font-size: 18px;
+    margin: 0 5px;
+    font-size: 14px;
 }
 
 .rating-row img {
-    width: 28px;
-    height: 28px;
-    vertical-align: middle;
-    margin-right: 8px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 4px;
+}
+
+.stars {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 4px;
+}
+
+.stars img {
+    width: 16px;
+    height: 16px;
+}
+
+.rating-label {
+    font-size: 12px;
+    color: #333;
 }
 
 .rating-row.selected {
@@ -89,7 +114,7 @@ body {
 
 textarea {
     width: 100%;
-    max-width: 350px; /* Optional: Restricts width */
+    max-width: 350px;
     padding: 10px;
     border-radius: 6px;
     border: 1px solid #ccc;
@@ -97,16 +122,14 @@ textarea {
     resize: vertical;
     display: block;
     margin-left: auto;
-    margin-right: auto; /* Centers the textarea */
+    margin-right: auto;
 }
 
-/* Hide Exit and Return buttons */
 .btn-return,
 .btn-skip {
     display: none !important;
 }
 
-/* Submit button with image */
 #send-feedback {
     background: none;
     border: none;
@@ -120,7 +143,7 @@ textarea {
     cursor: pointer;
 }
 
-/* Success message styling */
 #success-message {
     text-align: center;
 }
+
