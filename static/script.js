@@ -65,8 +65,14 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(res => res.json())
             .then(data => {
                 removePreviousThinkingMessage();
-                appendMessage("bot", data.answer);
-                if (useVoice) speakResponse(data.answer);
+
+                let answer = data.answer?.trim();
+                if (!answer || answer.toLowerCase() === "no response.") {
+                    answer = languageData[currentLanguage].errorMessage;
+                }
+
+                appendMessage("bot", answer);
+                if (useVoice) speakResponse(answer);
             })
             .catch(() => {
                 removePreviousThinkingMessage();
