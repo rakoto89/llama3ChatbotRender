@@ -68,7 +68,6 @@ document.addEventListener("DOMContentLoaded", function () {
         appendMessage("user", text);
         userInput.value = "";
 
-        // Use translated "Thinking..." message
         appendMessage("bot", languageData[currentLanguage].thinkingMessage);
 
         fetch("/ask", {
@@ -108,6 +107,13 @@ document.addEventListener("DOMContentLoaded", function () {
             const transcript = event.results[0][0].transcript;
 
             appendMessage("user", transcript);
+
+            // Remove "Listening..." message if it's still showing
+            const lastBotMessage = document.querySelector(".bot-message:last-child");
+            if (lastBotMessage && lastBotMessage.textContent === languageData[currentLanguage].listeningMessage) {
+                lastBotMessage.remove();
+            }
+
             appendMessage("bot", languageData[currentLanguage].thinkingMessage);
 
             fetch("/ask", {
