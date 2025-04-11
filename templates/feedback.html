@@ -110,40 +110,5 @@
       <button data-lang="fr">Français</button>
       <button data-lang="zh">中文</button>
     </div>
-
-    <!-- Multilingual thank-you logic -->
-    <script>
-      const thankYouMessages = {
-        en: "Thank you for your feedback!",
-        es: "¡Gracias por tus comentarios!",
-        fr: "Merci pour vos commentaires !",
-        zh: "感谢您的反馈！"
-      };
-
-      function updateThankYouMessage(lang) {
-        const messageElement = document.getElementById('thank-you-text');
-        if (thankYouMessages[lang]) {
-          messageElement.textContent = thankYouMessages[lang];
-        } else {
-          messageElement.textContent = thankYouMessages['en'];
-        }
-      }
-
-      document.querySelectorAll('#language-options button').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const selectedLang = btn.getAttribute('data-lang');
-          localStorage.setItem('selectedLang', selectedLang);
-        });
-      });
-
-      document.getElementById('feedback-form').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const lang = localStorage.getItem('selectedLang') || 'en';
-        updateThankYouMessage(lang);
-        document.getElementById('success-message').style.display = 'block';
-        this.style.display = 'none';
-        if (typeof confetti === 'function') confetti();
-      });
-    </script>
 </body>
-</html> 
+</html>
