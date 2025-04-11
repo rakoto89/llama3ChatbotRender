@@ -159,6 +159,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
           const successMessage = document.getElementById("success-message");
           successMessage.style.display = "block";
+
+          document.getElementById("thank-you-text").textContent = translations[currentLanguage].success;
           successMessage.tabIndex = "0";
 
           successMessage.addEventListener("focus", () => {
