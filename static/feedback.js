@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function updateSubmitImage(lang) {
     const img = document.getElementById("submit-img");
     const imgMap = {
-      en: "Send_Feedback.png",
+      en: "Send_Feedback2.png",
       es: "Enviar_Comentarios.png",
       fr: "Soumettre.png",
       zh: "提交反馈.png"
