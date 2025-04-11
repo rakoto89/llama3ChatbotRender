@@ -123,7 +123,7 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         recognition.onerror = (event) => {
-            appendMessage("bot", "Recognition Error: " + event.error);
+            appendMessage("bot", "Sorry, I didn't catch that");
             recognition.stop();
         };
 
