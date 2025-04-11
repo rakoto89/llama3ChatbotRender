@@ -17,28 +17,56 @@ document.addEventListener("DOMContentLoaded", function () {
             chatbotTitle: "Opioid Awareness Chatbot",
             botMessage: "Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!",
             listeningMessage: "Listening...",
-            thinkingMessage: "Thinking..."
+            thinkingMessage: "Thinking...",
+            titles: {
+                home: "Home",
+                language: "Language Preferences",
+                feedback: "Feedback",
+                resources: "Resources",
+                exit: "Exit"
+            }
         },
         es: {
             placeholder: "Ingresa tu pregunta...",
             chatbotTitle: "Chatbot de Concientización sobre los Opioides",
             botMessage: "¡Bienvenido al Chatbot de Concientización sobre los Opioides! ¡Aquí aprenderás todo sobre los opioides!",
             listeningMessage: "Escuchando...",
-            thinkingMessage: "Pensando..."
+            thinkingMessage: "Pensando...",
+            titles: {
+                home: "Inicio",
+                language: "Preferencias de idioma",
+                feedback: "Comentarios",
+                resources: "Recursos",
+                exit: "Salir"
+            }
         },
         fr: {
             placeholder: "Entrez votre question...",
             chatbotTitle: "Chatbot de Sensibilisation aux Opioïdes",
             botMessage: "Bienvenue dans le chatbot de sensibilisation aux opioïdes ! Ici, vous apprendrez tout sur les opioïdes !",
             listeningMessage: "Écoute...",
-            thinkingMessage: "En réflexion..."
+            thinkingMessage: "En réflexion...",
+            titles: {
+                home: "Accueil",
+                language: "Préférences linguistiques",
+                feedback: "Commentaires",
+                resources: "Ressources",
+                exit: "Quitter"
+            }
         },
         zh: {
             placeholder: "输入您的问题...",
             chatbotTitle: "阿片类药物意识聊天机器人",
             botMessage: "欢迎使用阿片类药物意识聊天机器人！在这里，您将学习所有关于阿片类药物的知识！",
             listeningMessage: "倾听...",
-            thinkingMessage: "思考中..."
+            thinkingMessage: "思考中...",
+            titles: {
+                home: "首页",
+                language: "语言偏好",
+                feedback: "反馈",
+                resources: "资源",
+                exit: "退出"
+            }
         }
     };
 
@@ -108,7 +136,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
             appendMessage("user", transcript);
 
-            // Remove "Listening..." message if it's still showing
             const lastBotMessage = document.querySelector(".bot-message:last-child");
             if (lastBotMessage && lastBotMessage.textContent === languageData[currentLanguage].listeningMessage) {
                 lastBotMessage.remove();
@@ -194,7 +221,15 @@ document.addEventListener("DOMContentLoaded", function () {
             button.addEventListener("click", () => {
                 const selectedLang = button.getAttribute("data-lang");
                 localStorage.setItem("selectedLanguage", selectedLang);
-                location.reload(); // sync across pages
+
+                // ✅ Tooltip update only (no other changes)
+                document.querySelector('[title="Home"]').title = languageData[selectedLang].titles.home;
+                document.querySelector('[title="Language Preferences"]').title = languageData[selectedLang].titles.language;
+                document.querySelector('[title="Feedback"]').title = languageData[selectedLang].titles.feedback;
+                document.querySelector('[title="Resources"]').title = languageData[selectedLang].titles.resources;
+                document.querySelector('[title="Exit"]').title = languageData[selectedLang].titles.exit;
+
+                location.reload(); // keep to sync rest of page
             });
         });
     }
