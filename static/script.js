@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
             placeholder: "Enter your question...",
             chatbotTitle: "Opioid Awareness Chatbot",
             botMessage: "Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!",
-            listeningMessage: "Thinking..."
+            listeningMessage: "Listening..."
         },
         es: {
             placeholder: "Ingresa tu pregunta...",
