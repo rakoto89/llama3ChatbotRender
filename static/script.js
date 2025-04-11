@@ -164,7 +164,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (synth.speaking) {
             synth.cancel();
-            appendMessage("bot", "Voice output canceled.");
+            appendMessage("bot", "I have been asked to stop talking");
         }
     });
 
