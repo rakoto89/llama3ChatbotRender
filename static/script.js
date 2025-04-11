@@ -16,25 +16,25 @@ document.addEventListener("DOMContentLoaded", function () {
             placeholder: "Enter your question...",
             chatbotTitle: "Opioid Awareness Chatbot",
             botMessage: "Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!",
-            listeningMessage: "Thinking..."
+            listeningMessage: "Listening..."
         },
         es: {
             placeholder: "Ingresa tu pregunta...",
             chatbotTitle: "Chatbot de Concientización sobre los Opioides",
             botMessage: "¡Bienvenido al Chatbot de Concientización sobre los Opioides! ¡Aquí aprenderás todo sobre los opioides!",
-            listeningMessage: "Pensando..."
+            listeningMessage: "Escuchando..."
         },
         fr: {
             placeholder: "Entrez votre question...",
             chatbotTitle: "Chatbot de Sensibilisation aux Opioïdes",
             botMessage: "Bienvenue dans le chatbot de sensibilisation aux opioïdes ! Ici, vous apprendrez tout sur les opioïdes !",
-            listeningMessage: "En réflexion..."
+            listeningMessage: "Ecoute..."
         },
         zh: {
             placeholder: "输入您的问题...",
             chatbotTitle: "阿片类药物意识聊天机器人",
             botMessage: "欢迎使用阿片类药物意识聊天机器人！在这里，您将学习所有关于阿片类药物的知识！",
-            listeningMessage: "思考中..."
+            listeningMessage: "倾听..."
         }
     };
 
