@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
             placeholder: "Enter your question...",
             chatbotTitle: "Opioid Awareness Chatbot",
             botMessage: "Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!",
-            listeningMessage: "Listening..."
+            listeningMessage: "Thinking..."
         },
         es: {
             placeholder: "Ingresa tu pregunta...",
@@ -103,6 +103,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const transcript = event.results[0][0].transcript;
 
             appendMessage("user", transcript);
+            appendMessage("bot", languageData[currentLanguage].listeningMessage); // << ADDED LINE
 
             fetch("/ask", {
                 method: "POST",
@@ -111,11 +112,13 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .then(res => res.json())
             .then(data => {
+                document.querySelector(".bot-message:last-child").remove();
                 const response = data.answer || "Error: Could not get a response.";
                 appendMessage("bot", response);
                 speakText(response);
             })
             .catch(err => {
+                document.querySelector(".bot-message:last-child").remove();
                 appendMessage("bot", "Fetch Error: " + err);
             });
 
@@ -123,7 +126,7 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         recognition.onerror = (event) => {
-            appendMessage("bot", "Sorry, I didn't catch that");
+            appendMessage("bot", "Recognition Error: " + event.error);
             recognition.stop();
         };
 
