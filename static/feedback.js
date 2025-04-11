@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", function () {
       button.addEventListener("click", () => {
         const selectedLang = button.getAttribute("data-lang");
         localStorage.setItem("selectedLanguage", selectedLang);
-        location.reload();
+        applyLanguage(selectedLang); // Apply new language on this page without reload
       });
     });
   }
@@ -207,3 +207,4 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 });
+
