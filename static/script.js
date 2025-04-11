@@ -108,7 +108,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const transcript = event.results[0][0].transcript;
 
             appendMessage("user", transcript);
-            appendMessage("bot", languageData[currentLanguage].listeningMessage);
+            appendMessage("bot", languageData[currentLanguage].thinkingMessage);
 
             fetch("/ask", {
                 method: "POST",
