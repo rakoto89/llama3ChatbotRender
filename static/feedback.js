@@ -220,4 +220,3 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 });
-    
