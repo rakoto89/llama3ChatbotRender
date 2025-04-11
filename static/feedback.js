@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
   let lastInteractionWasKeyboard = false;
 
-  // Load language preference from localStorage
   let currentLanguage = localStorage.getItem("selectedLanguage") || "en";
 
   const translations = {
@@ -43,6 +42,19 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   };
 
+  function updateSubmitImage(lang) {
+    const img = document.getElementById("submit-img");
+    const imgMap = {
+      en: "Send_Feedback.png",
+      es: "Enviar_Comentarios.png",
+      fr: "Soumettre.png",
+      zh: "提交反馈.png"
+    };
+    if (img && imgMap[lang]) {
+      img.src = `/static/images/${imgMap[lang]}`;
+    }
+  }
+
   function applyLanguage(lang) {
     const t = translations[lang];
     document.getElementById("rate-experience").textContent = t.title;
@@ -52,6 +64,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".rating-label").forEach((label, i) => {
       label.textContent = t.ratingLabels[i];
     });
+    updateSubmitImage(lang); // <-- added here
     currentLanguage = lang;
   }
 
@@ -69,7 +82,7 @@ document.addEventListener("DOMContentLoaded", function () {
       button.addEventListener("click", () => {
         const selectedLang = button.getAttribute("data-lang");
         localStorage.setItem("selectedLanguage", selectedLang);
-        applyLanguage(selectedLang); // Apply new language on this page without reload
+        applyLanguage(selectedLang);
       });
     });
   }
@@ -207,4 +220,4 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 });
-
+    
