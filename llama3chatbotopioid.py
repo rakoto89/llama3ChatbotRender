@@ -11,7 +11,6 @@ from googletrans import Translator
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
 
-# === ENVIRONMENT VARIABLES ===
 LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions").strip()
 REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
 FEEDBACK_SECRET_KEY = os.environ.get("FEEDBACK_SECRET_KEY", "test-key")
@@ -29,7 +28,6 @@ db_config = {
 conversation_history = []
 conversation_context = {}
 
-# === PDF and EXCEL TEXT EXTRACTION ===
 def extract_text_from_pdf(pdf_path):
     text = ""
     with pdfplumber.open(pdf_path) as pdf:
@@ -78,7 +76,6 @@ def read_excel_as_text(excel_path):
     except Exception as e:
         return f"Error reading Excel: {str(e)}"
 
-# === Load PDFs and Excel ===
 pdf_folder = "pdfs"
 excel_files = [
     "KFF_Opioid_Overdose_Deaths_2022.xlsx",
@@ -104,7 +101,6 @@ all_table_text = extract_all_tables_first(pdf_folder)
 
 combined_text = f"{excel_text}\n\n{pdf_texts}\n\n{all_table_text}"[:12000]
 
-# === Keywords for Relevance Filter ===
 relevant_topics = [
     "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin",
     "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium",
@@ -121,22 +117,6 @@ relevant_topics = [
 def is_question_relevant(question):
     return any(topic in question.lower() for topic in relevant_topics)
 
-def search_excel(question):
-    if excel_df is not None:
-        question_lower = question.lower()
-        matches = []
-        for col in excel_df.columns:
-            if col.lower() in question_lower:
-                matches.append(col)
-        if matches:
-            result = ""
-            for match in matches:
-                result += f"\n--- Column: {match} ---\n"
-                result += excel_df[match].dropna().astype(str).to_string(index=False)[:12000]
-            return result.strip()
-    return None
-
-# === Llama 3 API Call with Translation Support ===
 def get_llama3_response(question, user_lang="en"):
     translator = Translator()
 
@@ -146,7 +126,6 @@ def get_llama3_response(question, user_lang="en"):
         print(f"Translation failed: {str(e)}")
         translated_question = question
 
-    # === Pronoun Resolution ===
     if conversation_history:
         last_user_msg = next((msg["content"] for msg in reversed(conversation_history) if msg["role"] == "user"), "")
         if any(pronoun in translated_question.lower() for pronoun in ["it", "they", "them", "this"]):
@@ -158,16 +137,10 @@ def get_llama3_response(question, user_lang="en"):
             dest=user_lang
         ).text
 
-    excel_result = search_excel(translated_question)
-    if excel_result:
-        return translator.translate(f"Based on the Excel data:\n\n{excel_result}", dest=user_lang).text
-
     conversation_history.append({"role": "user", "content": translated_question})
 
-    system_prompt = """
-You are an Opioid Awareness Chatbot created for Bowie State University.
-Only answer questions related to opioids, addiction, overdose, and treatment using the provided data.
-"""
+    system_prompt = """You are an Opioid Awareness Chatbot created for Bowie State University.
+Only answer questions related to opioids, addiction, overdose, and treatment using the provided data."""
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
@@ -191,7 +164,6 @@ Only answer questions related to opioids, addiction, overdose, and treatment usi
         content = data.get("choices", [{}])[0].get("message", {}).get("content", "No response.")
         conversation_history.append({"role": "assistant", "content": content})
 
-        # ✅ Translate the final answer back to user's preferred language
         translated_response = translator.translate(content.strip(), dest=user_lang).text
         return translated_response
 
@@ -199,7 +171,6 @@ Only answer questions related to opioids, addiction, overdose, and treatment usi
         print(f"OpenRouter API Error: {str(e)}")
         return f"ERROR: {str(e)}"
 
-# === Routes ===
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -208,7 +179,7 @@ def index():
 def ask():
     data = request.get_json()
     question = data.get("question", "")
-    lang = data.get("language", "en")  # ✅ Accept user's preferred language
+    lang = data.get("language", "en")
     if not question:
         return jsonify({"error": "No question provided"}), 400
     answer = get_llama3_response(question, lang)
@@ -253,7 +224,6 @@ def check_env():
         "DATABASE_URL_SET": bool(DATABASE_URL)
     })
 
-# === Run App ===
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
