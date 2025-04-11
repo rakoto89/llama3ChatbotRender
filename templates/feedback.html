@@ -22,9 +22,6 @@
         <div class="icon" onclick="location.href='https://www.bowiestate.edu/campus-life/health-and-wellness/'" title="Resources">
             <img src="{{ url_for('static', filename='images/Resources.png') }}" alt="Resources" class="sidebar-icon no-filter">
         </div>
-        <div class="icon" onclick="location.href='https://www.bowiestate.edu'" title="Exit">
-            <img src="{{ url_for('static', filename='images/Exit.png') }}" alt="Exit" class="sidebar-icon">
-        </div>
     </div>
 
     <!-- Main Feedback Card -->
@@ -97,7 +94,7 @@
         </form>
 
         <div id="success-message" style="display: none;">
-          <h2>Thank you for your feedback!</h2>
+          <h2 id="thank-you-text">Thank you for your feedback!</h2>
         </div>
       </div>
     </div>
@@ -106,12 +103,47 @@
     <script src="{{ url_for('static', filename='feedback.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-    <!-- Language options dropdown (just added) -->
+    <!-- Language options dropdown -->
     <div id="language-options" class="language-options" style="display: none; position: fixed; top: 100px; left: 80px; background: #fff; border: 1px solid #ccc; padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 999;">
       <button data-lang="en">English</button>
       <button data-lang="es">Español</button>
       <button data-lang="fr">Français</button>
       <button data-lang="zh">中文</button>
     </div>
+
+    <!-- Multilingual thank-you logic -->
+    <script>
+      const thankYouMessages = {
+        en: "Thank you for your feedback!",
+        es: "¡Gracias por tus comentarios!",
+        fr: "Merci pour vos commentaires !",
+        zh: "感谢您的反馈！"
+      };
+
+      function updateThankYouMessage(lang) {
+        const messageElement = document.getElementById('thank-you-text');
+        if (thankYouMessages[lang]) {
+          messageElement.textContent = thankYouMessages[lang];
+        } else {
+          messageElement.textContent = thankYouMessages['en'];
+        }
+      }
+
+      document.querySelectorAll('#language-options button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const selectedLang = btn.getAttribute('data-lang');
+          localStorage.setItem('selectedLang', selectedLang);
+        });
+      });
+
+      document.getElementById('feedback-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const lang = localStorage.getItem('selectedLang') || 'en';
+        updateThankYouMessage(lang);
+        document.getElementById('success-message').style.display = 'block';
+        this.style.display = 'none';
+        if (typeof confetti === 'function') confetti();
+      });
+    </script>
 </body>
-</html>
+</html> 
