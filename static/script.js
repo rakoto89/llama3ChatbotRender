@@ -222,20 +222,21 @@ document.addEventListener("DOMContentLoaded", function () {
                 const selectedLang = button.getAttribute("data-lang");
                 localStorage.setItem("selectedLanguage", selectedLang);
 
-                // ✅ Tooltip update only (no other changes)
-                document.querySelector('[title="Home"]').title = languageData[selectedLang].titles.home;
-                document.querySelector('[title="Language Preferences"]').title = languageData[selectedLang].titles.language;
-                document.querySelector('[title="Feedback"]').title = languageData[selectedLang].titles.feedback;
-                document.querySelector('[title="Resources"]').title = languageData[selectedLang].titles.resources;
-                document.querySelector('[title="Exit"]').title = languageData[selectedLang].titles.exit;
-
-                location.reload(); // keep to sync rest of page
+                // No need to manually update anything here — reload will apply it all
+                location.reload();
             });
         });
     }
 
-    // Initial apply
+    // Initial apply (on page load after reload)
     document.querySelector(".chat-header").textContent = languageData[currentLanguage].chatbotTitle;
     userInput.placeholder = languageData[currentLanguage].placeholder;
     document.querySelector(".bot-message").textContent = languageData[currentLanguage].botMessage;
+
+    // ✅ Apply tooltip translations after reload
+    document.querySelector('[title="Home"]').title = languageData[currentLanguage].titles.home;
+    document.querySelector('[title="Language Preferences"]').title = languageData[currentLanguage].titles.language;
+    document.querySelector('[title="Feedback"]').title = languageData[currentLanguage].titles.feedback;
+    document.querySelector('[title="Resources"]').title = languageData[currentLanguage].titles.resources;
+    document.querySelector('[title="Exit"]').title = languageData[currentLanguage].titles.exit;
 });
