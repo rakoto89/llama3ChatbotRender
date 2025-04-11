@@ -1,6 +1,8 @@
 document.addEventListener("DOMContentLoaded", function () {
   let lastInteractionWasKeyboard = false;
-  let currentLanguage = 'en';
+
+  // Load language preference from localStorage
+  let currentLanguage = localStorage.getItem("selectedLanguage") || "en";
 
   const translations = {
     en: {
@@ -53,6 +55,8 @@ document.addEventListener("DOMContentLoaded", function () {
     currentLanguage = lang;
   }
 
+  applyLanguage(currentLanguage);
+
   const langBtn = document.getElementById("lang-btn");
   const langOptions = document.getElementById("language-options");
 
@@ -64,13 +68,12 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll("#language-options button").forEach(button => {
       button.addEventListener("click", () => {
         const selectedLang = button.getAttribute("data-lang");
-        applyLanguage(selectedLang);
-        langOptions.style.display = "none";
+        localStorage.setItem("selectedLanguage", selectedLang);
+        location.reload();
       });
     });
   }
 
-  // Detect Tab vs Mouse
   window.addEventListener("keydown", (e) => {
     if (e.key === "Tab") {
       lastInteractionWasKeyboard = true;
@@ -93,6 +96,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!lastInteractionWasKeyboard) return;
 
       let text = "";
+
       if (el.id === "rate-experience") {
         text = translations[currentLanguage].title;
       } else if (el.classList.contains("rating-row")) {
@@ -154,20 +158,18 @@ document.addEventListener("DOMContentLoaded", function () {
           exitButton.textContent = translations[currentLanguage].exit;
           exitButton.id = "skip-feedback";
           exitButton.tabIndex = "0";
-          Object.assign(exitButton.style, {
-            backgroundColor: "red",
-            color: "white",
-            padding: "10px 20px",
-            border: "none",
-            cursor: "pointer",
-            fontSize: "16px",
-            borderRadius: "5px",
-            marginTop: "20px",
-            display: "block",
-            margin: "20px auto",
-            textAlign: "center",
-            width: "fit-content"
-          });
+          exitButton.style.backgroundColor = "red";
+          exitButton.style.color = "white";
+          exitButton.style.padding = "10px 20px";
+          exitButton.style.border = "none";
+          exitButton.style.cursor = "pointer";
+          exitButton.style.fontSize = "16px";
+          exitButton.style.borderRadius = "5px";
+          exitButton.style.marginTop = "20px";
+          exitButton.style.display = "block";
+          exitButton.style.margin = "20px auto";
+          exitButton.style.textAlign = "center";
+          exitButton.style.width = "fit-content";
 
           exitButton.addEventListener("focus", () => {
             if (lastInteractionWasKeyboard) {
@@ -205,5 +207,3 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 });
-
-          
