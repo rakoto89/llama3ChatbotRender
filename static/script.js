@@ -16,25 +16,29 @@ document.addEventListener("DOMContentLoaded", function () {
             placeholder: "Enter your question...",
             chatbotTitle: "Opioid Awareness Chatbot",
             botMessage: "Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!",
-            listeningMessage: "Listening..."
+            listeningMessage: "Listening...",
+            thinkingMessage: "Thinking..."
         },
         es: {
             placeholder: "Ingresa tu pregunta...",
             chatbotTitle: "Chatbot de Concientización sobre los Opioides",
             botMessage: "¡Bienvenido al Chatbot de Concientización sobre los Opioides! ¡Aquí aprenderás todo sobre los opioides!",
-            listeningMessage: "Escuchando..."
+            listeningMessage: "Escuchando...",
+            thinkingMessage: "Pensando..."
         },
         fr: {
             placeholder: "Entrez votre question...",
             chatbotTitle: "Chatbot de Sensibilisation aux Opioïdes",
             botMessage: "Bienvenue dans le chatbot de sensibilisation aux opioïdes ! Ici, vous apprendrez tout sur les opioïdes !",
-            listeningMessage: "Ecoute..."
+            listeningMessage: "Écoute...",
+            thinkingMessage: "En réflexion..."
         },
         zh: {
             placeholder: "输入您的问题...",
             chatbotTitle: "阿片类药物意识聊天机器人",
             botMessage: "欢迎使用阿片类药物意识聊天机器人！在这里，您将学习所有关于阿片类药物的知识！",
-            listeningMessage: "倾听..."
+            listeningMessage: "倾听...",
+            thinkingMessage: "思考中..."
         }
     };
 
@@ -64,7 +68,8 @@ document.addEventListener("DOMContentLoaded", function () {
         appendMessage("user", text);
         userInput.value = "";
 
-        appendMessage("bot", languageData[currentLanguage].listeningMessage);
+        // Use translated "Thinking..." message
+        appendMessage("bot", languageData[currentLanguage].thinkingMessage);
 
         fetch("/ask", {
             method: "POST",
@@ -103,7 +108,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const transcript = event.results[0][0].transcript;
 
             appendMessage("user", transcript);
-            appendMessage("bot", languageData[currentLanguage].listeningMessage); // << ADDED LINE
+            appendMessage("bot", languageData[currentLanguage].listeningMessage);
 
             fetch("/ask", {
                 method: "POST",
