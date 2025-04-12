@@ -12,7 +12,6 @@ document.addEventListener("DOMContentLoaded", function () {
     let isMuted = false; // Tracks mute state
 
     const languageData = {
-        // Language Data (No changes here except for the addition of zh translations)
         en: {
             placeholder: "Enter your question...",
             chatbotTitle: "Opioid Awareness Chatbot",
@@ -55,6 +54,28 @@ document.addEventListener("DOMContentLoaded", function () {
                 exit: "Salir",
                 send: "Enviar tu mensaje",
                 voice: "Haz tu pregunta con la voz"
+            }
+        },
+        fr: {
+            placeholder: "Entrez votre question...",
+            chatbotTitle: "Chatbot de sensibilisation aux opioïdes",
+            botMessage: "Bienvenue sur le Chatbot de sensibilisation aux opioïdes ! Ici, vous apprendrez tout sur les opioïdes !",
+            listeningMessage: "Écoute...",
+            thinkingMessage: "Réflexion...",
+            systemMessages: {
+                stopListening: "On m'a demandé d'arrêter d'écouter.",
+                stopTalking: "On m'a demandé d'arrêter de parler.",
+                noSpeech: "Erreur de reconnaissance : pas de discours",
+                aborted: "Erreur de reconnaissance : interrompu"
+            },
+            titles: {
+                home: "Accueil",
+                language: "Préférences linguistiques",
+                feedback: "Retour d'information",
+                resources: "Ressources",
+                exit: "Quitter",
+                send: "Envoyez votre message",
+                voice: "Posez une question avec votre voix"
             }
         },
         zh: {
@@ -268,5 +289,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
-});        
+});
+                 
     
