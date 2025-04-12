@@ -10,6 +10,7 @@
     <!-- Sidebar with images -->
     <div class="sidebar">
         <img src="{{ url_for('static', filename='images/bowie_state_white_logo.png') }}" alt="Bowie State Logo" class="top-right-image">
+
         <div class="icon" onclick="location.href='/'" title="Home">
             <img src="{{ url_for('static', filename='images/Home.png') }}" alt="Home Icon" class="sidebar-icon">
         </div>
@@ -25,6 +26,11 @@
         <div class="icon" onclick="location.href='https://www.bowiestate.edu'" title="Exit">
             <img src="{{ url_for('static', filename='images/Exit.png') }}" alt="Exit" class="sidebar-icon">
         </div>
+
+        <!-- Volume/Mute Toggle Button (New) -->
+        <div class="icon" id="volume-toggle" title="Mute">
+            <img id="volume-icon" src="{{ url_for('static', filename='images/volume.png') }}" alt="Volume Icon" class="sidebar-icon">
+        </div>
     </div>
 
     <div class="chat-container">
@@ -39,10 +45,6 @@
             </button>
             <button id="voice-btn" title="Voice">
                 <img src="{{ url_for('static', filename='images/voice.png') }}" alt="Voice">
-            </button>
-            <!-- Volume toggle button -->
-            <button id="volume-toggle" title="Mute">
-                <img id="volume-icon" src="{{ url_for('static', filename='images/volume.png') }}" alt="Volume Icon">
             </button>
         </div>
     </div>
