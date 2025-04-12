@@ -18,6 +18,11 @@ document.addEventListener("DOMContentLoaded", function () {
             botMessage: "Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!",
             listeningMessage: "Listening...",
             thinkingMessage: "Thinking...",
+            systemMessages: {
+                stopListening: "I have been asked to stop listening.",
+                stopTalking: "I have been asked to stop talking.",
+                noSpeech: "Recognition error: no speech"
+            },
             titles: {
                 home: "Home",
                 language: "Language Preferences",
@@ -32,6 +37,11 @@ document.addEventListener("DOMContentLoaded", function () {
             botMessage: "¡Bienvenido al Chatbot de Concientización sobre los Opioides! ¡Aquí aprenderás todo sobre los opioides!",
             listeningMessage: "Escuchando...",
             thinkingMessage: "Pensando...",
+            systemMessages: {
+                stopListening: "Se me ha pedido que deje de escuchar.",
+                stopTalking: "Se me ha pedido que deje de hablar.",
+                noSpeech: "Error de reconocimiento: sin voz"
+            },
             titles: {
                 home: "Inicio",
                 language: "Preferencias de idioma",
@@ -46,6 +56,11 @@ document.addEventListener("DOMContentLoaded", function () {
             botMessage: "Bienvenue dans le chatbot de sensibilisation aux opioïdes ! Ici, vous apprendrez tout sur les opioïdes !",
             listeningMessage: "Écoute...",
             thinkingMessage: "En réflexion...",
+            systemMessages: {
+                stopListening: "On m'a demandé d'arrêter d'écouter.",
+                stopTalking: "On m'a demandé d'arrêter de parler.",
+                noSpeech: "Erreur de reconnaissance : aucun discours détecté"
+            },
             titles: {
                 home: "Accueil",
                 language: "Préférences linguistiques",
@@ -60,6 +75,11 @@ document.addEventListener("DOMContentLoaded", function () {
             botMessage: "欢迎使用阿片类药物意识聊天机器人！在这里，您将学习所有关于阿片类药物的知识！",
             listeningMessage: "倾听...",
             thinkingMessage: "思考中...",
+            systemMessages: {
+                stopListening: "我被要求停止聆听。",
+                stopTalking: "我被要求停止说话。",
+                noSpeech: "识别错误：无语音输入"
+            },
             titles: {
                 home: "首页",
                 language: "语言偏好",
@@ -164,7 +184,11 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         recognition.onerror = (event) => {
-            appendMessage("bot", "Recognition Error: " + event.error);
+            if (event.error === "no-speech") {
+                appendMessage("bot", languageData[currentLanguage].systemMessages.noSpeech);
+            } else {
+                appendMessage("bot", "Recognition Error: " + event.error);
+            }
             recognition.stop();
         };
 
@@ -200,12 +224,12 @@ document.addEventListener("DOMContentLoaded", function () {
         if (recognition && usingVoice) {
             recognition.abort();
             usingVoice = false;
-            appendMessage("bot", "I have been asked to stop listening.");
+            appendMessage("bot", languageData[currentLanguage].systemMessages.stopListening);
         }
 
         if (synth.speaking) {
             synth.cancel();
-            appendMessage("bot", "I have been asked to stop talking");
+            appendMessage("bot", languageData[currentLanguage].systemMessages.stopTalking);
         }
     });
 
@@ -221,19 +245,15 @@ document.addEventListener("DOMContentLoaded", function () {
             button.addEventListener("click", () => {
                 const selectedLang = button.getAttribute("data-lang");
                 localStorage.setItem("selectedLanguage", selectedLang);
-
-                // No need to manually update anything here — reload will apply it all
                 location.reload();
             });
         });
     }
 
-    // Initial apply (on page load after reload)
     document.querySelector(".chat-header").textContent = languageData[currentLanguage].chatbotTitle;
     userInput.placeholder = languageData[currentLanguage].placeholder;
     document.querySelector(".bot-message").textContent = languageData[currentLanguage].botMessage;
 
-    // ✅ Apply tooltip translations after reload
     document.querySelector('[title="Home"]').title = languageData[currentLanguage].titles.home;
     document.querySelector('[title="Language Preferences"]').title = languageData[currentLanguage].titles.language;
     document.querySelector('[title="Feedback"]').title = languageData[currentLanguage].titles.feedback;
