@@ -183,7 +183,7 @@ document.addEventListener("DOMContentLoaded", function () {
         formData.append("feedback", feedback);
 
         // Add audio element to play the success sound
-        const successAudio = new Audio('/static/success-sound.mp3');
+        const successAudio = new Audio('/static/Voicy_Confetti.mp3');
 
         fetch("/feedback", {
             method: "POST",
