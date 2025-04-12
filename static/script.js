@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let usingVoice = false;
     const synth = window.speechSynthesis;
     let currentLanguage = localStorage.getItem("selectedLanguage") || 'en';
+    let isMuted = false; // For mute toggle
 
     const languageData = {
         en: {
@@ -108,11 +109,11 @@ document.addEventListener("DOMContentLoaded", function () {
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
 
-        if (sender === "bot" && usingVoice) speakText(message);
+        if (sender === "bot" && usingVoice && !isMuted) speakText(message);
     }
 
     function speakText(text, callback) {
-        if (!text.trim()) return;
+        if (!text.trim() || isMuted) return;
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = currentLanguage;
         utterance.onend = () => {
@@ -142,7 +143,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.querySelector(".bot-message:last-child").remove();
             const response = data.answer || "Error: Could not get a response.";
             appendMessage("bot", response);
-            if (usingVoice) speakText(response);
+            if (usingVoice && !isMuted) speakText(response);
         })
         .catch(() => {
             document.querySelector(".bot-message:last-child").remove();
@@ -184,7 +185,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.querySelector(".bot-message:last-child").remove();
                 const response = data.answer || "Error: Could not get a response.";
                 appendMessage("bot", response);
-                speakText(response);
+                if (!isMuted) speakText(response);
             })
             .catch(err => {
                 document.querySelector(".bot-message:last-child").remove();
@@ -267,7 +268,24 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelector('[title="Resources"]').title = languageData[currentLanguage].titles.resources;
     document.querySelector('[title="Exit"]').title = languageData[currentLanguage].titles.exit;
 
-    // ✅ Update tooltips for send and voice buttons
     document.getElementById("send-btn").title = languageData[currentLanguage].titles.send;
     document.getElementById("voice-btn").title = languageData[currentLanguage].titles.voice;
+
+    // Volume/Mute toggle functionality
+    const volumeToggle = document.getElementById("volume-toggle");
+    const volumeIcon = document.getElementById("volume-icon");
+
+    if (volumeToggle && volumeIcon) {
+        volumeToggle.addEventListener("click", () => {
+            isMuted = !isMuted;
+            if (isMuted) {
+                volumeIcon.src = "/static/images/mute.png";
+                volumeToggle.title = "Unmute";
+                synth.cancel(); // Stop current speech
+            } else {
+                volumeIcon.src = "/static/images/volume.png";
+                volumeToggle.title = "Mute";
+            }
+        });
+    }
 });
