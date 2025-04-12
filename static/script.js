@@ -28,7 +28,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 language: "Language Preferences",
                 feedback: "Feedback",
                 resources: "Resources",
-                exit: "Exit"
+                exit: "Exit",
+                send: "Send your message",
+                voice: "Ask using your voice"
             }
         },
         es: {
@@ -48,7 +50,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 language: "Preferencias de idioma",
                 feedback: "Comentarios",
                 resources: "Recursos",
-                exit: "Salir"
+                exit: "Salir",
+                send: "Enviar tu mensaje",
+                voice: "Haz tu pregunta con la voz"
             }
         },
         fr: {
@@ -68,7 +72,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 language: "Préférences linguistiques",
                 feedback: "Commentaires",
                 resources: "Ressources",
-                exit: "Quitter"
+                exit: "Quitter",
+                send: "Envoyer votre message",
+                voice: "Posez votre question à l’oral"
             }
         },
         zh: {
@@ -88,7 +94,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 language: "语言偏好",
                 feedback: "反馈",
                 resources: "资源",
-                exit: "退出"
+                exit: "退出",
+                send: "发送您的消息",
+                voice: "使用语音提问"
             }
         }
     };
@@ -221,7 +229,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (synth.speaking) synth.cancel();
             if (recognition) recognition.abort();
             usingVoice = false;
-            return; // <<< Removed the duplicate message here
+            return;
         }
 
         usingVoice = true;
@@ -258,4 +266,8 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelector('[title="Feedback"]').title = languageData[currentLanguage].titles.feedback;
     document.querySelector('[title="Resources"]').title = languageData[currentLanguage].titles.resources;
     document.querySelector('[title="Exit"]').title = languageData[currentLanguage].titles.exit;
+
+    // ✅ Update tooltips for send and voice buttons
+    document.getElementById("send-btn").title = languageData[currentLanguage].titles.send;
+    document.getElementById("voice-btn").title = languageData[currentLanguage].titles.voice;
 });
