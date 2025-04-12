@@ -196,10 +196,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         usingVoice = true;
         appendMessage("bot", languageData[currentLanguage].listeningMessage);
-        beep.play();
-        beep.onended = () => {
-            startVoiceRecognition();
-        };
+        beep.play(); // Play the beep once
+        startVoiceRecognition(); // Start recognition immediately after beep
     });
 
     const langBtn = document.getElementById("lang-btn");
