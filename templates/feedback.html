@@ -116,5 +116,25 @@
       <button data-lang="fr">Français</button>
       <button data-lang="zh">中文</button>
     </div>
+<script>
+  // Volume/Mute toggle
+  document.addEventListener("DOMContentLoaded", function () {
+      const volumeToggle = document.getElementById("volume-toggle");
+      const volumeIcon = document.getElementById("volume-icon");
+      let isMuted = false;
+
+      volumeToggle.addEventListener("click", () => {
+          isMuted = !isMuted;
+          if (isMuted) {
+              volumeIcon.src = "/static/images/mute.png";
+              volumeToggle.title = "Unmute";
+              window.speechSynthesis.cancel(); // Stop speaking if needed
+          } else {
+              volumeIcon.src = "/static/images/volume.png";
+              volumeToggle.title = "Mute";
+          }
+      });
+  });
+</script>
 </body>
 </html>
