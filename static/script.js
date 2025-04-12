@@ -21,7 +21,8 @@ document.addEventListener("DOMContentLoaded", function () {
             systemMessages: {
                 stopListening: "I have been asked to stop listening.",
                 stopTalking: "I have been asked to stop talking.",
-                noSpeech: "Recognition error: no speech"
+                noSpeech: "Recognition error: no speech",
+                aborted: "Recognition error: aborted"
             },
             titles: {
                 home: "Home",
@@ -40,7 +41,8 @@ document.addEventListener("DOMContentLoaded", function () {
             systemMessages: {
                 stopListening: "Se me ha pedido que deje de escuchar.",
                 stopTalking: "Se me ha pedido que deje de hablar.",
-                noSpeech: "Error de reconocimiento: sin voz"
+                noSpeech: "Error de reconocimiento: sin voz",
+                aborted: "Error de reconocimiento: cancelado"
             },
             titles: {
                 home: "Inicio",
@@ -59,7 +61,8 @@ document.addEventListener("DOMContentLoaded", function () {
             systemMessages: {
                 stopListening: "On m'a demandé d'arrêter d'écouter.",
                 stopTalking: "On m'a demandé d'arrêter de parler.",
-                noSpeech: "Erreur de reconnaissance : aucun discours détecté"
+                noSpeech: "Erreur de reconnaissance : aucun discours détecté",
+                aborted: "Erreur de reconnaissance : annulée"
             },
             titles: {
                 home: "Accueil",
@@ -78,7 +81,8 @@ document.addEventListener("DOMContentLoaded", function () {
             systemMessages: {
                 stopListening: "我被要求停止聆听。",
                 stopTalking: "我被要求停止说话。",
-                noSpeech: "识别错误：无语音输入"
+                noSpeech: "识别错误：无语音输入",
+                aborted: "识别错误：已中止"
             },
             titles: {
                 home: "首页",
@@ -186,6 +190,8 @@ document.addEventListener("DOMContentLoaded", function () {
         recognition.onerror = (event) => {
             if (event.error === "no-speech") {
                 appendMessage("bot", languageData[currentLanguage].systemMessages.noSpeech);
+            } else if (event.error === "aborted") {
+                appendMessage("bot", languageData[currentLanguage].systemMessages.aborted);
             } else {
                 appendMessage("bot", "Recognition Error: " + event.error);
             }
