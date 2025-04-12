@@ -216,14 +216,12 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // ✅ Voice button toggle logic updated
     voiceBtn.addEventListener("click", () => {
         if (synth.speaking || usingVoice) {
             if (synth.speaking) synth.cancel();
             if (recognition) recognition.abort();
             usingVoice = false;
-            appendMessage("bot", languageData[currentLanguage].systemMessages.aborted);
-            return;
+            return; // <<< Removed the duplicate message here
         }
 
         usingVoice = true;
