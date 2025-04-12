@@ -3,7 +3,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
-    const cancelVoiceBtn = document.getElementById("cancel-voice-btn");
     const beep = new Audio("/static/beep2.mp3");
 
     let recognition;
@@ -217,12 +216,13 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // ✅ Voice button now toggles speech off if already talking
+    // ✅ Voice button toggle logic updated
     voiceBtn.addEventListener("click", () => {
-        if (synth.speaking) {
-            synth.cancel();
-            appendMessage("bot", languageData[currentLanguage].systemMessages.stopTalking);
+        if (synth.speaking || usingVoice) {
+            if (synth.speaking) synth.cancel();
+            if (recognition) recognition.abort();
             usingVoice = false;
+            appendMessage("bot", languageData[currentLanguage].systemMessages.aborted);
             return;
         }
 
@@ -232,19 +232,6 @@ document.addEventListener("DOMContentLoaded", function () {
         beep.onended = () => {
             startVoiceRecognition();
         };
-    });
-
-    cancelVoiceBtn.addEventListener("click", () => {
-        if (recognition && usingVoice) {
-            recognition.abort();
-            usingVoice = false;
-            appendMessage("bot", languageData[currentLanguage].systemMessages.stopListening);
-        }
-
-        if (synth.speaking) {
-            synth.cancel();
-            appendMessage("bot", languageData[currentLanguage].systemMessages.stopTalking);
-        }
     });
 
     const langBtn = document.getElementById("lang-btn");
