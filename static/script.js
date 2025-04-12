@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let isMuted = false; // Tracks mute state
 
     const languageData = {
+        // Language Data (No changes here)
         en: {
             placeholder: "Enter your question...",
             chatbotTitle: "Opioid Awareness Chatbot",
@@ -56,50 +57,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 voice: "Haz tu pregunta con la voz"
             }
         },
-        fr: {
-            placeholder: "Entrez votre question...",
-            chatbotTitle: "Chatbot de Sensibilisation aux Opioïdes",
-            botMessage: "Bienvenue dans le chatbot de sensibilisation aux opioïdes ! Ici, vous apprendrez tout sur les opioïdes !",
-            listeningMessage: "Écoute...",
-            thinkingMessage: "En réflexion...",
-            systemMessages: {
-                stopListening: "On m'a demandé d'arrêter d'écouter.",
-                stopTalking: "On m'a demandé d'arrêter de parler.",
-                noSpeech: "Erreur de reconnaissance : aucun discours détecté",
-                aborted: "Erreur de reconnaissance : annulée"
-            },
-            titles: {
-                home: "Accueil",
-                language: "Préférences linguistiques",
-                feedback: "Commentaires",
-                resources: "Ressources",
-                exit: "Quitter",
-                send: "Envoyer votre message",
-                voice: "Posez votre question à l’oral"
-            }
-        },
-        zh: {
-            placeholder: "输入您的问题...",
-            chatbotTitle: "阿片类药物意识聊天机器人",
-            botMessage: "欢迎使用阿片类药物意识聊天机器人！在这里，您将学习所有关于阿片类药物的知识！",
-            listeningMessage: "倾听...",
-            thinkingMessage: "思考中...",
-            systemMessages: {
-                stopListening: "我被要求停止聆听。",
-                stopTalking: "我被要求停止说话。",
-                noSpeech: "识别错误：无语音输入",
-                aborted: "识别错误：已中止"
-            },
-            titles: {
-                home: "首页",
-                language: "语言偏好",
-                feedback: "反馈",
-                resources: "资源",
-                exit: "退出",
-                send: "发送您的消息",
-                voice: "使用语音提问"
-            }
-        }
+        // Add other languages here (fr, zh, etc.)
     };
 
     function appendMessage(sender, message) {
@@ -162,6 +120,10 @@ document.addEventListener("DOMContentLoaded", function () {
         recognition.lang = currentLanguage;
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
+
+        recognition.onstart = () => {
+            beep.play(); // Beep when recording starts
+        };
 
         recognition.onresult = (event) => {
             const transcript = event.results[0][0].transcript;
@@ -287,4 +249,4 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
-}); 
+});
