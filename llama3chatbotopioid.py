@@ -28,6 +28,11 @@ db_config = {
 conversation_history = []
 conversation_context = {}
 
+# NEW: Normalize Chinese codes
+def normalize_language_code(lang):
+    zh_map = {'zh': 'zh-CN', 'zh-cn': 'zh-CN', 'zh-tw': 'zh-TW'}
+    return zh_map.get(lang.lower(), lang)
+
 def extract_text_from_pdf(pdf_path):
     text = ""
     with pdfplumber.open(pdf_path) as pdf:
@@ -118,6 +123,7 @@ def is_question_relevant(question):
     return any(topic in question.lower() for topic in relevant_topics)
 
 def get_llama3_response(question, user_lang="en"):
+    user_lang = normalize_language_code(user_lang)
     translator = Translator()
 
     try:
@@ -132,10 +138,14 @@ def get_llama3_response(question, user_lang="en"):
             translated_question = f"{last_user_msg} -> {translated_question}"
 
     if not is_question_relevant(translated_question):
-        return translator.translate(
-            "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment.",
-            dest=user_lang
-        ).text
+        try:
+            return translator.translate(
+                "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment.",
+                dest=user_lang
+            ).text
+        except Exception as e:
+            print(f"Translation fallback failed: {str(e)}")
+            return "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment."
 
     conversation_history.append({"role": "user", "content": translated_question})
 
@@ -164,8 +174,11 @@ Only answer questions related to opioids, addiction, overdose, and treatment usi
         content = data.get("choices", [{}])[0].get("message", {}).get("content", "No response.")
         conversation_history.append({"role": "assistant", "content": content})
 
-        translated_response = translator.translate(content.strip(), dest=user_lang).text
-        return translated_response
+        try:
+            return translator.translate(content.strip(), dest=user_lang).text
+        except Exception as e:
+            print(f"Translation of response failed: {str(e)}")
+            return content.strip()
 
     except Exception as e:
         print(f"OpenRouter API Error: {str(e)}")
@@ -179,7 +192,7 @@ def index():
 def ask():
     data = request.get_json()
     question = data.get("question", "")
-    lang = data.get("language", "en")
+    lang = normalize_language_code(data.get("language", "en"))
     if not question:
         return jsonify({"error": "No question provided"}), 400
     answer = get_llama3_response(question, lang)
@@ -189,7 +202,7 @@ def ask():
 def translate():
     data = request.json
     text = data.get("text", "")
-    lang = data.get("target_lang", "en")
+    lang = normalize_language_code(data.get("target_lang", "en"))
     try:
         translation = Translator().translate(text, dest=lang)
         return jsonify({"translated_text": translation.text})
