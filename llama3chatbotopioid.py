@@ -28,7 +28,6 @@ db_config = {
 conversation_history = []
 conversation_context = {}
 
-# NEW: Normalize Chinese codes
 def normalize_language_code(lang):
     zh_map = {'zh': 'zh-CN', 'zh-cn': 'zh-CN', 'zh-tw': 'zh-TW'}
     return zh_map.get(lang.lower(), lang)
@@ -122,6 +121,7 @@ relevant_topics = [
 def is_question_relevant(question):
     return any(topic in question.lower() for topic in relevant_topics)
 
+# === FIXED FUNCTION ===
 def get_llama3_response(question, user_lang="en"):
     user_lang = normalize_language_code(user_lang)
     translator = Translator()
@@ -132,11 +132,7 @@ def get_llama3_response(question, user_lang="en"):
         print(f"Translation failed: {str(e)}")
         translated_question = question
 
-    if conversation_history:
-        last_user_msg = next((msg["content"] for msg in reversed(conversation_history) if msg["role"] == "user"), "")
-        if any(pronoun in translated_question.lower() for pronoun in ["it", "they", "them", "this"]):
-            translated_question = f"{last_user_msg} -> {translated_question}"
-
+    # moved relevance check here to always run on final question
     if not is_question_relevant(translated_question):
         try:
             return translator.translate(
@@ -146,6 +142,11 @@ def get_llama3_response(question, user_lang="en"):
         except Exception as e:
             print(f"Translation fallback failed: {str(e)}")
             return "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment."
+
+    if conversation_history:
+        last_user_msg = next((msg["content"] for msg in reversed(conversation_history) if msg["role"] == "user"), "")
+        if any(pronoun in translated_question.lower() for pronoun in ["it", "they", "them", "this"]):
+            translated_question = f"{last_user_msg} -> {translated_question}"
 
     conversation_history.append({"role": "user", "content": translated_question})
 
@@ -177,7 +178,7 @@ Only answer questions related to opioids, addiction, overdose, and treatment usi
         try:
             return translator.translate(content.strip(), dest=user_lang).text
         except Exception as e:
-            print(f"Translation of response failed: {str(e)}")
+            print(f"Response translation failed: {str(e)}")
             return content.strip()
 
     except Exception as e:
