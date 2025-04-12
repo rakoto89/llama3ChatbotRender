@@ -217,7 +217,15 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    // ✅ Voice button now toggles speech off if already talking
     voiceBtn.addEventListener("click", () => {
+        if (synth.speaking) {
+            synth.cancel();
+            appendMessage("bot", languageData[currentLanguage].systemMessages.stopTalking);
+            usingVoice = false;
+            return;
+        }
+
         usingVoice = true;
         appendMessage("bot", languageData[currentLanguage].listeningMessage);
         beep.play();
