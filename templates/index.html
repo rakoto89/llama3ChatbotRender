@@ -72,11 +72,11 @@
             volumeToggle.addEventListener("click", () => {
                 isMuted = !isMuted;
                 if (isMuted) {
-                    volumeIcon.src = "/static/images/mute_button.png";
+                    volumeIcon.src = "/static/images/mute.png";
                     volumeToggle.title = "Unmute";
                     window.speechSynthesis.cancel(); // Stop speaking if needed
                 } else {
-                    volumeIcon.src = "/static/images/volume_button.png";
+                    volumeIcon.src = "/static/images/volume.png";
                     volumeToggle.title = "Mute";
                 }
             });
