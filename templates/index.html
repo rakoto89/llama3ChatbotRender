@@ -34,12 +34,20 @@
         </div>
         <div class="input-container">
             <input type="text" id="user-input" placeholder="Enter your question...">
-            <button id="send-btn" title="Send"><img src="{{ url_for('static', filename='images/submit.png') }}" alt="Submit"></button>
-            <button id="voice-btn" title="Voice"><img src="{{ url_for('static', filename='images/voice.png') }}" alt="Voice"></button>
+            <button id="send-btn" title="Send">
+                <img src="{{ url_for('static', filename='images/submit.png') }}" alt="Submit">
+            </button>
+            <button id="voice-btn" title="Voice">
+                <img src="{{ url_for('static', filename='images/voice.png') }}" alt="Voice">
+            </button>
+            <!-- Volume toggle button -->
+            <button id="volume-toggle" title="Mute">
+                <img id="volume-icon" src="{{ url_for('static', filename='images/volume.png') }}" alt="Volume Icon">
+            </button>
         </div>
     </div>
 
-    <!-- Language options (fixed for JavaScript compatibility) -->
+    <!-- Language options -->
     <div id="language-options" class="language-options" style="display: none;">
         <button data-lang="en">English</button>
         <button data-lang="es">Español</button>
@@ -47,9 +55,30 @@
         <button data-lang="zh">中文</button>
     </div>
 
-    <!-- Beep sound element -->
+    <!-- Beep sound -->
     <audio id="beep" src="{{ url_for('static', filename='beep2.mp3') }}" preload="auto"></audio>
 
+    <!-- Scripts -->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        // Volume/Mute toggle
+        document.addEventListener("DOMContentLoaded", function () {
+            const volumeToggle = document.getElementById("volume-toggle");
+            const volumeIcon = document.getElementById("volume-icon");
+            let isMuted = false;
+
+            volumeToggle.addEventListener("click", () => {
+                isMuted = !isMuted;
+                if (isMuted) {
+                    volumeIcon.src = "/static/images/mute.png";
+                    volumeToggle.title = "Unmute";
+                    window.speechSynthesis.cancel(); // Optional: stop speaking
+                } else {
+                    volumeIcon.src = "/static/images/volume.png";
+                    volumeToggle.title = "Mute";
+                }
+            });
+        });
+    </script>
 </body>
 </html>
