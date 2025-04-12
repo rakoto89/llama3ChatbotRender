@@ -278,11 +278,11 @@ document.addEventListener("DOMContentLoaded", function () {
         volumeToggle.addEventListener("click", () => {
             isMuted = !isMuted;
             if (isMuted) {
-                volumeIcon.src = "/static/images/M2.png";
+                volumeIcon.src = "/static/images/mute.png";
                 volumeToggle.title = "Unmute";
                 synth.cancel(); // stop voice if currently speaking
             } else {
-                volumeIcon.src = "/static/images/V2.png";
+                volumeIcon.src = "/static/images/volume.png";
                 volumeToggle.title = "Mute";
             }
         });
