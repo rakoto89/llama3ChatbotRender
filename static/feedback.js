@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () { 
     let lastInteractionWasKeyboard = false;
     let currentLanguage = localStorage.getItem("selectedLanguage") || "en";
 
@@ -182,6 +182,9 @@ document.addEventListener("DOMContentLoaded", function () {
         formData.append("rate", rating.value);
         formData.append("feedback", feedback);
 
+        // Add audio element to play the success sound
+        const successAudio = new Audio('/static/success-sound.mp3');
+
         fetch("/feedback", {
             method: "POST",
             body: formData
@@ -237,6 +240,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     spread: 70,
                     origin: { y: 0.6 }
                 });
+
+                // Play the success sound effect
+                successAudio.play();
             } else {
                 alert("There was an error submitting your feedback.");
             }
