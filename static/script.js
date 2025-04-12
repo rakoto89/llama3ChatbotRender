@@ -122,7 +122,6 @@ document.addEventListener("DOMContentLoaded", function () {
         recognition.maxAlternatives = 1;
 
         recognition.onstart = () => {
-            beep.play(); // Beep when recording starts
         };
 
         recognition.onresult = (event) => {
@@ -195,9 +194,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         usingVoice = true;
-        appendMessage("bot", languageData[currentLanguage].listeningMessage);
-        beep.play();
-        beep.onended = () => {
+            appendMessage("bot", languageData[currentLanguage].listeningMessage);
             startVoiceRecognition();
         };
     });
