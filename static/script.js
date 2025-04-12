@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let usingVoice = false;
     const synth = window.speechSynthesis;
     let currentLanguage = localStorage.getItem("selectedLanguage") || 'en';
-    let isMuted = false; // For mute toggle
+    let isMuted = false; // Tracks mute state
 
     const languageData = {
         en: {
@@ -109,11 +109,12 @@ document.addEventListener("DOMContentLoaded", function () {
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
 
-        if (sender === "bot" && usingVoice && !isMuted) speakText(message);
+        if (sender === "bot" && usingVoice) speakText(message);
+        if (sender === "bot" && !usingVoice) speakText(message);
     }
 
     function speakText(text, callback) {
-        if (!text.trim() || isMuted) return;
+        if (!text.trim() || isMuted) return; // Silent when muted
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = currentLanguage;
         utterance.onend = () => {
@@ -143,7 +144,6 @@ document.addEventListener("DOMContentLoaded", function () {
             document.querySelector(".bot-message:last-child").remove();
             const response = data.answer || "Error: Could not get a response.";
             appendMessage("bot", response);
-            if (usingVoice && !isMuted) speakText(response);
         })
         .catch(() => {
             document.querySelector(".bot-message:last-child").remove();
@@ -185,7 +185,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.querySelector(".bot-message:last-child").remove();
                 const response = data.answer || "Error: Could not get a response.";
                 appendMessage("bot", response);
-                if (!isMuted) speakText(response);
             })
             .catch(err => {
                 document.querySelector(".bot-message:last-child").remove();
@@ -281,11 +280,11 @@ document.addEventListener("DOMContentLoaded", function () {
             if (isMuted) {
                 volumeIcon.src = "/static/images/mute.png";
                 volumeToggle.title = "Unmute";
-                synth.cancel(); // Stop current speech
+                synth.cancel(); // stop voice if currently speaking
             } else {
                 volumeIcon.src = "/static/images/volume.png";
                 volumeToggle.title = "Mute";
             }
         });
     }
-});
+}); 
