@@ -200,7 +200,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (recognition && usingVoice) {
             recognition.abort();
             usingVoice = false;
-            appendMessage("bot", "Voice input canceled.");
+            appendMessage("bot", "I have been asked to stop listening.");
         }
 
         if (synth.speaking) {
