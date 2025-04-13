@@ -9,8 +9,8 @@ document.addEventListener("DOMContentLoaded", function () {
     let usingVoice = false;
     const synth = window.speechSynthesis;
     let currentLanguage = localStorage.getItem("selectedLanguage") || 'en';
-    let isMuted = false; // Tracks mute state
-    let isBotSpeaking = false; // Tracks if the bot is currently speaking
+    let isMuted = false;
+    let isBotSpeaking = false;
 
     const languageData = {
         en: {
@@ -115,13 +115,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function speakText(text, callback) {
-        if (!text.trim() || isMuted) return; // Silent when muted
+        if (!text.trim() || isMuted) return;
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = currentLanguage;
 
-        isBotSpeaking = true; // Start speaking
+        isBotSpeaking = true;
         utterance.onend = () => {
-            isBotSpeaking = false; // Stop speaking
+            isBotSpeaking = false;
             if (callback) callback();
         };
 
@@ -168,11 +168,10 @@ document.addEventListener("DOMContentLoaded", function () {
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
 
-        let recognitionStartTime = 0;
-
         recognition.onstart = () => {
-            recognitionStartTime = Date.now();
-            beep.play();
+            if (!isMuted) {
+                beep.play();
+            }
         };
 
         recognition.onresult = (event) => {
@@ -205,22 +204,18 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.querySelector(".bot-message:last-child").remove();
                 appendMessage("bot", "Fetch Error: " + err);
             });
+
+            recognition.stop();
         };
 
         recognition.onerror = (event) => {
             const msg = languageData[currentLanguage].systemMessages[event.error] || "Recognition Error: " + event.error;
             appendMessage("bot", msg);
+            recognition.stop();
         };
 
         recognition.onend = () => {
-            const elapsed = Date.now() - recognitionStartTime;
-
-            // Restart recognition if less than 20 seconds have passed
-            if (elapsed < 20000) {
-                recognition.start();
-            } else {
-                usingVoice = false;
-            }
+            usingVoice = false;
         };
 
         recognition.start();
@@ -246,9 +241,17 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        usingVoice = true;
-        appendMessage("bot", languageData[currentLanguage].listeningMessage);
-        startVoiceRecognition();
+        if (currentLanguage === 'zh') {
+            usingVoice = true;
+            appendMessage("bot", languageData[currentLanguage].listeningMessage);
+            setTimeout(() => {
+                startVoiceRecognition();
+            }, 5000);
+        } else {
+            usingVoice = true;
+            appendMessage("bot", languageData[currentLanguage].listeningMessage);
+            startVoiceRecognition();
+        }
     });
 
     const langBtn = document.getElementById("lang-btn");
@@ -281,7 +284,6 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("send-btn").title = languageData[currentLanguage].titles.send;
     document.getElementById("voice-btn").title = languageData[currentLanguage].titles.voice;
 
-    // Volume/Mute toggle functionality
     const volumeToggle = document.getElementById("volume-toggle");
     const volumeIcon = document.getElementById("volume-icon");
 
