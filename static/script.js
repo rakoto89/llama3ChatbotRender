@@ -222,7 +222,11 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         recognition.onend = () => {
-            usingVoice = false;
+            setTimeout(() => {
+                if (usingVoice) {
+                    recognition.start();
+                }
+            }, 15000); // Adds an extra 15 seconds before restarting
         };
 
         recognition.start();
