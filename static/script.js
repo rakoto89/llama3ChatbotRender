@@ -171,49 +171,39 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!isMuted) beep.play();
         };
 
-let pauseTimer; // This will hold the reference to the timer
-const PAUSE_DELAY = 25000; // 25 seconds in milliseconds
+        recognition.onresult = (event) => {
+            if (isBotSpeaking) return;
 
-recognition.onresult = (event) => {
-    if (isBotSpeaking) {
-        return;
-    }
+            const transcript = event.results[0][0].transcript;
+            appendMessage("user", transcript);
 
-    const transcript = event.results[0][0].transcript;
-    appendMessage("user", transcript);
+            const lastBotMessage = document.querySelector(".bot-message:last-child");
+            if (lastBotMessage && lastBotMessage.textContent === languageData[currentLanguage].listeningMessage) {
+                lastBotMessage.remove();
+            }
 
-    const lastBotMessage = document.querySelector(".bot-message:last-child");
-    if (lastBotMessage && lastBotMessage.textContent === languageData[currentLanguage].listeningMessage) {
-        lastBotMessage.remove();
-    }
+            appendMessage("bot", languageData[currentLanguage].thinkingMessage);
 
-    appendMessage("bot", languageData[currentLanguage].thinkingMessage);
+            setTimeout(() => {
+                fetch("/ask", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ question: transcript, language: currentLanguage })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        document.querySelector(".bot-message:last-child").remove();
+                        const response = data.answer || "Error: Could not get a response.";
+                        appendMessage("bot", response);
+                    })
+                    .catch(err => {
+                        document.querySelector(".bot-message:last-child").remove();
+                        appendMessage("bot", "Fetch Error: " + err);
+                    });
 
-    // Clear the existing pause timer, if any
-    clearTimeout(pauseTimer);
-
-    // Set a new pause timer
-    pauseTimer = setTimeout(() => {
-        // After the user has stopped speaking for 10 seconds, fetch the bot's response
-        fetch("/ask", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ question: transcript, language: currentLanguage })
-        })
-        .then(res => res.json())
-        .then(data => {
-            document.querySelector(".bot-message:last-child").remove();
-            const response = data.answer || "Error: Could not get a response.";
-            appendMessage("bot", response);
-        })
-        .catch(err => {
-            document.querySelector(".bot-message:last-child").remove();
-            appendMessage("bot", "Fetch Error: " + err);
-        });
-
-        recognition.stop(); // Optional: stop the recognition after fetching
-    }, PAUSE_DELAY); // Waits for 10 seconds of silence before continuing
-};
+                recognition.stop();
+            }, 8000); // 8 second delay
+        };
 
         recognition.onerror = (event) => {
             const msg = languageData[currentLanguage].systemMessages[event.error] || "Recognition Error: " + event.error;
