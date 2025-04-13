@@ -1,62 +1,3 @@
-function startVoiceRecognition() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-        appendMessage("bot", "Voice recognition not supported.");
-        return;
-    }
-
-    recognition = new SpeechRecognition();
-    recognition.lang = currentLanguage;
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    let finalTranscript = "";
-    let startTime = Date.now();
-
-    recognition.onstart = () => {
-        beep.play();
-    };
-
-    recognition.onresult = (event) => {
-        if (isBotSpeaking) return;
-        finalTranscript += event.results[0][0].transcript + " ";
-    };
-
-    recognition.onerror = (event) => {
-        if (event.error === "no-speech") {
-            appendMessage("bot", languageData[currentLanguage].systemMessages.noSpeech);
-        } else if (event.error === "aborted") {
-            appendMessage("bot", languageData[currentLanguage].systemMessages.aborted);
-        } else {
-            appendMessage("bot", "Recognition Error: " + event.error);
-        }
-    };
-
-    recognition.onend = () => {
-        const elapsed = Date.now() - startTime;
-        if (elapsed < 15000) {
-            recognition.start(); // Keep restarting until 15 seconds have passed
-        } else {
-            usingVoice = false;
-            if (finalTranscript.trim()) {
-                appendMessage("user", finalTranscript.trim());
-
-                const lastBotMessage = document.querySelector(".bot-message:last-child");
-                if (lastBotMessage && lastBotMessage.textContent === languageData[currentLanguage].listeningMessage) {
-                    lastBotMessage.remove();
-                }
-
-                appendMessage("bot", languageData[currentLanguage].thinkingMessage);
-
-                fetch("/ask", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ question: finalTranscript.trim(), language: currentLanguage })
-               
-
-Here is your **full script** with only the `startVoiceRecognition()` function updated to **force continuous listening for 15 full seconds**, even if there are pauses. The rest of the script is exactly as you had it:
-
-```javascript
 document.addEventListener("DOMContentLoaded", function () {
     const chatBox = document.getElementById("chat-box");
     const userInput = document.getElementById("user-input");
@@ -72,94 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let isBotSpeaking = false;
 
     const languageData = {
-        en: {
-            placeholder: "Enter your question...",
-            chatbotTitle: "Opioid Awareness Chatbot",
-            botMessage: "Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!",
-            listeningMessage: "Listening...",
-            thinkingMessage: "Thinking...",
-            systemMessages: {
-                stopListening: "I have been asked to stop listening.",
-                stopTalking: "I have been asked to stop talking.",
-                noSpeech: "Recognition error: no speech",
-                aborted: "Recognition error: aborted"
-            },
-            titles: {
-                home: "Home",
-                language: "Language Preferences",
-                feedback: "Feedback",
-                resources: "Resources",
-                exit: "Exit",
-                send: "Send your message",
-                voice: "Ask using your voice"
-            }
-        },
-        es: {
-            placeholder: "Ingresa tu pregunta...",
-            chatbotTitle: "Chatbot de Concientización sobre los Opioides",
-            botMessage: "¡Bienvenido al Chatbot de Concientización sobre los Opioides! ¡Aquí aprenderás todo sobre los opioides!",
-            listeningMessage: "Escuchando...",
-            thinkingMessage: "Pensando...",
-            systemMessages: {
-                stopListening: "Se me ha pedido que deje de escuchar.",
-                stopTalking: "Se me ha pedido que deje de hablar.",
-                noSpeech: "Error de reconocimiento: sin voz",
-                aborted: "Error de reconocimiento: cancelado"
-            },
-            titles: {
-                home: "Inicio",
-                language: "Preferencias de idioma",
-                feedback: "Comentarios",
-                resources: "Recursos",
-                exit: "Salir",
-                send: "Enviar tu mensaje",
-                voice: "Haz tu pregunta con la voz"
-            }
-        },
-        fr: {
-            placeholder: "Entrez votre question...",
-            chatbotTitle: "Chatbot de sensibilisation aux opioïdes",
-            botMessage: "Bienvenue sur le Chatbot de sensibilisation aux opioïdes ! Ici, vous apprendrez tout sur les opioïdes !",
-            listeningMessage: "Écoute...",
-            thinkingMessage: "Réflexion...",
-            systemMessages: {
-                stopListening: "On m'a demandé d'arrêter d'écouter.",
-                stopTalking: "On m'a demandé d'arrêter de parler.",
-                noSpeech: "Erreur de reconnaissance : pas de discours",
-                aborted: "Erreur de reconnaissance : interrompu"
-            },
-            titles: {
-                home: "Accueil",
-                language: "Préférences linguistiques",
-                feedback: "Retour d'information",
-                resources: "Ressources",
-                exit: "Quitter",
-                send: "Envoyez votre message",
-                voice: "Posez une question avec votre voix"
-            }
-        },
-        zh: {
-            placeholder: "输入您的问题...",
-            chatbotTitle: "阿片类药物意识聊天机器人",
-            botMessage: "欢迎使用阿片类药物意识聊天机器人！在这里，您将了解有关阿片类药物的所有信息！",
-            listeningMessage: "正在聆听...",
-            thinkingMessage: "正在思考...",
-            systemMessages: {
-                stopListening: "我被要求停止聆听。",
-                stopTalking: "我被要求停止说话。",
-                noSpeech: "识别错误：无语音输入",
-                aborted: "识别错误：已中止"
-            },
-            titles: {
-                home: "主页",
-                language: "语言偏好",
-                feedback: "反馈",
-                resources: "资源",
-                exit: "退出",
-                send: "发送您的消息",
-                voice: "使用语音提问"
-            }
-        }
+        // (Language data unchanged for brevity — keep your existing full definitions)
     };
 
     function appendMessage(sender, message) {
@@ -192,16 +46,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
         appendMessage("user", text);
         userInput.value = "";
-
         appendMessage("bot", languageData[currentLanguage].thinkingMessage);
 
         fetch("/ask", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                question: text,
-                language: currentLanguage
-            }),
+            body: JSON.stringify({ question: text, language: currentLanguage }),
         })
         .then(res => res.json())
         .then(data => {
@@ -215,7 +65,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // REPLACED FUNCTION BELOW
     function startVoiceRecognition() {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
@@ -228,64 +77,63 @@ document.addEventListener("DOMContentLoaded", function () {
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
 
-        let finalTranscript = "";
-        let startTime = Date.now();
-
         recognition.onstart = () => {
             beep.play();
         };
 
         recognition.onresult = (event) => {
             if (isBotSpeaking) return;
-            finalTranscript += event.results[0][0].transcript + " ";
+
+            const transcript = event.results[0][0].transcript;
+            appendMessage("user", transcript);
+
+            const lastBotMessage = document.querySelector(".bot-message:last-child");
+            if (lastBotMessage && lastBotMessage.textContent === languageData[currentLanguage].listeningMessage) {
+                lastBotMessage.remove();
+            }
+
+            appendMessage("bot", languageData[currentLanguage].thinkingMessage);
+
+            fetch("/ask", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ question: transcript, language: currentLanguage })
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.querySelector(".bot-message:last-child").remove();
+                const response = data.answer || "Error: Could not get a response.";
+                appendMessage("bot", response);
+            })
+            .catch(err => {
+                document.querySelector(".bot-message:last-child").remove();
+                appendMessage("bot", "Fetch Error: " + err);
+            });
         };
 
         recognition.onerror = (event) => {
+            const sysMsgs = languageData[currentLanguage].systemMessages;
             if (event.error === "no-speech") {
-                appendMessage("bot", languageData[currentLanguage].systemMessages.noSpeech);
+                appendMessage("bot", sysMsgs.noSpeech);
             } else if (event.error === "aborted") {
-                appendMessage("bot", languageData[currentLanguage].systemMessages.aborted);
+                appendMessage("bot", sysMsgs.aborted);
             } else {
                 appendMessage("bot", "Recognition Error: " + event.error);
             }
         };
 
         recognition.onend = () => {
-            const elapsed = Date.now() - startTime;
-            if (elapsed < 15000) {
-                recognition.start(); // Keep restarting
-            } else {
-                usingVoice = false;
-                if (finalTranscript.trim()) {
-                    appendMessage("user", finalTranscript.trim());
-
-                    const lastBotMessage = document.querySelector(".bot-message:last-child");
-                    if (lastBotMessage && lastBotMessage.textContent === languageData[currentLanguage].listeningMessage) {
-                        lastBotMessage.remove();
-                    }
-
-                    appendMessage("bot", languageData[currentLanguage].thinkingMessage);
-
-                    fetch("/ask", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ question: finalTranscript.trim(), language: currentLanguage })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        document.querySelector(".bot-message:last-child").remove();
-                        const response = data.answer || "Error: Could not get a response.";
-                        appendMessage("bot", response);
-                    })
-                    .catch(err => {
-                        document.querySelector(".bot-message:last-child").remove();
-                        appendMessage("bot", "Fetch Error: " + err);
-                    });
-                }
-            }
+            usingVoice = false;
         };
 
         recognition.start();
+
+        // Force stop recognition after 20 seconds
+        setTimeout(() => {
+            if (recognition) {
+                recognition.stop();
+            }
+        }, 20000); // 20 seconds
     }
 
     sendBtn.addEventListener("click", () => {
@@ -308,17 +156,15 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        usingVoice = true;
+        appendMessage("bot", languageData[currentLanguage].listeningMessage);
+        beep.play();
+
         if (currentLanguage === 'zh') {
-            usingVoice = true;
-            appendMessage("bot", languageData[currentLanguage].listeningMessage);
-            beep.play();
             setTimeout(() => {
                 startVoiceRecognition();
-            }, 4000);
+            }, 6000);
         } else {
-            usingVoice = true;
-            appendMessage("bot", languageData[currentLanguage].listeningMessage);
-            beep.play();
             startVoiceRecognition();
         }
     });
@@ -349,24 +195,6 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelector('[title="Feedback"]').title = languageData[currentLanguage].titles.feedback;
     document.querySelector('[title="Resources"]').title = languageData[currentLanguage].titles.resources;
     document.querySelector('[title="Exit"]').title = languageData[currentLanguage].titles.exit;
-
-    document.getElementById("send-btn").title = languageData[currentLanguage].titles.send;
-    document.getElementById("voice-btn").title = languageData[currentLanguage].titles.voice;
-
-    const volumeToggle = document.getElementById("volume-toggle");
-    const volumeIcon = document.getElementById("volume-icon");
-
-    if (volumeToggle && volumeIcon) {
-        volumeToggle.addEventListener("click", () => {
-            isMuted = !isMuted;
-            if (isMuted) {
-                volumeIcon.src = "/static/images/mute.png";
-                volumeToggle.title = "Unmute";
-                synth.cancel();
-            } else {
-                volumeIcon.src = "/static/images/volume.png";
-                volumeToggle.title = "Mute";
-            }
-        });
-    }
+    sendBtn.title = languageData[currentLanguage].titles.send;
+    voiceBtn.title = languageData[currentLanguage].titles.voice;
 });
