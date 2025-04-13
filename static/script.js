@@ -252,7 +252,7 @@ document.addEventListener("DOMContentLoaded", function () {
         beep.play(); // Play the beep once
         setTimeout(() => {
             startVoiceRecognition(); // Start recognition after 6 minutes
-        }, 360000); // 360,000ms = 6 minutes
+        }, 6000); // 6,000ms = 6 seconds
     } else {
         usingVoice = true;
         appendMessage("bot", languageData[currentLanguage].listeningMessage);
