@@ -1,4 +1,4 @@
-  document.addEventListener("DOMContentLoaded", function () {
+ document.addEventListener("DOMContentLoaded", function () {
     const chatBox = document.getElementById("chat-box");
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
@@ -9,8 +9,8 @@
     let usingVoice = false;
     const synth = window.speechSynthesis;
     let currentLanguage = localStorage.getItem("selectedLanguage") || 'en';
-    let isMuted = false;
-    let isBotSpeaking = false;
+    let isMuted = false; // Tracks mute state
+    let isBotSpeaking = false; // Tracks if the bot is currently speaking
 
     const languageData = {
         en: {
@@ -35,7 +35,72 @@
                 voice: "Ask using your voice"
             }
         },
-        // ...other language data...
+        es: {
+            placeholder: "Ingresa tu pregunta...",
+            chatbotTitle: "Chatbot de Concientización sobre los Opioides",
+            botMessage: "¡Bienvenido al Chatbot de Concientización sobre los Opioides! ¡Aquí aprenderás todo sobre los opioides!",
+            listeningMessage: "Escuchando...",
+            thinkingMessage: "Pensando...",
+            systemMessages: {
+                stopListening: "Se me ha pedido que deje de escuchar.",
+                stopTalking: "Se me ha pedido que deje de hablar.",
+                noSpeech: "Error de reconocimiento: sin voz",
+                aborted: "Error de reconocimiento: cancelado"
+            },
+            titles: {
+                home: "Inicio",
+                language: "Preferencias de idioma",
+                feedback: "Comentarios",
+                resources: "Recursos",
+                exit: "Salir",
+                send: "Enviar tu mensaje",
+                voice: "Haz tu pregunta con la voz"
+            }
+        },
+        fr: {
+            placeholder: "Entrez votre question...",
+            chatbotTitle: "Chatbot de sensibilisation aux opioïdes",
+            botMessage: "Bienvenue sur le Chatbot de sensibilisation aux opioïdes ! Ici, vous apprendrez tout sur les opioïdes !",
+            listeningMessage: "Écoute...",
+            thinkingMessage: "Réflexion...",
+            systemMessages: {
+                stopListening: "On m'a demandé d'arrêter d'écouter.",
+                stopTalking: "On m'a demandé d'arrêter de parler.",
+                noSpeech: "Erreur de reconnaissance : pas de discours",
+                aborted: "Erreur de reconnaissance : interrompu"
+            },
+            titles: {
+                home: "Accueil",
+                language: "Préférences linguistiques",
+                feedback: "Retour d'information",
+                resources: "Ressources",
+                exit: "Quitter",
+                send: "Envoyez votre message",
+                voice: "Posez une question avec votre voix"
+            }
+        },
+        zh: {
+            placeholder: "输入您的问题...",
+            chatbotTitle: "阿片类药物意识聊天机器人",
+            botMessage: "欢迎使用阿片类药物意识聊天机器人！在这里，您将了解有关阿片类药物的所有信息！",
+            listeningMessage: "正在聆听...",
+            thinkingMessage: "正在思考...",
+            systemMessages: {
+                stopListening: "我被要求停止聆听。",
+                stopTalking: "我被要求停止说话。",
+                noSpeech: "识别错误：无语音输入",
+                aborted: "识别错误：已中止"
+            },
+            titles: {
+                home: "主页",
+                language: "语言偏好",
+                feedback: "反馈",
+                resources: "资源",
+                exit: "退出",
+                send: "发送您的消息",
+                voice: "使用语音提问"
+            }
+        }
     };
 
     function appendMessage(sender, message) {
@@ -50,13 +115,13 @@
     }
 
     function speakText(text, callback) {
-        if (!text.trim() || isMuted) return;
+        if (!text.trim() || isMuted) return; // Silent when muted
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = currentLanguage;
 
-        isBotSpeaking = true;
+        isBotSpeaking = true; // Start speaking
         utterance.onend = () => {
-            isBotSpeaking = false;
+            isBotSpeaking = false; // Stop speaking
             if (callback) callback();
         };
 
@@ -91,7 +156,6 @@
         });
     }
 
-    // Adjusted startVoiceRecognition function
     function startVoiceRecognition() {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
@@ -104,22 +168,18 @@
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
 
-        const recognitionStartTime = Date.now();
-
         recognition.onstart = () => {
-            if (!isMuted) {
-                beep.play();
-            }
+            beep.play(); // <-- Beep will play once recognition starts
         };
 
         recognition.onresult = (event) => {
-            const elapsedTime = Date.now() - recognitionStartTime;
-
             if (isBotSpeaking) {
+                // Ignore any input while the bot is speaking
                 return;
             }
 
             const transcript = event.results[0][0].transcript;
+
             appendMessage("user", transcript);
 
             const lastBotMessage = document.querySelector(".bot-message:last-child");
@@ -145,15 +205,17 @@
                 appendMessage("bot", "Fetch Error: " + err);
             });
 
-            // Only stop if 20 seconds have passed
-            if (elapsedTime >= 20000) {
-                recognition.stop();
-            }
+            recognition.stop();
         };
 
         recognition.onerror = (event) => {
-            const msg = languageData[currentLanguage].systemMessages[event.error] || "Recognition Error: " + event.error;
-            appendMessage("bot", msg);
+            if (event.error === "no-speech") {
+                appendMessage("bot", languageData[currentLanguage].systemMessages.noSpeech);
+            } else if (event.error === "aborted") {
+                appendMessage("bot", languageData[currentLanguage].systemMessages.aborted);
+            } else {
+                appendMessage("bot", "Recognition Error: " + event.error);
+            }
             recognition.stop();
         };
 
@@ -184,9 +246,17 @@
             return;
         }
 
-        usingVoice = true;
-        appendMessage("bot", languageData[currentLanguage].listeningMessage);
-        startVoiceRecognition();
+        if (currentLanguage === 'zh') {
+            usingVoice = true;
+            appendMessage("bot", languageData[currentLanguage].listeningMessage);
+            setTimeout(() => {
+                startVoiceRecognition(); // Recognition starts after 6 seconds
+            }, 3000); // 3000ms = 3 seconds
+        } else {
+            usingVoice = true;
+            appendMessage("bot", languageData[currentLanguage].listeningMessage);
+            startVoiceRecognition(); // Starts recognition immediately for other languages
+        }
     });
 
     const langBtn = document.getElementById("lang-btn");
@@ -219,6 +289,7 @@
     document.getElementById("send-btn").title = languageData[currentLanguage].titles.send;
     document.getElementById("voice-btn").title = languageData[currentLanguage].titles.voice;
 
+    // Volume/Mute toggle functionality
     const volumeToggle = document.getElementById("volume-toggle");
     const volumeIcon = document.getElementById("volume-icon");
 
@@ -228,7 +299,7 @@
             if (isMuted) {
                 volumeIcon.src = "/static/images/mute.png";
                 volumeToggle.title = "Unmute";
-                synth.cancel();
+                synth.cancel(); // stop voice if currently speaking
             } else {
                 volumeIcon.src = "/static/images/volume.png";
                 volumeToggle.title = "Mute";
