@@ -10,7 +10,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const synth = window.speechSynthesis;
     let currentLanguage = localStorage.getItem("selectedLanguage") || 'en';
     let isMuted = false; // Tracks mute state
-    let isBotSpeaking = false; // Tracks if the bot is currently speaking
 
     const languageData = {
         en: {
@@ -118,13 +117,9 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!text.trim() || isMuted) return; // Silent when muted
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = currentLanguage;
-
-        isBotSpeaking = true; // Start speaking
         utterance.onend = () => {
-            isBotSpeaking = false; // Stop speaking
             if (callback) callback();
         };
-
         synth.speak(utterance);
     }
 
@@ -173,11 +168,6 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         recognition.onresult = (event) => {
-            if (isBotSpeaking) {
-                // Ignore any input while the bot is speaking
-                return;
-            }
-
             const transcript = event.results[0][0].transcript;
 
             appendMessage("user", transcript);
@@ -239,27 +229,12 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     voiceBtn.addEventListener("click", () => {
-    if (synth.speaking || usingVoice) {
-        if (synth.speaking) synth.cancel();
-        if (recognition) recognition.abort();
-        usingVoice = false;
-        return;
-    }
-
-    if (currentLanguage === 'zh') {
-        usingVoice = true;
-        appendMessage("bot", languageData[currentLanguage].listeningMessage);
-        beep.play(); // Play the beep once
-        setTimeout(() => {
-            startVoiceRecognition(); // Start recognition after 6 minutes
-        }, 6000); // 6,000ms = 6 seconds
-    } else {
-        usingVoice = true;
-        appendMessage("bot", languageData[currentLanguage].listeningMessage);
-        beep.play(); // Play the beep once
-        startVoiceRecognition(); // Start recognition immediately
-    }
-});
+        if (synth.speaking || usingVoice) {
+            if (synth.speaking) synth.cancel();
+            if (recognition) recognition.abort();
+            usingVoice = false;
+            return;
+        }
 
         usingVoice = true;
         appendMessage("bot", languageData[currentLanguage].listeningMessage);
@@ -315,3 +290,4 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+                
