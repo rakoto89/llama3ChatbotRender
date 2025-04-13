@@ -172,7 +172,7 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
 let pauseTimer; // This will hold the reference to the timer
-const PAUSE_DELAY = 10000; // 10 seconds in milliseconds
+const PAUSE_DELAY = 25000; // 25 seconds in milliseconds
 
 recognition.onresult = (event) => {
     if (isBotSpeaking) {
