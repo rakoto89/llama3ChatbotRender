@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let isMuted = false; // Tracks mute state
     let isBotSpeaking = false; // Tracks if the bot is currently speaking
     let processingTimeout;
+    let isCanceled = false; // Track if the cancel button was pressed
 
     const languageData = {
         en: {
@@ -22,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
             thinkingMessage: "Thinking...",
             systemMessages: {
                 stopListening: "I have been asked to stop listening.",
-                stopTalking: "I have been asked to stop talking.",
+                stopThinking: "I have been asked to stop thinking.",
                 noSpeech: "Recognition error: no speech",
                 aborted: "Recognition error: aborted"
             },
@@ -36,7 +37,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 voice: "Ask using your voice"
             }
         },
-        // other languages here
+        // Additional language data can go here
     };
 
     function appendMessage(sender, message) {
@@ -146,12 +147,17 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         recognition.onerror = (event) => {
-            if (event.error === "no-speech") {
-                appendMessage("bot", languageData[currentLanguage].systemMessages.noSpeech);
-            } else if (event.error === "aborted") {
-                appendMessage("bot", languageData[currentLanguage].systemMessages.aborted);
+            if (isCanceled) {
+                appendMessage("bot", languageData[currentLanguage].systemMessages.stopListening);
+                appendMessage("bot", languageData[currentLanguage].systemMessages.stopThinking);
             } else {
-                appendMessage("bot", "Recognition Error: " + event.error);
+                if (event.error === "no-speech") {
+                    appendMessage("bot", languageData[currentLanguage].systemMessages.noSpeech);
+                } else if (event.error === "aborted") {
+                    appendMessage("bot", languageData[currentLanguage].systemMessages.aborted);
+                } else {
+                    appendMessage("bot", "Recognition Error: " + event.error);
+                }
             }
             recognition.stop();
         };
@@ -181,17 +187,69 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     voiceBtn.addEventListener("click", () => {
-        if (synth.speaking || usingVoice) {
-            if (synth.speaking) synth.cancel();
+        if (usingVoice) {
+            isCanceled = true;
             if (recognition) recognition.abort();
             usingVoice = false;
             return;
         }
 
+        isCanceled = false;
         usingVoice = true;
         appendMessage("bot", languageData[currentLanguage].listeningMessage);
         startVoiceRecognition();
     });
 
-    // Additional setup code...
+ usingVoice = true;
+        appendMessage("bot", languageData[currentLanguage].listeningMessage);
+        startVoiceRecognition();
+    });
+
+    const langBtn = document.getElementById("lang-btn");
+    const langOptions = document.getElementById("language-options");
+
+    if (langBtn && langOptions) {
+        langBtn.addEventListener("click", () => {
+            langOptions.style.display = langOptions.style.display === "block" ? "none" : "block";
+        });
+
+        document.querySelectorAll("#language-options button").forEach(button => {
+            button.addEventListener("click", () => {
+                const selectedLang = button.getAttribute("data-lang");
+                localStorage.setItem("selectedLanguage", selectedLang);
+                location.reload();
+            });
+        });
+    }
+
+    document.querySelector(".chat-header").textContent = languageData[currentLanguage].chatbotTitle;
+    userInput.placeholder = languageData[currentLanguage].placeholder;
+    document.querySelector(".bot-message").textContent = languageData[currentLanguage].botMessage;
+
+    document.querySelector('[title="Home"]').title = languageData[currentLanguage].titles.home;
+    document.querySelector('[title="Language Preferences"]').title = languageData[currentLanguage].titles.language;
+    document.querySelector('[title="Feedback"]').title = languageData[currentLanguage].titles.feedback;
+    document.querySelector('[title="Resources"]').title = languageData[currentLanguage].titles.resources;
+    document.querySelector('[title="Exit"]').title = languageData[currentLanguage].titles.exit;
+
+    document.getElementById("send-btn").title = languageData[currentLanguage].titles.send;
+    document.getElementById("voice-btn").title = languageData[currentLanguage].titles.voice;
+
+    // Volume/Mute toggle functionality
+    const volumeToggle = document.getElementById("volume-toggle");
+    const volumeIcon = document.getElementById("volume-icon");
+
+    if (volumeToggle && volumeIcon) {
+        volumeToggle.addEventListener("click", () => {
+            isMuted = !isMuted;
+            if (isMuted) {
+                volumeIcon.src = "/static/images/mute.png";
+                volumeToggle.title = "Unmute";
+                synth.cancel(); // stop voice if currently speaking
+            } else {
+                volumeIcon.src = "/static/images/volume.png";
+                volumeToggle.title = "Mute";
+            }
+        });
+    }
 });
