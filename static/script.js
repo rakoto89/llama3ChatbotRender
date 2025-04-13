@@ -1,4 +1,4 @@
- document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
     const chatBox = document.getElementById("chat-box");
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
@@ -168,18 +168,19 @@
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
 
+        let recognitionStartTime = 0;
+
         recognition.onstart = () => {
-            beep.play(); // <-- Beep will play once recognition starts
+            recognitionStartTime = Date.now();
+            beep.play();
         };
 
         recognition.onresult = (event) => {
             if (isBotSpeaking) {
-                // Ignore any input while the bot is speaking
                 return;
             }
 
             const transcript = event.results[0][0].transcript;
-
             appendMessage("user", transcript);
 
             const lastBotMessage = document.querySelector(".bot-message:last-child");
@@ -204,23 +205,22 @@
                 document.querySelector(".bot-message:last-child").remove();
                 appendMessage("bot", "Fetch Error: " + err);
             });
-
-            recognition.stop();
         };
 
         recognition.onerror = (event) => {
-            if (event.error === "no-speech") {
-                appendMessage("bot", languageData[currentLanguage].systemMessages.noSpeech);
-            } else if (event.error === "aborted") {
-                appendMessage("bot", languageData[currentLanguage].systemMessages.aborted);
-            } else {
-                appendMessage("bot", "Recognition Error: " + event.error);
-            }
-            recognition.stop();
+            const msg = languageData[currentLanguage].systemMessages[event.error] || "Recognition Error: " + event.error;
+            appendMessage("bot", msg);
         };
 
         recognition.onend = () => {
-            usingVoice = false;
+            const elapsed = Date.now() - recognitionStartTime;
+
+            // Restart recognition if less than 20 seconds have passed
+            if (elapsed < 20000) {
+                recognition.start();
+            } else {
+                usingVoice = false;
+            }
         };
 
         recognition.start();
@@ -246,17 +246,9 @@
             return;
         }
 
-        if (currentLanguage === 'zh') {
-            usingVoice = true;
-            appendMessage("bot", languageData[currentLanguage].listeningMessage);
-            setTimeout(() => {
-                startVoiceRecognition(); // Recognition starts after 6 seconds
-            }, 3000); // 3000ms = 3 seconds
-        } else {
-            usingVoice = true;
-            appendMessage("bot", languageData[currentLanguage].listeningMessage);
-            startVoiceRecognition(); // Starts recognition immediately for other languages
-        }
+        usingVoice = true;
+        appendMessage("bot", languageData[currentLanguage].listeningMessage);
+        startVoiceRecognition();
     });
 
     const langBtn = document.getElementById("lang-btn");
@@ -299,7 +291,7 @@
             if (isMuted) {
                 volumeIcon.src = "/static/images/mute.png";
                 volumeToggle.title = "Unmute";
-                synth.cancel(); // stop voice if currently speaking
+                synth.cancel();
             } else {
                 volumeIcon.src = "/static/images/volume.png";
                 volumeToggle.title = "Mute";
