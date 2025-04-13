@@ -169,7 +169,9 @@ document.addEventListener("DOMContentLoaded", function () {
         recognition.maxAlternatives = 1;
 
         recognition.onstart = () => {
-            beep.play(); // <-- Beep will play once recognition starts
+            if (!isMuted) {
+                beep.play(); // <-- Beep will play if not muted
+            }
         };
 
         recognition.onresult = (event) => {
@@ -220,7 +222,11 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         recognition.onend = () => {
-            usingVoice = false;
+            if (usingVoice) {
+                recognition.start(); // Extend listening time
+            } else {
+                usingVoice = false;
+            }
         };
 
         recognition.start();
