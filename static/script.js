@@ -169,7 +169,9 @@ document.addEventListener("DOMContentLoaded", function () {
         recognition.maxAlternatives = 1;
 
         recognition.onstart = () => {
-            beep.play(); // <-- Beep will play once recognition starts
+            if (!isMuted) {
+                beep.play(); // <-- Beep will play only if not muted
+            }
         };
 
         recognition.onresult = (event) => {
@@ -246,17 +248,9 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        if (currentLanguage === 'zh') {
-            usingVoice = true;
-            appendMessage("bot", languageData[currentLanguage].listeningMessage);
-            setTimeout(() => {
-                startVoiceRecognition(); // Recognition starts after 6 seconds
-            }, 3000); // 3000ms = 3 seconds
-        } else {
-            usingVoice = true;
-            appendMessage("bot", languageData[currentLanguage].listeningMessage);
-            startVoiceRecognition(); // Starts recognition immediately for other languages
-        }
+        usingVoice = true;
+        appendMessage("bot", languageData[currentLanguage].listeningMessage);
+        startVoiceRecognition();
     });
 
     const langBtn = document.getElementById("lang-btn");
