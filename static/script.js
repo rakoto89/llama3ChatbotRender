@@ -239,12 +239,27 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     voiceBtn.addEventListener("click", () => {
-        if (synth.speaking || usingVoice) {
-            if (synth.speaking) synth.cancel();
-            if (recognition) recognition.abort();
-            usingVoice = false;
-            return;
-        }
+    if (synth.speaking || usingVoice) {
+        if (synth.speaking) synth.cancel();
+        if (recognition) recognition.abort();
+        usingVoice = false;
+        return;
+    }
+
+    if (currentLanguage === 'zh') {
+        usingVoice = true;
+        appendMessage("bot", languageData[currentLanguage].listeningMessage);
+        beep.play(); // Play the beep once
+        setTimeout(() => {
+            startVoiceRecognition(); // Start recognition after 6 minutes
+        }, 360000); // 360,000ms = 6 minutes
+    } else {
+        usingVoice = true;
+        appendMessage("bot", languageData[currentLanguage].listeningMessage);
+        beep.play(); // Play the beep once
+        startVoiceRecognition(); // Start recognition immediately
+    }
+});
 
         usingVoice = true;
         appendMessage("bot", languageData[currentLanguage].listeningMessage);
