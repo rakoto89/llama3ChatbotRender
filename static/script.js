@@ -173,10 +173,7 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         recognition.onresult = (event) => {
-            if (isBotSpeaking) {
-                // Ignore any input while the bot is speaking
-                return;
-            }
+            if (isBotSpeaking) return;
 
             const transcript = event.results[0][0].transcript;
 
@@ -224,6 +221,11 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         recognition.start();
+
+        // Keep listening for 15 seconds no matter what
+        setTimeout(() => {
+            if (recognition) recognition.stop();
+        }, 15000);
     }
 
     sendBtn.addEventListener("click", () => {
@@ -249,15 +251,15 @@ document.addEventListener("DOMContentLoaded", function () {
         if (currentLanguage === 'zh') {
             usingVoice = true;
             appendMessage("bot", languageData[currentLanguage].listeningMessage);
-            beep.play(); // Play the beep once
+            beep.play();
             setTimeout(() => {
-                startVoiceRecognition(); // Start recognition after 6 seconds
-            }, 4000); // 4,000ms = 4 seconds
+                startVoiceRecognition();
+            }, 4000);
         } else {
             usingVoice = true;
             appendMessage("bot", languageData[currentLanguage].listeningMessage);
-            beep.play(); // Play the beep once
-            startVoiceRecognition(); // Start recognition immediately
+            beep.play();
+            startVoiceRecognition();
         }
     });
 
@@ -291,7 +293,6 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("send-btn").title = languageData[currentLanguage].titles.send;
     document.getElementById("voice-btn").title = languageData[currentLanguage].titles.voice;
 
-    // Volume/Mute toggle functionality
     const volumeToggle = document.getElementById("volume-toggle");
     const volumeIcon = document.getElementById("volume-icon");
 
@@ -301,7 +302,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (isMuted) {
                 volumeIcon.src = "/static/images/mute.png";
                 volumeToggle.title = "Unmute";
-                synth.cancel(); // stop voice if currently speaking
+                synth.cancel();
             } else {
                 volumeIcon.src = "/static/images/volume.png";
                 volumeToggle.title = "Mute";
@@ -309,3 +310,4 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+            
