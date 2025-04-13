@@ -9,8 +9,8 @@ document.addEventListener("DOMContentLoaded", function () {
     let usingVoice = false;
     const synth = window.speechSynthesis;
     let currentLanguage = localStorage.getItem("selectedLanguage") || 'en';
-    let isMuted = false; // Tracks mute state
-    let isBotSpeaking = false; // Tracks if the bot is currently speaking
+    let isMuted = false;
+    let isBotSpeaking = false;
 
     const languageData = {
         en: {
@@ -110,18 +110,17 @@ document.addEventListener("DOMContentLoaded", function () {
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
 
-        if (sender === "bot" && usingVoice) speakText(message);
-        if (sender === "bot" && !usingVoice) speakText(message);
+        if (sender === "bot" && !isMuted) speakText(message);
     }
 
     function speakText(text, callback) {
-        if (!text.trim() || isMuted) return; // Silent when muted
+        if (!text.trim() || isMuted) return;
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = currentLanguage;
 
-        isBotSpeaking = true; // Start speaking
+        isBotSpeaking = true;
         utterance.onend = () => {
-            isBotSpeaking = false; // Stop speaking
+            isBotSpeaking = false;
             if (callback) callback();
         };
 
@@ -130,30 +129,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function sendMessage(text) {
         if (!text.trim()) return;
-
         appendMessage("user", text);
         userInput.value = "";
-
         appendMessage("bot", languageData[currentLanguage].thinkingMessage);
 
-        fetch("/ask", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                question: text,
-                language: currentLanguage
-            }),
-        })
-        .then(res => res.json())
-        .then(data => {
-            document.querySelector(".bot-message:last-child").remove();
-            const response = data.answer || "Error: Could not get a response.";
-            appendMessage("bot", response);
-        })
-        .catch(() => {
-            document.querySelector(".bot-message:last-child").remove();
-            appendMessage("bot", "Error: Could not get a response.");
-        });
+        setTimeout(() => {
+            fetch("/ask", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    question: text,
+                    language: currentLanguage
+                }),
+            })
+                .then(res => res.json())
+                .then(data => {
+                    document.querySelector(".bot-message:last-child").remove();
+                    const response = data.answer || "Error: Could not get a response.";
+                    appendMessage("bot", response);
+                })
+                .catch(() => {
+                    document.querySelector(".bot-message:last-child").remove();
+                    appendMessage("bot", "Error: Could not get a response.");
+                });
+        }, 8000); // 8 second delay
     }
 
     function startVoiceRecognition() {
@@ -169,17 +168,13 @@ document.addEventListener("DOMContentLoaded", function () {
         recognition.maxAlternatives = 1;
 
         recognition.onstart = () => {
-            beep.play(); // Beep when recording starts
+            if (!isMuted) beep.play();
         };
 
         recognition.onresult = (event) => {
-            if (isBotSpeaking) {
-                // Ignore any input while the bot is speaking
-                return;
-            }
+            if (isBotSpeaking) return;
 
             const transcript = event.results[0][0].transcript;
-
             appendMessage("user", transcript);
 
             const lastBotMessage = document.querySelector(".bot-message:last-child");
@@ -189,33 +184,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
             appendMessage("bot", languageData[currentLanguage].thinkingMessage);
 
-            fetch("/ask", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ question: transcript, language: currentLanguage })
-            })
-            .then(res => res.json())
-            .then(data => {
-                document.querySelector(".bot-message:last-child").remove();
-                const response = data.answer || "Error: Could not get a response.";
-                appendMessage("bot", response);
-            })
-            .catch(err => {
-                document.querySelector(".bot-message:last-child").remove();
-                appendMessage("bot", "Fetch Error: " + err);
-            });
+            setTimeout(() => {
+                fetch("/ask", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ question: transcript, language: currentLanguage })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        document.querySelector(".bot-message:last-child").remove();
+                        const response = data.answer || "Error: Could not get a response.";
+                        appendMessage("bot", response);
+                    })
+                    .catch(err => {
+                        document.querySelector(".bot-message:last-child").remove();
+                        appendMessage("bot", "Fetch Error: " + err);
+                    });
 
-            recognition.stop();
+                recognition.stop();
+            }, 8000); // 8 second delay
         };
 
         recognition.onerror = (event) => {
-            if (event.error === "no-speech") {
-                appendMessage("bot", languageData[currentLanguage].systemMessages.noSpeech);
-            } else if (event.error === "aborted") {
-                appendMessage("bot", languageData[currentLanguage].systemMessages.aborted);
-            } else {
-                appendMessage("bot", "Recognition Error: " + event.error);
-            }
+            const msg = languageData[currentLanguage].systemMessages[event.error] || "Recognition Error: " + event.error;
+            appendMessage("bot", msg);
             recognition.stop();
         };
 
@@ -246,19 +238,9 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        if (currentLanguage === 'zh') {
-            usingVoice = true;
-            appendMessage("bot", languageData[currentLanguage].listeningMessage);
-            beep.play(); // Play the beep once
-            setTimeout(() => {
-                startVoiceRecognition(); // Start recognition after 6 seconds
-            }, 6000); // 6,000ms = 6 seconds
-        } else {
-            usingVoice = true;
-            appendMessage("bot", languageData[currentLanguage].listeningMessage);
-            beep.play(); // Play the beep once
-            startVoiceRecognition(); // Start recognition immediately
-        }
+        usingVoice = true;
+        appendMessage("bot", languageData[currentLanguage].listeningMessage);
+        startVoiceRecognition();
     });
 
     const langBtn = document.getElementById("lang-btn");
