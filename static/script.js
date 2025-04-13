@@ -251,7 +251,7 @@ document.addEventListener("DOMContentLoaded", function () {
             appendMessage("bot", languageData[currentLanguage].listeningMessage);
             setTimeout(() => {
                 startVoiceRecognition(); // Recognition starts after 6 seconds
-            }, 6000); // 6000ms = 6 seconds
+            }, 5000); // 5000ms = 5 seconds
         } else {
             usingVoice = true;
             appendMessage("bot", languageData[currentLanguage].listeningMessage);
