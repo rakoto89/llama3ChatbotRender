@@ -169,7 +169,7 @@ document.addEventListener("DOMContentLoaded", function () {
         recognition.maxAlternatives = 1;
 
         recognition.onstart = () => {
-            beep.play(); // Beep when recording starts
+            beep.play(); // <-- The beep will now play only when recording actually begins.
         };
 
         recognition.onresult = (event) => {
@@ -246,19 +246,9 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        if (currentLanguage === 'zh') {
-            usingVoice = true;
-            appendMessage("bot", languageData[currentLanguage].listeningMessage);
-            beep.play(); // Play the beep once
-            setTimeout(() => {
-                startVoiceRecognition(); // Start recognition after 6 seconds
-            }, 6000); // 6,000ms = 6 seconds
-        } else {
-            usingVoice = true;
-            appendMessage("bot", languageData[currentLanguage].listeningMessage);
-            beep.play(); // Play the beep once
-            startVoiceRecognition(); // Start recognition immediately
-        }
+        usingVoice = true;
+        appendMessage("bot", languageData[currentLanguage].listeningMessage);
+        startVoiceRecognition();
     });
 
     const langBtn = document.getElementById("lang-btn");
@@ -309,4 +299,3 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
-       
