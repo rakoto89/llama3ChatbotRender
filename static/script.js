@@ -1,3 +1,62 @@
+function startVoiceRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        appendMessage("bot", "Voice recognition not supported.");
+        return;
+    }
+
+    recognition = new SpeechRecognition();
+    recognition.lang = currentLanguage;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    let finalTranscript = "";
+    let startTime = Date.now();
+
+    recognition.onstart = () => {
+        beep.play();
+    };
+
+    recognition.onresult = (event) => {
+        if (isBotSpeaking) return;
+        finalTranscript += event.results[0][0].transcript + " ";
+    };
+
+    recognition.onerror = (event) => {
+        if (event.error === "no-speech") {
+            appendMessage("bot", languageData[currentLanguage].systemMessages.noSpeech);
+        } else if (event.error === "aborted") {
+            appendMessage("bot", languageData[currentLanguage].systemMessages.aborted);
+        } else {
+            appendMessage("bot", "Recognition Error: " + event.error);
+        }
+    };
+
+    recognition.onend = () => {
+        const elapsed = Date.now() - startTime;
+        if (elapsed < 15000) {
+            recognition.start(); // Keep restarting until 15 seconds have passed
+        } else {
+            usingVoice = false;
+            if (finalTranscript.trim()) {
+                appendMessage("user", finalTranscript.trim());
+
+                const lastBotMessage = document.querySelector(".bot-message:last-child");
+                if (lastBotMessage && lastBotMessage.textContent === languageData[currentLanguage].listeningMessage) {
+                    lastBotMessage.remove();
+                }
+
+                appendMessage("bot", languageData[currentLanguage].thinkingMessage);
+
+                fetch("/ask", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ question: finalTranscript.trim(), language: currentLanguage })
+               
+
+Here is your **full script** with only the `startVoiceRecognition()` function updated to **force continuous listening for 15 full seconds**, even if there are pauses. The rest of the script is exactly as you had it:
+
+```javascript
 document.addEventListener("DOMContentLoaded", function () {
     const chatBox = document.getElementById("chat-box");
     const userInput = document.getElementById("user-input");
@@ -156,6 +215,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // REPLACED FUNCTION BELOW
     function startVoiceRecognition() {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
@@ -169,6 +229,7 @@ document.addEventListener("DOMContentLoaded", function () {
         recognition.maxAlternatives = 1;
 
         let finalTranscript = "";
+        let startTime = Date.now();
 
         recognition.onstart = () => {
             beep.play();
@@ -176,7 +237,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         recognition.onresult = (event) => {
             if (isBotSpeaking) return;
-            finalTranscript = event.results[0][0].transcript;
+            finalTranscript += event.results[0][0].transcript + " ";
         };
 
         recognition.onerror = (event) => {
@@ -190,41 +251,41 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         recognition.onend = () => {
-            usingVoice = false;
-            if (finalTranscript.trim()) {
-                appendMessage("user", finalTranscript);
+            const elapsed = Date.now() - startTime;
+            if (elapsed < 15000) {
+                recognition.start(); // Keep restarting
+            } else {
+                usingVoice = false;
+                if (finalTranscript.trim()) {
+                    appendMessage("user", finalTranscript.trim());
 
-                const lastBotMessage = document.querySelector(".bot-message:last-child");
-                if (lastBotMessage && lastBotMessage.textContent === languageData[currentLanguage].listeningMessage) {
-                    lastBotMessage.remove();
+                    const lastBotMessage = document.querySelector(".bot-message:last-child");
+                    if (lastBotMessage && lastBotMessage.textContent === languageData[currentLanguage].listeningMessage) {
+                        lastBotMessage.remove();
+                    }
+
+                    appendMessage("bot", languageData[currentLanguage].thinkingMessage);
+
+                    fetch("/ask", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ question: finalTranscript.trim(), language: currentLanguage })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        document.querySelector(".bot-message:last-child").remove();
+                        const response = data.answer || "Error: Could not get a response.";
+                        appendMessage("bot", response);
+                    })
+                    .catch(err => {
+                        document.querySelector(".bot-message:last-child").remove();
+                        appendMessage("bot", "Fetch Error: " + err);
+                    });
                 }
-
-                appendMessage("bot", languageData[currentLanguage].thinkingMessage);
-
-                fetch("/ask", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ question: finalTranscript, language: currentLanguage })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    document.querySelector(".bot-message:last-child").remove();
-                    const response = data.answer || "Error: Could not get a response.";
-                    appendMessage("bot", response);
-                })
-                .catch(err => {
-                    document.querySelector(".bot-message:last-child").remove();
-                    appendMessage("bot", "Fetch Error: " + err);
-                });
             }
         };
 
         recognition.start();
-
-        // Force 15 seconds regardless of pauses
-        setTimeout(() => {
-            if (recognition) recognition.stop();
-        }, 15000);
     }
 
     sendBtn.addEventListener("click", () => {
