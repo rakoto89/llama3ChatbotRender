@@ -110,7 +110,8 @@ document.addEventListener("DOMContentLoaded", function () {
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
 
-        if (sender === "bot" && !isMuted) speakText(message);
+        if (sender === "bot" && usingVoice) speakText(message);
+        if (sender === "bot" && !usingVoice) speakText(message);
     }
 
     function speakText(text, callback) {
@@ -129,30 +130,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function sendMessage(text) {
         if (!text.trim()) return;
+
         appendMessage("user", text);
         userInput.value = "";
+
         appendMessage("bot", languageData[currentLanguage].thinkingMessage);
 
-        setTimeout(() => {
-            fetch("/ask", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    question: text,
-                    language: currentLanguage
-                }),
-            })
-                .then(res => res.json())
-                .then(data => {
-                    document.querySelector(".bot-message:last-child").remove();
-                    const response = data.answer || "Error: Could not get a response.";
-                    appendMessage("bot", response);
-                })
-                .catch(() => {
-                    document.querySelector(".bot-message:last-child").remove();
-                    appendMessage("bot", "Error: Could not get a response.");
-                });
-        }, 8000); // 8 second delay
+        fetch("/ask", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                question: text,
+                language: currentLanguage
+            }),
+        })
+        .then(res => res.json())
+        .then(data => {
+            document.querySelector(".bot-message:last-child").remove();
+            const response = data.answer || "Error: Could not get a response.";
+            appendMessage("bot", response);
+        })
+        .catch(() => {
+            document.querySelector(".bot-message:last-child").remove();
+            appendMessage("bot", "Error: Could not get a response.");
+        });
     }
 
     function startVoiceRecognition() {
@@ -168,11 +169,15 @@ document.addEventListener("DOMContentLoaded", function () {
         recognition.maxAlternatives = 1;
 
         recognition.onstart = () => {
-            if (!isMuted) beep.play();
+            if (!isMuted) {
+                beep.play();
+            }
         };
 
         recognition.onresult = (event) => {
-            if (isBotSpeaking) return;
+            if (isBotSpeaking) {
+                return;
+            }
 
             const transcript = event.results[0][0].transcript;
             appendMessage("user", transcript);
@@ -184,25 +189,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
             appendMessage("bot", languageData[currentLanguage].thinkingMessage);
 
-            setTimeout(() => {
-                fetch("/ask", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ question: transcript, language: currentLanguage })
-                })
-                    .then(res => res.json())
-                    .then(data => {
-                        document.querySelector(".bot-message:last-child").remove();
-                        const response = data.answer || "Error: Could not get a response.";
-                        appendMessage("bot", response);
-                    })
-                    .catch(err => {
-                        document.querySelector(".bot-message:last-child").remove();
-                        appendMessage("bot", "Fetch Error: " + err);
-                    });
+            fetch("/ask", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ question: transcript, language: currentLanguage })
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.querySelector(".bot-message:last-child").remove();
+                const response = data.answer || "Error: Could not get a response.";
+                appendMessage("bot", response);
+            })
+            .catch(err => {
+                document.querySelector(".bot-message:last-child").remove();
+                appendMessage("bot", "Fetch Error: " + err);
+            });
 
-                recognition.stop();
-            }, 8000); // 8 second delay
+            recognition.stop();
         };
 
         recognition.onerror = (event) => {
@@ -238,9 +241,17 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        usingVoice = true;
-        appendMessage("bot", languageData[currentLanguage].listeningMessage);
-        startVoiceRecognition();
+        if (currentLanguage === 'zh') {
+            usingVoice = true;
+            appendMessage("bot", languageData[currentLanguage].listeningMessage);
+            setTimeout(() => {
+                startVoiceRecognition();
+            }, 5000);
+        } else {
+            usingVoice = true;
+            appendMessage("bot", languageData[currentLanguage].listeningMessage);
+            startVoiceRecognition();
+        }
     });
 
     const langBtn = document.getElementById("lang-btn");
@@ -273,7 +284,6 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("send-btn").title = languageData[currentLanguage].titles.send;
     document.getElementById("voice-btn").title = languageData[currentLanguage].titles.voice;
 
-    // Volume/Mute toggle functionality
     const volumeToggle = document.getElementById("volume-toggle");
     const volumeIcon = document.getElementById("volume-icon");
 
@@ -283,7 +293,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (isMuted) {
                 volumeIcon.src = "/static/images/mute.png";
                 volumeToggle.title = "Unmute";
-                synth.cancel(); // stop voice if currently speaking
+                synth.cancel();
             } else {
                 volumeIcon.src = "/static/images/volume.png";
                 volumeToggle.title = "Mute";
