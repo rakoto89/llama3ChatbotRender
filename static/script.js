@@ -6,7 +6,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const beep = new Audio("/static/beep2.mp3");
 
     let recognition;
-    let usingVoice = false; // Tracks whether the voice recognition is active or not
+    let usingVoice = false;
+    let timeoutId;
     const synth = window.speechSynthesis;
     let currentLanguage = localStorage.getItem("selectedLanguage") || 'en';
     let isMuted = false;
@@ -22,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
             systemMessages: {
                 stopListening: "I have been asked to stop listening.",
                 stopTalking: "I have been asked to stop talking.",
-                noSpeech: "I'm sorry, I didn't hear that.",
+                noSpeech: "I'm sorry, I didn't hear that",
                 aborted: "Conversation ended"
             },
             titles: {
@@ -116,10 +117,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function speakText(text, callback) {
         if (!text.trim() || isMuted) return;
-        if (synth.speaking) {
-            synth.cancel();
-        }
-
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = currentLanguage;
 
@@ -208,23 +205,21 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.querySelector(".bot-message:last-child").remove();
                 appendMessage("bot", "Fetch Error: " + err);
             });
-        };
 
-        recognition.onspeechend = () => {
-            console.log("Stopped listening after user stopped speaking.");
+            recognition.stop();
         };
 
         recognition.onerror = (event) => {
-            const fallbackMessage = "I'm sorry, I didn't hear that.";
-            const errorKey = event.error || "unknown";
-            const msg = languageData[currentLanguage].systemMessages[errorKey] || fallbackMessage;
+            const msg = languageData[currentLanguage].systemMessages[event.error] || "Recognition Error: " + event.error;
             appendMessage("bot", msg);
+            recognition.stop();
         };
 
         recognition.onend = () => {
-            if (usingVoice) {
-                recognition.start();  // Automatically restart recognition when it ends if still active
-            }
+            usingVoice = false;
+            // If no speech detected, inform the user
+            clearTimeout(timeoutId);
+            appendMessage("bot", languageData[currentLanguage].systemMessages.stopListening);
         };
 
         recognition.start();
@@ -243,19 +238,37 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     voiceBtn.addEventListener("click", () => {
-        if (usingVoice) {
-            // Stop listening
-            recognition.stop();
+        if (synth.speaking || usingVoice) {
+            if (synth.speaking) synth.cancel();
+            if (recognition) recognition.abort();
             usingVoice = false;
+            clearTimeout(timeoutId);  // Clear any pending timeout
             appendMessage("bot", languageData[currentLanguage].systemMessages.stopListening);
+            return;
+        }
+
+        if (currentLanguage === 'zh') {
+            usingVoice = true;
+            appendMessage("bot", languageData[currentLanguage].listeningMessage);
+            setTimeout(() => {
+                startVoiceRecognition();
+            }, 5000);
         } else {
-            // Start listening
             usingVoice = true;
             appendMessage("bot", languageData[currentLanguage].listeningMessage);
             startVoiceRecognition();
         }
+
+        // Timeout to stop listening if no speech is detected within a certain time
+        timeoutId = setTimeout(() => {
+            if (recognition && usingVoice) {
+                recognition.stop();
+                appendMessage("bot", languageData[currentLanguage].systemMessages.noSpeech);
+            }
+        }, 10000); // 10 seconds timeout
     });
 
+    // Language Preferences
     const langBtn = document.getElementById("lang-btn");
     const langOptions = document.getElementById("language-options");
 
@@ -286,6 +299,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("send-btn").title = languageData[currentLanguage].titles.send;
     document.getElementById("voice-btn").title = languageData[currentLanguage].titles.voice;
 
+    // Volume Toggle
     const volumeToggle = document.getElementById("volume-toggle");
     const volumeIcon = document.getElementById("volume-icon");
 
