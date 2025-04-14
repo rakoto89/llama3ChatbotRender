@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const beep = new Audio("/static/beep2.mp3");
 
     let recognition;
-    let usingVoice = false;
+    let usingVoice = false; // Tracks whether the voice recognition is active or not
     const synth = window.speechSynthesis;
     let currentLanguage = localStorage.getItem("selectedLanguage") || 'en';
     let isMuted = false;
@@ -222,7 +222,9 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         recognition.onend = () => {
-            usingVoice = false;
+            if (usingVoice) {
+                recognition.start();  // Automatically restart recognition when it ends if still active
+            }
         };
 
         recognition.start();
@@ -241,21 +243,16 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     voiceBtn.addEventListener("click", () => {
-        if (synth.speaking || usingVoice) {
-            if (synth.speaking) synth.cancel();
-            if (recognition) recognition.stop();
+        if (usingVoice) {
+            // Stop listening
+            recognition.stop();
             usingVoice = false;
-            return;
-        }
-
-        if (!usingVoice) {
+            appendMessage("bot", languageData[currentLanguage].systemMessages.stopListening);
+        } else {
+            // Start listening
             usingVoice = true;
             appendMessage("bot", languageData[currentLanguage].listeningMessage);
             startVoiceRecognition();
-        } else {
-            usingVoice = false;
-            appendMessage("bot", languageData[currentLanguage].systemMessages.stopListening);
-            if (recognition) recognition.stop();
         }
     });
 
