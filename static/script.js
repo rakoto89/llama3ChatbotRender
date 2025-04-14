@@ -44,8 +44,8 @@ document.addEventListener("DOMContentLoaded", function () {
             systemMessages: {
                 stopListening: "Se me ha pedido que deje de escuchar.",
                 stopTalking: "Se me ha pedido que deje de hablar.",
-                noSpeech: "Error de reconocimiento: sin voz",
-                aborted: "Error de reconocimiento: cancelado"
+                noSpeech: "Lo siento, no escuché eso",
+                aborted: "La conversación terminó"
             },
             titles: {
                 home: "Inicio",
@@ -66,8 +66,8 @@ document.addEventListener("DOMContentLoaded", function () {
             systemMessages: {
                 stopListening: "On m'a demandé d'arrêter d'écouter.",
                 stopTalking: "On m'a demandé d'arrêter de parler.",
-                noSpeech: "Erreur de reconnaissance : pas de discours",
-                aborted: "Erreur de reconnaissance : interrompu"
+                noSpeech: "Je suis désolé, je n'ai pas compris",
+                aborted: "Conversation terminée"
             },
             titles: {
                 home: "Accueil",
@@ -88,8 +88,8 @@ document.addEventListener("DOMContentLoaded", function () {
             systemMessages: {
                 stopListening: "我被要求停止聆听。",
                 stopTalking: "我被要求停止说话。",
-                noSpeech: "识别错误：无语音输入",
-                aborted: "识别错误：已中止"
+                noSpeech: "抱歉，我沒聽清楚",
+                aborted: "談話結束"
             },
             titles: {
                 home: "主页",
