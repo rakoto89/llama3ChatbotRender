@@ -120,16 +120,48 @@ document.addEventListener("DOMContentLoaded", function () {
             synth.cancel();
         }
 
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = currentLanguage;
+        const chunks = splitTextIntoChunks(text, 200); // split into ~200 char chunks
+
+        let index = 0;
+
+        function speakNextChunk() {
+            if (index >= chunks.length) {
+                isBotSpeaking = false;
+                if (callback) callback();
+                return;
+            }
+
+            const utterance = new SpeechSynthesisUtterance(chunks[index]);
+            utterance.lang = currentLanguage;
+
+            utterance.onend = () => {
+                index++;
+                speakNextChunk();
+            };
+
+            synth.speak(utterance);
+        }
 
         isBotSpeaking = true;
-        utterance.onend = () => {
-            isBotSpeaking = false;
-            if (callback) callback();
-        };
+        speakNextChunk();
+    }
 
-        synth.speak(utterance);
+    function splitTextIntoChunks(text, maxLength) {
+        const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
+        const chunks = [];
+        let currentChunk = "";
+
+        for (const sentence of sentences) {
+            if ((currentChunk + sentence).length > maxLength) {
+                if (currentChunk) chunks.push(currentChunk);
+                currentChunk = sentence;
+            } else {
+                currentChunk += sentence;
+            }
+        }
+
+        if (currentChunk) chunks.push(currentChunk);
+        return chunks;
     }
 
     function sendMessage(text) {
