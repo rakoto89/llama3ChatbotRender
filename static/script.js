@@ -12,7 +12,6 @@ document.addEventListener("DOMContentLoaded", function () {
     let isMuted = false;
     let isBotSpeaking = false;
     let finalTranscript = "";
-    let pendingResponse = false;
 
     const languageData = {
         en: {
@@ -74,7 +73,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 stopListening: "我被要求停止聆听。",
                 stopTalking: "我被要求停止说话。",
                 noSpeech: "抱歉，我沒聽清楚",
-                aborted: "談話結束"
+                aborted: "谈话结束"
             },
             titles: {
                 home: "主页",
@@ -86,9 +85,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 voice: "使用语音提问"
             }
         }
-      };
+    };
 
-      function appendMessage(sender, message) {
+    function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
         msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
         msgDiv.innerHTML = message;
@@ -109,7 +108,6 @@ document.addEventListener("DOMContentLoaded", function () {
             if (callback) callback();
         };
 
-        synth.cancel(); // Stop any ongoing speech
         synth.speak(utterance);
     }
 
@@ -119,7 +117,6 @@ document.addEventListener("DOMContentLoaded", function () {
         appendMessage("user", text);
         userInput.value = "";
 
-        pendingResponse = true;
         appendMessage("bot", languageData[currentLanguage].thinkingMessage);
 
         fetch("/ask", {
@@ -129,24 +126,13 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .then(res => res.json())
         .then(data => {
-            removeBotMessage(languageData[currentLanguage].thinkingMessage);
-            pendingResponse = false;
+            document.querySelector(".bot-message:last-child").remove();
             const response = data.answer || "Error: Could not get a response.";
             appendMessage("bot", response);
         })
         .catch(() => {
-            removeBotMessage(languageData[currentLanguage].thinkingMessage);
-            pendingResponse = false;
+            document.querySelector(".bot-message:last-child").remove();
             appendMessage("bot", "Error: Could not get a response.");
-        });
-    }
-
-    function removeBotMessage(messageText) {
-        const messages = Array.from(document.querySelectorAll(".bot-message"));
-        messages.forEach(msg => {
-            if (msg.textContent.trim() === messageText) {
-                msg.remove();
-            }
         });
     }
 
@@ -164,10 +150,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         recognition.onstart = () => {
             finalTranscript = "";
-            if (!isMuted) {
+            if (!isMuted && !beep.paused) {
                 beep.play();
             }
-            appendMessage("bot", languageData[currentLanguage].listeningMessage);
         };
 
         recognition.onresult = (event) => {
@@ -185,7 +170,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         recognition.onend = () => {
             if (usingVoice && !recognition.aborted) {
-                recognition.start(); // Keep listening
+                recognition.start(); // Keep listening if not stopped intentionally
             }
         };
 
@@ -206,38 +191,42 @@ document.addEventListener("DOMContentLoaded", function () {
 
     voiceBtn.addEventListener("click", () => {
         if (usingVoice) {
-             if (isBotSpeaking || synth.speaking) {
-            synth.cancel();
-            isBotSpeaking = false;
-        }
+            // STOP button pressed
+            usingVoice = false;
 
-        usingVoice = false;
-            
-            if (recognition) {
-                recognition.abort();
-            }
-
-            if (isBotSpeaking) {
+            // 1. Stop Speech
+            if (synth.speaking || isBotSpeaking) {
                 synth.cancel();
                 isBotSpeaking = false;
             }
 
-            removeBotMessage(languageData[currentLanguage].listeningMessage);
-            if (pendingResponse) {
-                removeBotMessage(languageData[currentLanguage].thinkingMessage);
-                pendingResponse = false;
+            // 2. Stop Recognition
+            if (recognition) {
+                recognition.abort();
             }
 
-            finalTranscript = finalTranscript.trim();
-            if (finalTranscript) {
-                sendMessage(finalTranscript);
+            // 3. Remove "Listening..." and "Thinking..." messages
+            const botMessages = document.querySelectorAll(".bot-message");
+            botMessages.forEach(msg => {
+                if (
+                    msg.textContent === languageData[currentLanguage].listeningMessage ||
+                    msg.textContent === languageData[currentLanguage].thinkingMessage
+                ) {
+                    msg.remove();
+                }
+            });
+
+            // 4. Send Final Transcript if Exists
+            if (finalTranscript.trim()) {
+                sendMessage(finalTranscript.trim());
             }
 
             finalTranscript = "";
         } else {
-            // START
+            // START voice input
             usingVoice = true;
             finalTranscript = "";
+            appendMessage("bot", languageData[currentLanguage].listeningMessage);
             startContinuousRecognition();
         }
     });
@@ -288,4 +277,4 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
-});  
+});
