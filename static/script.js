@@ -216,7 +216,7 @@ document.addEventListener("DOMContentLoaded", function () {
             speechTimeout = setTimeout(() => {
                 recognition.stop();
                 console.log("Auto-stopped after pause.");
-            }, 3000);
+            };
         };
 
         recognition.onerror = (event) => {
