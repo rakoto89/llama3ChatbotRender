@@ -176,22 +176,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             appendMessage("bot", languageData[currentLanguage].thinkingMessage);
-
-            fetch("/ask", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ question: transcript, language: currentLanguage })
-            })
-            .then(res => res.json())
-            .then(data => {
-                document.querySelector(".bot-message:last-child").remove();
-                const response = data.answer || "Error: Could not get a response.";
-                appendMessage("bot", response);
-            })
-            .catch(err => {
-                document.querySelector(".bot-message:last-child").remove();
-                appendMessage("bot", "Fetch Error: " + err);
-            });
         };
 
         recognition.onerror = (event) => {
@@ -221,16 +205,16 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     voiceBtn.addEventListener("click", () => {
-        if (synth.speaking || usingVoice) {
-            if (synth.speaking) synth.cancel();
-            if (recognition) recognition.abort();
+        if (usingVoice) {
+            if (recognition) {
+                recognition.stop();
+            }
             usingVoice = false;
-            return;
+        } else {
+            usingVoice = true;
+            appendMessage("bot", languageData[currentLanguage].listeningMessage);
+            startVoiceRecognition();
         }
-
-        usingVoice = true;
-        appendMessage("bot", languageData[currentLanguage].listeningMessage);
-        startVoiceRecognition();
     });
 
     // Language Preferences
