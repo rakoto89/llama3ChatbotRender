@@ -214,11 +214,22 @@ document.addEventListener("DOMContentLoaded", function () {
             recognition.stop();
         };
 
-        recognition.onerror = (event) => {
-            const msg = languageData[currentLanguage].systemMessages[event.error] || "Recognition Error: " + event.error;
-            appendMessage("bot", msg);
-            recognition.stop();
-        };
+    recognition.onerror = (event) => {
+        const fallbackMessage = "I'm sorry, I didn't hear that.";
+        const errorKey = event.error || "unknown";
+        const msg = languageData[currentLanguage].systemMessages[errorKey] || fallbackMessage;
+        appendMessage("bot", msg);
+
+    // Optional: only stop if not already aborted
+        if (errorKey !== "aborted" && recognition) {
+            try {
+                recognition.stop();
+            } catch (e) {
+                console.warn("Error stopping recognition:", e);
+            }
+        }
+    };
+
 
         recognition.onend = () => {
             usingVoice = false;
