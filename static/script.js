@@ -30,6 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 voice: "Ask using your voice"
             }
         },
+
         es: {
             placeholder: "Escribe tu pregunta...",
             chatbotTitle: "Chatbot de Conciencia sobre los Opioides",
@@ -85,9 +86,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 voice: "使用语音提问"
             }
         }
-    };
+      };
 
-  function appendMessage(sender, message) {
+    function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
         msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
         msgDiv.innerHTML = message;
@@ -193,6 +194,7 @@ document.addEventListener("DOMContentLoaded", function () {
             usingVoice = false;
             recognition.stop();
             if (finalTranscript.trim()) {
+                appendMessage("user", finalTranscript.trim());
                 sendMessage(finalTranscript.trim());
             }
             finalTranscript = "";
