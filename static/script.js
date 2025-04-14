@@ -212,6 +212,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.querySelector(".bot-message:last-child").remove();
                 appendMessage("bot", "Fetch Error: " + err);
             });
+        };
 
         recognition.onspeechend = () => {
             recognition.stop();
