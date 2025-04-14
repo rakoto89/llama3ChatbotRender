@@ -27,6 +27,24 @@ body {
     transition: transform 0.2s ease;
 }
 
+@keyframes pulseGlow {
+    0% {
+        box-shadow: 0 0 0px rgba(0, 255, 100, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(0, 255, 100, 0.8);
+    }
+    100% {
+        box-shadow: 0 0 0px rgba(0, 255, 100, 0.4);
+    }
+}
+
+.voice-active {
+    animation: pulseGlow 1.5s infinite;
+    border-radius: 50%;
+}
+
+
 .sidebar-icon:hover {
     transform: scale(1.1);
     cursor: pointer;
