@@ -193,46 +193,65 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     voiceBtn.addEventListener("click", () => {
-        if (usingVoice) {
-            // STOP voice input
-            usingVoice = false;
+    if (usingVoice) {
+        // STOP voice input
+        usingVoice = false;
 
-            // Stop speech
-            if (synth.speaking || isBotSpeaking) {
-                synth.cancel();
-                isBotSpeaking = false;
-            }
-
-            // Stop recognition
-            if (recognition) {
-                recognition.abort();
-            }
-
-            // Remove "Listening..." or "Thinking..." messages
-            const botMessages = document.querySelectorAll(".bot-message");
-            botMessages.forEach(msg => {
-                if (
-                    msg.textContent === languageData[currentLanguage].listeningMessage ||
-                    msg.textContent === languageData[currentLanguage].thinkingMessage
-                ) {
-                    msg.remove();
-                }
-            });
-
-            // Send final transcript if available
-            if (finalTranscript.trim()) {
-                sendMessage(finalTranscript.trim());
-            }
-
-            finalTranscript = "";
-        } else {
-            // START voice input
-            usingVoice = true;
-            finalTranscript = "";
-            appendMessage("bot", languageData[currentLanguage].listeningMessage);
-            startContinuousRecognition();
+        // Stop speech
+        if (synth.speaking || isBotSpeaking) {
+            synth.cancel();
+            isBotSpeaking = false;
         }
-    });
+
+        // Stop recognition
+        if (recognition) {
+            recognition.abort();
+        }
+
+        // Remove "Listening..." or "Thinking..." messages
+        const botMessages = document.querySelectorAll(".bot-message");
+        botMessages.forEach(msg => {
+            if (
+                msg.textContent === languageData[currentLanguage].listeningMessage ||
+                msg.textContent === languageData[currentLanguage].thinkingMessage
+            ) {
+                msg.remove();
+            }
+        });
+
+        // === ADDED: Show voice input in field and chat
+        if (finalTranscript.trim()) {
+            userInput.value = finalTranscript.trim();             // Show in input field
+            appendMessage("user", finalTranscript.trim());       // Show in chat box
+            appendMessage("bot", languageData[currentLanguage].thinkingMessage); // Optional thinking message here if you want
+
+            // Then send to backend
+            fetch("/ask", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ question: finalTranscript.trim(), language: currentLanguage })
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.querySelector(".bot-message:last-child").remove();
+                const response = data.answer || "Error: Could not get a response.";
+                appendMessage("bot", response);
+            })
+            .catch(() => {
+                document.querySelector(".bot-message:last-child").remove();
+                appendMessage("bot", "Error: Could not get a response.");
+            });
+        }
+
+        finalTranscript = "";
+    } else {
+        // START voice input
+        usingVoice = true;
+        finalTranscript = "";
+        appendMessage("bot", languageData[currentLanguage].listeningMessage);
+        startContinuousRecognition();
+    }
+});
 
     const langBtn = document.getElementById("lang-btn");
     const langOptions = document.getElementById("language-options");
