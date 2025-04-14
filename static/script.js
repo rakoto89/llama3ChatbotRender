@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
+    const cancelVoiceBtn = document.getElementById("cancel-voice-btn");
     const beep = new Audio("/static/beep2.mp3");
 
     let recognition;
@@ -99,7 +100,6 @@ document.addEventListener("DOMContentLoaded", function () {
     function speakText(text, callback) {
         if (!text.trim() || isMuted) return;
 
-        // === ADDED: Cancel speech before starting new
         synth.cancel();
 
         const utterance = new SpeechSynthesisUtterance(text);
@@ -192,53 +192,48 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-   voiceBtn.addEventListener("click", () => {
-    if (usingVoice) {
-        // STOP voice input
-        usingVoice = false;
+    voiceBtn.addEventListener("click", () => {
+        if (usingVoice) {
+            // STOP voice input
+            usingVoice = false;
 
-        // Stop speech
-        if (synth.speaking || isBotSpeaking) {
-            synth.cancel();
-            isBotSpeaking = false;
-        }
-
-        // Stop recognition
-        if (recognition) {
-            recognition.abort();
-        }
-
-        // Remove "Listening..." or "Thinking..." messages
-        const botMessages = document.querySelectorAll(".bot-message");
-        botMessages.forEach(msg => {
-            if (
-                msg.textContent === languageData[currentLanguage].listeningMessage ||
-                msg.textContent === languageData[currentLanguage].thinkingMessage
-            ) {
-                msg.remove();
+            if (synth.speaking || isBotSpeaking) {
+                synth.cancel();
+                isBotSpeaking = false;
             }
-        });
 
-        // Insert spoken text into input only
-        if (finalTranscript.trim()) {
-            userInput.value = finalTranscript.trim(); // Show in input field ONLY
+            if (recognition) {
+                recognition.abort();
+            }
+
+            const botMessages = document.querySelectorAll(".bot-message");
+            botMessages.forEach(msg => {
+                if (
+                    msg.textContent === languageData[currentLanguage].listeningMessage ||
+                    msg.textContent === languageData[currentLanguage].thinkingMessage
+                ) {
+                    msg.remove();
+                }
+            });
+
+            if (finalTranscript.trim()) {
+                userInput.value = finalTranscript.trim(); // ONLY show in input field
+            }
+
+            finalTranscript = "";
+        } else {
+            // Cancel bot speaking if active
+            if (synth.speaking || isBotSpeaking) {
+                synth.cancel();
+                isBotSpeaking = false;
+            }
+
+            usingVoice = true;
+            finalTranscript = "";
+            appendMessage("bot", languageData[currentLanguage].listeningMessage);
+            startContinuousRecognition();
         }
-
-        finalTranscript = "";
-    } else {
-        // === ADDED: Cancel bot speaking before starting recording
-        if (synth.speaking || isBotSpeaking) {
-            synth.cancel();
-            isBotSpeaking = false;
-        }
-
-        // START voice input
-        usingVoice = true;
-        finalTranscript = "";
-        appendMessage("bot", languageData[currentLanguage].listeningMessage);
-        startContinuousRecognition();
-    }
-});
+    });
 
     const langBtn = document.getElementById("lang-btn");
     const langOptions = document.getElementById("language-options");
@@ -287,7 +282,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // === ADDED: Stop Speaking Icon Button Handler
+    // Stop Speaking Button
     const stopSpeakingBtn = document.getElementById("stop-speaking-btn");
 
     if (stopSpeakingBtn) {
@@ -299,23 +294,19 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    const cancelVoiceBtn = document.getElementById("cancel-voice-btn");
-
+    // Cancel Voice Button
     if (cancelVoiceBtn) {
         cancelVoiceBtn.addEventListener("click", () => {
-        // Stop bot speech
             if (synth.speaking || isBotSpeaking) {
                 synth.cancel();
                 isBotSpeaking = false;
             }
 
-            // Stop voice recording
             if (recognition && usingVoice) {
                 recognition.abort();
                 usingVoice = false;
             }
 
-            // Remove any "Listening..." or "Thinking..." messages
             const botMessages = document.querySelectorAll(".bot-message");
             botMessages.forEach(msg => {
                 if (
@@ -326,8 +317,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             });
 
-            // Clear the input field and transcript
             userInput.value = "";
             finalTranscript = "";
         });
     }
+});
