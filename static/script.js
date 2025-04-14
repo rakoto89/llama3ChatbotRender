@@ -283,42 +283,35 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Stop Speaking Button
-    const stopSpeakingBtn = document.getElementById("stop-speaking-btn");
+    const stopSpeakingBtn = document.getElementById("stop-btn");
 
-    if (stopSpeakingBtn) {
-        stopSpeakingBtn.addEventListener("click", () => {
-            if (synth.speaking || isBotSpeaking) {
-                synth.cancel();
-                isBotSpeaking = false;
+if (stopSpeakingBtn) {
+    stopSpeakingBtn.addEventListener("click", () => {
+        // Stop bot speech
+        if (synth.speaking || isBotSpeaking) {
+            synth.cancel();
+            isBotSpeaking = false;
+        }
+
+        // Stop voice recording if active
+        if (recognition && usingVoice) {
+            recognition.abort();
+            usingVoice = false;
+        }
+
+        // Remove "Listening..." or "Thinking..." messages
+        const botMessages = document.querySelectorAll(".bot-message");
+        botMessages.forEach(msg => {
+            if (
+                msg.textContent === languageData[currentLanguage].listeningMessage ||
+                msg.textContent === languageData[currentLanguage].thinkingMessage
+            ) {
+                msg.remove();
             }
         });
-    }
 
-    // Cancel Voice Button
-    if (cancelVoiceBtn) {
-        cancelVoiceBtn.addEventListener("click", () => {
-            if (synth.speaking || isBotSpeaking) {
-                synth.cancel();
-                isBotSpeaking = false;
-            }
-
-            if (recognition && usingVoice) {
-                recognition.abort();
-                usingVoice = false;
-            }
-
-            const botMessages = document.querySelectorAll(".bot-message");
-            botMessages.forEach(msg => {
-                if (
-                    msg.textContent === languageData[currentLanguage].listeningMessage ||
-                    msg.textContent === languageData[currentLanguage].thinkingMessage
-                ) {
-                    msg.remove();
-                }
-            });
-
-            userInput.value = "";
-            finalTranscript = "";
-        });
-    }
-});
+        // Clear input and transcript if you want to reset the field too
+        userInput.value = "";
+        finalTranscript = "";
+    });
+}
