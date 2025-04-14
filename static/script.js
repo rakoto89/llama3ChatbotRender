@@ -298,4 +298,36 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
-});
+
+    const cancelVoiceBtn = document.getElementById("cancel-voice-btn");
+
+    if (cancelVoiceBtn) {
+        cancelVoiceBtn.addEventListener("click", () => {
+        // Stop bot speech
+            if (synth.speaking || isBotSpeaking) {
+                synth.cancel();
+                isBotSpeaking = false;
+            }
+
+            // Stop voice recording
+            if (recognition && usingVoice) {
+                recognition.abort();
+                usingVoice = false;
+            }
+
+            // Remove any "Listening..." or "Thinking..." messages
+            const botMessages = document.querySelectorAll(".bot-message");
+            botMessages.forEach(msg => {
+                if (
+                    msg.textContent === languageData[currentLanguage].listeningMessage ||
+                    msg.textContent === languageData[currentLanguage].thinkingMessage
+                ) {
+                    msg.remove();
+                }
+            });
+
+            // Clear the input field and transcript
+            userInput.value = "";
+            finalTranscript = "";
+        });
+    }
