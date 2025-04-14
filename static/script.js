@@ -126,14 +126,21 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .then(res => res.json())
         .then(data => {
-            document.querySelector(".bot-message:last-child").remove();
+            removeBotMessage(languageData[currentLanguage].thinkingMessage);
             const response = data.answer || "Error: Could not get a response.";
             appendMessage("bot", response);
         })
         .catch(() => {
-            document.querySelector(".bot-message:last-child").remove();
+            removeBotMessage(languageData[currentLanguage].thinkingMessage);
             appendMessage("bot", "Error: Could not get a response.");
         });
+    }
+
+    function removeBotMessage(messageText) {
+        const lastBotMsg = document.querySelector(".bot-message:last-child");
+        if (lastBotMsg && lastBotMsg.textContent === messageText) {
+            lastBotMsg.remove();
+        }
     }
 
     function startContinuousRecognition() {
@@ -170,7 +177,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         recognition.onend = () => {
             if (usingVoice && !recognition.aborted) {
-                recognition.start(); // Continue if not manually stopped
+                recognition.start(); // Restart if still using voice
             }
         };
 
@@ -191,20 +198,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
     voiceBtn.addEventListener("click", () => {
         if (usingVoice) {
-            // Stop listening and remove "Thinking..." message if shown
             usingVoice = false;
             recognition.stop();
-            finalTranscript = finalTranscript.trim();
-            
-            const lastBotMsg = document.querySelector(".bot-message:last-child");
-            if (lastBotMsg && lastBotMsg.textContent === languageData[currentLanguage].thinkingMessage) {
-                lastBotMsg.remove();
-            }
 
+            // Remove "Listening..." or "Thinking..." message if shown
+            removeBotMessage(languageData[currentLanguage].listeningMessage);
+            removeBotMessage(languageData[currentLanguage].thinkingMessage);
+
+            finalTranscript = finalTranscript.trim();
             if (finalTranscript) {
                 sendMessage(finalTranscript);
             }
-
             finalTranscript = "";
         } else {
             usingVoice = true;
