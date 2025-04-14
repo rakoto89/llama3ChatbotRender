@@ -213,10 +213,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 appendMessage("bot", "Fetch Error: " + err);
             });
 
-            speechTimeout = setTimeout(() => {
-                recognition.stop();
-                console.log("Auto-stopped after pause.");
-            };
+        recognition.onspeechend = () => {
+            recognition.stop();
+            console.log("Stopped listening after user stopped speaking.");
         };
 
         recognition.onerror = (event) => {
