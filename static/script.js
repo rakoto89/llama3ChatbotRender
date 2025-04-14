@@ -12,8 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let isMuted = false;
     let isBotSpeaking = false;
     let finalTranscript = "";
-    let listeningSpoken = false;
-    let thinkingSpoken = false;
+    let pendingResponse = false;
 
     const languageData = {
         en: {
@@ -89,7 +88,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       };
 
-    function appendMessage(sender, message) {
+      function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
         msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
         msgDiv.innerHTML = message;
@@ -110,7 +109,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (callback) callback();
         };
 
-        synth.cancel(); // Stop any ongoing speech first
+        synth.cancel(); // Stop any ongoing speech
         synth.speak(utterance);
     }
 
@@ -120,7 +119,7 @@ document.addEventListener("DOMContentLoaded", function () {
         appendMessage("user", text);
         userInput.value = "";
 
-        thinkingSpoken = true;
+        pendingResponse = true;
         appendMessage("bot", languageData[currentLanguage].thinkingMessage);
 
         fetch("/ask", {
@@ -131,11 +130,13 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(res => res.json())
         .then(data => {
             removeBotMessage(languageData[currentLanguage].thinkingMessage);
+            pendingResponse = false;
             const response = data.answer || "Error: Could not get a response.";
             appendMessage("bot", response);
         })
         .catch(() => {
             removeBotMessage(languageData[currentLanguage].thinkingMessage);
+            pendingResponse = false;
             appendMessage("bot", "Error: Could not get a response.");
         });
     }
@@ -163,11 +164,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         recognition.onstart = () => {
             finalTranscript = "";
-            listeningSpoken = true;
-            speakText(languageData[currentLanguage].listeningMessage);
             if (!isMuted) {
                 beep.play();
             }
+            appendMessage("bot", languageData[currentLanguage].listeningMessage);
         };
 
         recognition.onresult = (event) => {
@@ -206,17 +206,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
     voiceBtn.addEventListener("click", () => {
         if (usingVoice) {
-            // STOP BUTTON behavior
+            // STOP
             usingVoice = false;
 
             if (recognition) {
                 recognition.abort();
             }
 
-            synth.cancel(); // Stop speech immediately
+            synth.cancel();
 
             removeBotMessage(languageData[currentLanguage].listeningMessage);
-            removeBotMessage(languageData[currentLanguage].thinkingMessage);
+            if (pendingResponse) {
+                removeBotMessage(languageData[currentLanguage].thinkingMessage);
+                pendingResponse = false;
+            }
 
             finalTranscript = finalTranscript.trim();
             if (finalTranscript) {
@@ -224,15 +227,10 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             finalTranscript = "";
-            listeningSpoken = false;
-            thinkingSpoken = false;
-
         } else {
-            // START LISTENING
+            // START
             usingVoice = true;
-            listeningSpoken = false;
-            thinkingSpoken = false;
-            appendMessage("bot", languageData[currentLanguage].listeningMessage);
+            finalTranscript = "";
             startContinuousRecognition();
         }
     });
@@ -283,4 +281,4 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
-});
+});  
