@@ -30,7 +30,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 voice: "Ask using your voice"
             }
         },
-
         es: {
             placeholder: "Escribe tu pregunta...",
             chatbotTitle: "Chatbot de Conciencia sobre los Opioides",
@@ -99,6 +98,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function speakText(text, callback) {
         if (!text.trim() || isMuted) return;
+
+        // === ADDED: Cancel speech before starting new
+        synth.cancel();
+
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = currentLanguage;
 
@@ -191,21 +194,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
     voiceBtn.addEventListener("click", () => {
         if (usingVoice) {
-            // STOP button pressed
+            // STOP voice input
             usingVoice = false;
 
-            // 1. Stop Speech
+            // Stop speech
             if (synth.speaking || isBotSpeaking) {
                 synth.cancel();
                 isBotSpeaking = false;
             }
 
-            // 2. Stop Recognition
+            // Stop recognition
             if (recognition) {
                 recognition.abort();
             }
 
-            // 3. Remove "Listening..." and "Thinking..." messages
+            // Remove "Listening..." or "Thinking..." messages
             const botMessages = document.querySelectorAll(".bot-message");
             botMessages.forEach(msg => {
                 if (
@@ -216,7 +219,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             });
 
-            // 4. Send Final Transcript if Exists
+            // Send final transcript if available
             if (finalTranscript.trim()) {
                 sendMessage(finalTranscript.trim());
             }
@@ -274,6 +277,18 @@ document.addEventListener("DOMContentLoaded", function () {
             } else {
                 volumeIcon.src = "/static/images/volume.png";
                 volumeToggle.title = "Mute";
+            }
+        });
+    }
+
+    // === ADDED: Stop Speaking Icon Button Handler
+    const stopSpeakingBtn = document.getElementById("stop-speaking-btn");
+
+    if (stopSpeakingBtn) {
+        stopSpeakingBtn.addEventListener("click", () => {
+            if (synth.speaking || isBotSpeaking) {
+                synth.cancel();
+                isBotSpeaking = false;
             }
         });
     }
