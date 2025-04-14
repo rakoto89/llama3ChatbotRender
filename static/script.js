@@ -120,48 +120,16 @@ document.addEventListener("DOMContentLoaded", function () {
             synth.cancel();
         }
 
-        const chunks = splitTextIntoChunks(text, 200); // split into ~200 char chunks
-
-        let index = 0;
-
-        function speakNextChunk() {
-            if (index >= chunks.length) {
-                isBotSpeaking = false;
-                if (callback) callback();
-                return;
-            }
-
-            const utterance = new SpeechSynthesisUtterance(chunks[index]);
-            utterance.lang = currentLanguage;
-
-            utterance.onend = () => {
-                index++;
-                speakNextChunk();
-            };
-
-            synth.speak(utterance);
-        }
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = currentLanguage;
 
         isBotSpeaking = true;
-        speakNextChunk();
-    }
+        utterance.onend = () => {
+            isBotSpeaking = false;
+            if (callback) callback();
+        };
 
-    function splitTextIntoChunks(text, maxLength) {
-        const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
-        const chunks = [];
-        let currentChunk = "";
-
-        for (const sentence of sentences) {
-            if ((currentChunk + sentence).length > maxLength) {
-                if (currentChunk) chunks.push(currentChunk);
-                currentChunk = sentence;
-            } else {
-                currentChunk += sentence;
-            }
-        }
-
-        if (currentChunk) chunks.push(currentChunk);
-        return chunks;
+        synth.speak(utterance);
     }
 
     function sendMessage(text) {
@@ -210,11 +178,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         };
 
-        let speechTimeout;
-
         recognition.onresult = (event) => {
-            clearTimeout(speechTimeout);
-
             if (isBotSpeaking) {
                 return;
             }
@@ -247,7 +211,6 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         recognition.onspeechend = () => {
-            recognition.stop();
             console.log("Stopped listening after user stopped speaking.");
         };
 
@@ -256,14 +219,6 @@ document.addEventListener("DOMContentLoaded", function () {
             const errorKey = event.error || "unknown";
             const msg = languageData[currentLanguage].systemMessages[errorKey] || fallbackMessage;
             appendMessage("bot", msg);
-
-            if (errorKey !== "aborted" && recognition) {
-                try {
-                    recognition.stop();
-                } catch (e) {
-                    console.warn("Error stopping recognition:", e);
-                }
-            }
         };
 
         recognition.onend = () => {
@@ -288,21 +243,19 @@ document.addEventListener("DOMContentLoaded", function () {
     voiceBtn.addEventListener("click", () => {
         if (synth.speaking || usingVoice) {
             if (synth.speaking) synth.cancel();
-            if (recognition) recognition.abort();
+            if (recognition) recognition.stop();
             usingVoice = false;
             return;
         }
 
-        if (currentLanguage === 'zh') {
-            usingVoice = true;
-            appendMessage("bot", languageData[currentLanguage].listeningMessage);
-            setTimeout(() => {
-                startVoiceRecognition();
-            }, 5000);
-        } else {
+        if (!usingVoice) {
             usingVoice = true;
             appendMessage("bot", languageData[currentLanguage].listeningMessage);
             startVoiceRecognition();
+        } else {
+            usingVoice = false;
+            appendMessage("bot", languageData[currentLanguage].systemMessages.stopListening);
+            if (recognition) recognition.stop();
         }
     });
 
