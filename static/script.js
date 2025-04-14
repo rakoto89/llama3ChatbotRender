@@ -163,7 +163,7 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         recognition.onresult = (event) => {
-            if (isBotSpeaking) {
+            if (isBotSpeaking || !usingVoice) {
                 return;
             }
 
@@ -185,7 +185,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         recognition.onend = () => {
             if (usingVoice) {
-                startVoiceRecognition();  // Automatically restart listening if voice is still active
+                startVoiceRecognition();  // Keep listening if voice is still active
             }
         };
 
