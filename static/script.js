@@ -150,7 +150,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         recognition.onstart = () => {
             finalTranscript = "";
-            if (!isMuted && !beep.paused) {
+            if (!isMuted) {
                 beep.play();
             }
         };
@@ -170,7 +170,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         recognition.onend = () => {
             if (usingVoice && !recognition.aborted) {
-                recognition.start(); // Keep listening if not stopped intentionally
+                recognition.start(); // Continue if not manually stopped
             }
         };
 
@@ -191,12 +191,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
     voiceBtn.addEventListener("click", () => {
         if (usingVoice) {
-            // Stop and send
+            // Stop listening and remove "Thinking..." message if shown
             usingVoice = false;
             recognition.stop();
-            if (finalTranscript.trim()) {
-                sendMessage(finalTranscript.trim());
+            finalTranscript = finalTranscript.trim();
+            
+            const lastBotMsg = document.querySelector(".bot-message:last-child");
+            if (lastBotMsg && lastBotMsg.textContent === languageData[currentLanguage].thinkingMessage) {
+                lastBotMsg.remove();
             }
+
+            if (finalTranscript) {
+                sendMessage(finalTranscript);
+            }
+
             finalTranscript = "";
         } else {
             usingVoice = true;
