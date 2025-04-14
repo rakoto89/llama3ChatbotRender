@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    function appendMessage(sender, message) {
+  function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
         msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
         msgDiv.innerHTML = message;
@@ -193,7 +193,7 @@ document.addEventListener("DOMContentLoaded", function () {
             usingVoice = false;
             recognition.stop();
             if (finalTranscript.trim()) {
-                sendMessage(finalTranscript.trim()); // ✅ FIXED: Removed duplicate appendMessage
+                sendMessage(finalTranscript.trim());
             }
             finalTranscript = "";
         } else {
