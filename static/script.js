@@ -213,7 +213,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 recognition.abort();
             }
 
-            synth.cancel();
+            if (isBotSpeaking) {
+                synth.cancel();
+                isBotSpeaking = false;
+            }
 
             removeBotMessage(languageData[currentLanguage].listeningMessage);
             if (pendingResponse) {
