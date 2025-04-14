@@ -1,9 +1,9 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () { 
     const chatBox = document.getElementById("chat-box");
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
-    const stopBtn = document.getElementById("stop-btn");
+    const cancelVoiceBtn = document.getElementById("cancel-voice-btn");
     const beep = new Audio("/static/beep2.mp3");
 
     let recognition;
@@ -69,6 +69,12 @@ document.addEventListener("DOMContentLoaded", function () {
             botMessage: "欢迎使用阿片类药物意识聊天机器人！在这里，您将了解有关阿片类药物的所有信息！",
             listeningMessage: "正在聆听...",
             thinkingMessage: "正在思考...",
+            systemMessages: {
+                stopListening: "我被要求停止聆听。",
+                stopTalking: "我被要求停止说话。",
+                noSpeech: "抱歉，我沒聽清楚",
+                aborted: "谈话结束"
+            },
             titles: {
                 home: "主页",
                 language: "语言偏好",
@@ -93,21 +99,27 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function speakText(text, callback) {
         if (!text.trim() || isMuted) return;
+
         synth.cancel();
+
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = currentLanguage;
+
         isBotSpeaking = true;
         utterance.onend = () => {
             isBotSpeaking = false;
             if (callback) callback();
         };
+
         synth.speak(utterance);
     }
 
     function sendMessage(text) {
         if (!text.trim()) return;
+
         appendMessage("user", text);
         userInput.value = "";
+
         appendMessage("bot", languageData[currentLanguage].thinkingMessage);
 
         fetch("/ask", {
@@ -161,7 +173,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         recognition.onend = () => {
             if (usingVoice && !recognition.aborted) {
-                recognition.start(); // keep listening
+                recognition.start(); // Keep listening if not stopped intentionally
             }
         };
 
@@ -182,6 +194,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     voiceBtn.addEventListener("click", () => {
         if (usingVoice) {
+            // STOP voice input
             usingVoice = false;
 
             if (synth.speaking || isBotSpeaking) {
@@ -204,11 +217,12 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             if (finalTranscript.trim()) {
-                userInput.value = finalTranscript.trim();
+                userInput.value = finalTranscript.trim(); // ONLY show in input field
             }
 
             finalTranscript = "";
         } else {
+            // Cancel bot speaking if active
             if (synth.speaking || isBotSpeaking) {
                 synth.cancel();
                 isBotSpeaking = false;
@@ -268,9 +282,21 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // === Stop Button ===
-    if (stopBtn) {
-        stopBtn.addEventListener("click", () => {
+    // Stop Speaking Button
+    const stopSpeakingBtn = document.getElementById("stop-speaking-btn");
+
+    if (stopSpeakingBtn) {
+        stopSpeakingBtn.addEventListener("click", () => {
+            if (synth.speaking || isBotSpeaking) {
+                synth.cancel();
+                isBotSpeaking = false;
+            }
+        });
+    }
+
+    // Cancel Voice Button
+    if (cancelVoiceBtn) {
+        cancelVoiceBtn.addEventListener("click", () => {
             if (synth.speaking || isBotSpeaking) {
                 synth.cancel();
                 isBotSpeaking = false;
