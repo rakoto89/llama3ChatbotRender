@@ -206,9 +206,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     voiceBtn.addEventListener("click", () => {
         if (usingVoice) {
-            // STOP
-            usingVoice = false;
+             if (isBotSpeaking || synth.speaking) {
+            synth.cancel();
+            isBotSpeaking = false;
+        }
 
+        usingVoice = false;
+            
             if (recognition) {
                 recognition.abort();
             }
