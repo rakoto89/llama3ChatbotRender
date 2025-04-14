@@ -226,6 +226,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
         finalTranscript = "";
     } else {
+        // === ADDED: Cancel bot speaking before starting recording
+        if (synth.speaking || isBotSpeaking) {
+            synth.cancel();
+            isBotSpeaking = false;
+        }
+
         // START voice input
         usingVoice = true;
         finalTranscript = "";
