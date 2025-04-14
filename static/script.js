@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
-    const stopBtn = document.getElementById("stop-btn");
+    const stopBtn = document.getElementById("stop-speaking-btn");
     const beep = new Audio("/static/beep2.mp3");
 
     let recognition;
