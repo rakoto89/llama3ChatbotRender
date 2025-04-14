@@ -22,8 +22,8 @@ document.addEventListener("DOMContentLoaded", function () {
             systemMessages: {
                 stopListening: "I have been asked to stop listening.",
                 stopTalking: "I have been asked to stop talking.",
-                noSpeech: "Recognition error: no speech",
-                aborted: "Recognition error: aborted"
+                noSpeech: "I'm sorry, I didn't hear that",
+                aborted: "Conversation ended"
             },
             titles: {
                 home: "Home",
