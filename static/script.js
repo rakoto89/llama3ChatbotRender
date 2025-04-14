@@ -7,7 +7,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let recognition;
     let usingVoice = false;
-    let timeoutId;
     const synth = window.speechSynthesis;
     let currentLanguage = localStorage.getItem("selectedLanguage") || 'en';
     let isMuted = false;
@@ -21,10 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
             listeningMessage: "Listening...",
             thinkingMessage: "Thinking...",
             systemMessages: {
-                stopListening: "I have been asked to stop listening.",
-                stopTalking: "I have been asked to stop talking.",
                 noSpeech: "I'm sorry, I didn't hear that",
-                aborted: "Conversation ended"
             },
             titles: {
                 home: "Home",
@@ -43,10 +39,7 @@ document.addEventListener("DOMContentLoaded", function () {
             listeningMessage: "Escuchando...",
             thinkingMessage: "Pensando...",
             systemMessages: {
-                stopListening: "Se me ha pedido que deje de escuchar.",
-                stopTalking: "Se me ha pedido que deje de hablar.",
                 noSpeech: "Lo siento, no escuché eso",
-                aborted: "La conversación terminó"
             },
             titles: {
                 home: "Inicio",
@@ -65,10 +58,7 @@ document.addEventListener("DOMContentLoaded", function () {
             listeningMessage: "Écoute...",
             thinkingMessage: "Réflexion...",
             systemMessages: {
-                stopListening: "On m'a demandé d'arrêter d'écouter.",
-                stopTalking: "On m'a demandé d'arrêter de parler.",
                 noSpeech: "Je suis désolé, je n'ai pas compris",
-                aborted: "Conversation terminée"
             },
             titles: {
                 home: "Accueil",
@@ -87,10 +77,7 @@ document.addEventListener("DOMContentLoaded", function () {
             listeningMessage: "正在聆听...",
             thinkingMessage: "正在思考...",
             systemMessages: {
-                stopListening: "我被要求停止聆听。",
-                stopTalking: "我被要求停止说话。",
                 noSpeech: "抱歉，我沒聽清楚",
-                aborted: "談話結束"
             },
             titles: {
                 home: "主页",
@@ -166,7 +153,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         recognition = new SpeechRecognition();
         recognition.lang = currentLanguage;
-        recognition.interimResults = false;
+        recognition.interimResults = true;  // Allow for continuous listening and show interim results
         recognition.maxAlternatives = 1;
 
         recognition.onstart = () => {
@@ -205,21 +192,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.querySelector(".bot-message:last-child").remove();
                 appendMessage("bot", "Fetch Error: " + err);
             });
-
-            recognition.stop();
         };
 
         recognition.onerror = (event) => {
             const msg = languageData[currentLanguage].systemMessages[event.error] || "Recognition Error: " + event.error;
             appendMessage("bot", msg);
-            recognition.stop();
         };
 
         recognition.onend = () => {
-            usingVoice = false;
-            // If no speech detected, inform the user
-            clearTimeout(timeoutId);
-            appendMessage("bot", languageData[currentLanguage].systemMessages.stopListening);
+            if (usingVoice) {
+                startVoiceRecognition();  // Automatically restart listening if voice is still active
+            }
         };
 
         recognition.start();
@@ -242,30 +225,12 @@ document.addEventListener("DOMContentLoaded", function () {
             if (synth.speaking) synth.cancel();
             if (recognition) recognition.abort();
             usingVoice = false;
-            clearTimeout(timeoutId);  // Clear any pending timeout
-            appendMessage("bot", languageData[currentLanguage].systemMessages.stopListening);
             return;
         }
 
-        if (currentLanguage === 'zh') {
-            usingVoice = true;
-            appendMessage("bot", languageData[currentLanguage].listeningMessage);
-            setTimeout(() => {
-                startVoiceRecognition();
-            }, 5000);
-        } else {
-            usingVoice = true;
-            appendMessage("bot", languageData[currentLanguage].listeningMessage);
-            startVoiceRecognition();
-        }
-
-        // Timeout to stop listening if no speech is detected within a certain time
-        timeoutId = setTimeout(() => {
-            if (recognition && usingVoice) {
-                recognition.stop();
-                appendMessage("bot", languageData[currentLanguage].systemMessages.noSpeech);
-            }
-        }, 10000); // 10 seconds timeout
+        usingVoice = true;
+        appendMessage("bot", languageData[currentLanguage].listeningMessage);
+        startVoiceRecognition();
     });
 
     // Language Preferences
