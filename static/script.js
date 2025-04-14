@@ -194,7 +194,6 @@ document.addEventListener("DOMContentLoaded", function () {
             usingVoice = false;
             recognition.stop();
             if (finalTranscript.trim()) {
-                appendMessage("user", finalTranscript.trim());
                 sendMessage(finalTranscript.trim());
             }
             finalTranscript = "";
