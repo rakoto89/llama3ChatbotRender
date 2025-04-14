@@ -192,7 +192,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    voiceBtn.addEventListener("click", () => {
+   voiceBtn.addEventListener("click", () => {
     if (usingVoice) {
         // STOP voice input
         usingVoice = false;
@@ -219,28 +219,9 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // === ADDED: Show voice input in field and chat
+        // Insert spoken text into input only
         if (finalTranscript.trim()) {
-            userInput.value = finalTranscript.trim();             // Show in input field
-            appendMessage("user", finalTranscript.trim());       // Show in chat box
-            appendMessage("bot", languageData[currentLanguage].thinkingMessage); // Optional thinking message here if you want
-
-            // Then send to backend
-            fetch("/ask", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ question: finalTranscript.trim(), language: currentLanguage })
-            })
-            .then(res => res.json())
-            .then(data => {
-                document.querySelector(".bot-message:last-child").remove();
-                const response = data.answer || "Error: Could not get a response.";
-                appendMessage("bot", response);
-            })
-            .catch(() => {
-                document.querySelector(".bot-message:last-child").remove();
-                appendMessage("bot", "Error: Could not get a response.");
-            });
+            userInput.value = finalTranscript.trim(); // Show in input field ONLY
         }
 
         finalTranscript = "";
