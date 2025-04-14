@@ -116,8 +116,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function speakText(text, callback) {
         if (!text.trim() || isMuted) return;
-
-        // Recommended addition to prevent speech cutoff
         if (synth.speaking) {
             synth.cancel();
         }
@@ -180,7 +178,11 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         };
 
+        let speechTimeout;
+
         recognition.onresult = (event) => {
+            clearTimeout(speechTimeout);
+
             if (isBotSpeaking) {
                 return;
             }
@@ -211,25 +213,26 @@ document.addEventListener("DOMContentLoaded", function () {
                 appendMessage("bot", "Fetch Error: " + err);
             });
 
-            recognition.stop();
+            speechTimeout = setTimeout(() => {
+                recognition.stop();
+                console.log("Auto-stopped after pause.");
+            }, 3000);
         };
 
-    recognition.onerror = (event) => {
-        const fallbackMessage = "I'm sorry, I didn't hear that.";
-        const errorKey = event.error || "unknown";
-        const msg = languageData[currentLanguage].systemMessages[errorKey] || fallbackMessage;
-        appendMessage("bot", msg);
+        recognition.onerror = (event) => {
+            const fallbackMessage = "I'm sorry, I didn't hear that.";
+            const errorKey = event.error || "unknown";
+            const msg = languageData[currentLanguage].systemMessages[errorKey] || fallbackMessage;
+            appendMessage("bot", msg);
 
-    // Optional: only stop if not already aborted
-        if (errorKey !== "aborted" && recognition) {
-            try {
-                recognition.stop();
-            } catch (e) {
-                console.warn("Error stopping recognition:", e);
+            if (errorKey !== "aborted" && recognition) {
+                try {
+                    recognition.stop();
+                } catch (e) {
+                    console.warn("Error stopping recognition:", e);
+                }
             }
-        }
-    };
-
+        };
 
         recognition.onend = () => {
             usingVoice = false;
