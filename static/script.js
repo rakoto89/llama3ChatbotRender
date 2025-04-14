@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
             systemMessages: {
                 stopListening: "I have been asked to stop listening.",
                 stopTalking: "I have been asked to stop talking.",
-                noSpeech: "I'm sorry, I didn't hear that",
+                noSpeech: "I'm sorry, I didn't hear that.",
                 aborted: "Conversation ended"
             },
             titles: {
