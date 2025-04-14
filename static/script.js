@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () { 
     const chatBox = document.getElementById("chat-box");
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
@@ -61,7 +61,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 exit: "Quitter",
                 send: "Envoyez votre message",
                 voice: "Demandez avec votre voix"
-                
             }
         },
         zh: {
@@ -151,7 +150,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         recognition.onstart = () => {
             finalTranscript = "";
-            if (!isMuted) beep.play();
+            if (!isMuted && !beep.paused) {
+                beep.play();
+            }
         };
 
         recognition.onresult = (event) => {
@@ -168,8 +169,8 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         recognition.onend = () => {
-            if (usingVoice) {
-                recognition.start(); // Keep listening
+            if (usingVoice && !recognition.aborted) {
+                recognition.start(); // Keep listening if not stopped intentionally
             }
         };
 
