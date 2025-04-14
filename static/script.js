@@ -116,6 +116,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function speakText(text, callback) {
         if (!text.trim() || isMuted) return;
+
+        // Recommended addition to prevent speech cutoff
+        if (synth.speaking) {
+            synth.cancel();
+        }
+
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = currentLanguage;
 
