@@ -30,7 +30,61 @@ document.addEventListener("DOMContentLoaded", function () {
                 voice: "Ask using your voice"
             }
         },
-        // Other languages omitted for brevity (they stay the same)
+        es: {
+            placeholder: "Escribe tu pregunta...",
+            chatbotTitle: "Chatbot de Conciencia sobre los Opioides",
+            botMessage: "¡Bienvenido al Chatbot de Conciencia sobre los Opioides! ¡Aquí aprenderás todo sobre los opioides!",
+            listeningMessage: "Escuchando...",
+            thinkingMessage: "Pensando...",
+            titles: {
+                home: "Inicio",
+                language: "Preferencias de idioma",
+                feedback: "Comentarios",
+                resources: "Recursos",
+                exit: "Salir",
+                send: "Enviar tu mensaje",
+                voice: "Pregunta usando tu voz"
+            }
+        },
+        fr: {
+            placeholder: "Entrez votre question...",
+            chatbotTitle: "Chatbot de Sensibilisation aux Opioïdes",
+            botMessage: "Bienvenue sur le Chatbot de Sensibilisation aux Opioïdes ! Ici, vous apprendrez tout sur les opioïdes !",
+            listeningMessage: "Écoute...",
+            thinkingMessage: "Réflexion...",
+            titles: {
+                home: "Accueil",
+                language: "Préférences linguistiques",
+                feedback: "Retour",
+                resources: "Ressources",
+                exit: "Quitter",
+                send: "Envoyez votre message",
+                voice: "Demandez avec votre voix"
+                
+            }
+        }
+        zh: {
+            placeholder: "输入您的问题...",
+            chatbotTitle: "阿片类药物意识聊天机器人",
+            botMessage: "欢迎使用阿片类药物意识聊天机器人！在这里，您将了解有关阿片类药物的所有信息！",
+            listeningMessage: "正在聆听...",
+            thinkingMessage: "正在思考...",
+            systemMessages: {
+                stopListening: "我被要求停止聆听。",
+                stopTalking: "我被要求停止说话。",
+                noSpeech: "抱歉，我沒聽清楚",
+                aborted: "談話結束"
+            },
+            titles: {
+                home: "主页",
+                language: "语言偏好",
+                feedback: "反馈",
+                resources: "资源",
+                exit: "退出",
+                send: "发送您的消息",
+                voice: "使用语音提问"
+            }
+        }
     };
 
     function appendMessage(sender, message) {
@@ -139,8 +193,7 @@ document.addEventListener("DOMContentLoaded", function () {
             usingVoice = false;
             recognition.stop();
             if (finalTranscript.trim()) {
-                appendMessage("user", finalTranscript.trim());
-                sendMessage(finalTranscript.trim());
+                sendMessage(finalTranscript.trim()); // ✅ FIXED: Removed duplicate appendMessage
             }
             finalTranscript = "";
         } else {
