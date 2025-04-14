@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 voice: "Demandez avec votre voix"
                 
             }
-        }
+        },
         zh: {
             placeholder: "输入您的问题...",
             chatbotTitle: "阿片类药物意识聊天机器人",
