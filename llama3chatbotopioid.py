@@ -121,7 +121,6 @@ relevant_topics = [
 def is_question_relevant(question):
     return any(topic in question.lower() for topic in relevant_topics)
 
-# === FIXED FUNCTION ===
 def get_llama3_response(question, user_lang="en"):
     user_lang = normalize_language_code(user_lang)
     translator = Translator()
@@ -132,7 +131,6 @@ def get_llama3_response(question, user_lang="en"):
         print(f"Translation failed: {str(e)}")
         translated_question = question
 
-    # moved relevance check here to always run on final question
     if not is_question_relevant(translated_question):
         try:
             return translator.translate(
@@ -145,8 +143,14 @@ def get_llama3_response(question, user_lang="en"):
 
     if conversation_history:
         last_user_msg = next((msg["content"] for msg in reversed(conversation_history) if msg["role"] == "user"), "")
-        if any(pronoun in translated_question.lower() for pronoun in ["it", "they", "them", "this"]):
-            translated_question = f"{last_user_msg} -> {translated_question}"
+        pronouns = ["it", "they", "them", "this"]
+        for pronoun in pronouns:
+            if pronoun in translated_question.lower():
+                last_words = [w for w in last_user_msg.strip().split() if len(w) > 3 and w.lower() not in pronouns]
+                if last_words:
+                    replacement = last_words[-1]
+                    translated_question = translated_question.replace(pronoun, replacement)
+        translated_question = f"{last_user_msg} -> {translated_question}"
 
     conversation_history.append({"role": "user", "content": translated_question})
 
@@ -241,4 +245,3 @@ def check_env():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
