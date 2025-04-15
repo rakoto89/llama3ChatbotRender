@@ -118,8 +118,16 @@ relevant_topics = [
     "brands", "treatment programs", "medication", "young people", "peer pressure"
 ]
 
+# UPDATED FUNCTION — checks last 5 user questions for relevance
 def is_question_relevant(question):
-    return any(topic in question.lower() for topic in relevant_topics)
+    question_lower = question.lower()
+    if any(topic in question_lower for topic in relevant_topics):
+        return True
+    recent_user_msgs = [msg["content"] for msg in reversed(conversation_history) if msg["role"] == "user"]
+    for msg in recent_user_msgs[:5]:
+        if any(topic in msg.lower() for topic in relevant_topics):
+            return True
+    return False
 
 def get_llama3_response(question, user_lang="en"):
     user_lang = normalize_language_code(user_lang)
