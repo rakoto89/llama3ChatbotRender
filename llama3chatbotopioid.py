@@ -138,7 +138,7 @@ def get_llama3_response(question, user_lang="en"):
         print(f"Translation failed: {str(e)}")
         translated_question = question
 
-    # === NEW DUPLICATE CHECK LOGIC ===
+    # Prevent repeated questions
     if conversation_history and conversation_history[-1]['role'] == 'user':
         last_user_question = conversation_history[-1]['content']
         if last_user_question.strip().lower() == translated_question.strip().lower():
@@ -194,14 +194,27 @@ Only answer questions based on the educational data provided."""
         )
         res.raise_for_status()
         data = res.json()
-        content = data.get("choices", [{}])[0].get("message", {}).get("content", "No response.")
+        content = data.get("choices", [{}])[0].get("message", {}).get("content", "No response.").strip()
+
+        # Prevent repeating the same assistant response
+        if conversation_history:
+            last_assistant_msg = next((msg["content"] for msg in reversed(conversation_history) if msg["role"] == "assistant"), "")
+            if content.lower() == last_assistant_msg.lower():
+                try:
+                    return translator.translate(
+                        "I've already answered something similar. Please try asking in a different way if you need more details.",
+                        dest=user_lang
+                    ).text
+                except:
+                    return "I've already answered something similar. Please try asking in a different way if you need more details."
+
         conversation_history.append({"role": "assistant", "content": content})
 
         try:
-            return translator.translate(content.strip(), dest=user_lang).text
+            return translator.translate(content, dest=user_lang).text
         except Exception as e:
             print(f"Response translation failed: {str(e)}")
-            return content.strip()
+            return content
 
     except Exception as e:
         print(f"OpenRouter API Error: {str(e)}")
