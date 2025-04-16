@@ -157,42 +157,21 @@ def get_llama3_response(question, user_lang="en"):
             print(f"Translation fallback failed: {str(e)}")
             return "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment."
 
-    # ========== NEW BLOCK: Avoid repeating explained topics ==========
-    def extract_keywords(text):
-        keywords = []
-        for word in text.split():
-            word = word.lower().strip(".,!?")
-            if word in relevant_topics and word not in keywords:
-                keywords.append(word)
-        return keywords
-
-    past_answers = [msg["content"] for msg in conversation_history if msg["role"] == "assistant"]
-    explained_keywords = set()
-    for ans in past_answers:
-        explained_keywords.update(extract_keywords(ans))
-
-    if explained_keywords:
-        for keyword in explained_keywords:
-            if keyword in translated_question.lower():
-                translated_question = translated_question.replace(keyword, "").strip()
-    # ========== END NEW BLOCK ==========
-
+    # ========= Handle follow-up questions by adding previous conversation context =========
     if conversation_history:
         last_user_msg = next((msg["content"] for msg in reversed(conversation_history) if msg["role"] == "user"), "")
-        pronouns = ["it", "they", "them", "this"]
-        for pronoun in pronouns:
-            if pronoun in translated_question.lower():
-                last_words = [w for w in last_user_msg.strip().split() if len(w) > 3 and w.lower() not in pronouns]
-                if last_words:
-                    replacement = last_words[-1]
-                    translated_question = translated_question.replace(pronoun, replacement)
-        translated_question = f"{last_user_msg} -> {translated_question}"
+        last_assistant_msg = next((msg["content"] for msg in reversed(conversation_history) if msg["role"] == "assistant"), "")
+
+        # Combine both the last user and assistant messages for better context
+        combined_context = f"User: {last_user_msg}\nAssistant: {last_assistant_msg}\nUser follow-up: {translated_question}"
+        translated_question = combined_context
 
     conversation_history.append({"role": "user", "content": translated_question})
 
     system_prompt = """You are an educational Opioid Awareness Chatbot created for Bowie State University.
-Only answer the user's current question directly and briefly using the provided educational data.
-Do not include extra information, context, or commentary beyond what is needed to answer the specific question."""
+You provide safe, factual, and age-appropriate educational information about opioids, addiction, overdose, prevention, and treatment.
+You can understand and respond to follow-up questions based on prior messages in the conversation.
+Only answer questions based on the educational data provided."""
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
@@ -293,3 +272,4 @@ def check_env():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
