@@ -157,6 +157,26 @@ def get_llama3_response(question, user_lang="en"):
             print(f"Translation fallback failed: {str(e)}")
             return "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment."
 
+    # ========== NEW BLOCK: Avoid repeating explained topics ==========
+    def extract_keywords(text):
+        keywords = []
+        for word in text.split():
+            word = word.lower().strip(".,!?")
+            if word in relevant_topics and word not in keywords:
+                keywords.append(word)
+        return keywords
+
+    past_answers = [msg["content"] for msg in conversation_history if msg["role"] == "assistant"]
+    explained_keywords = set()
+    for ans in past_answers:
+        explained_keywords.update(extract_keywords(ans))
+
+    if explained_keywords:
+        for keyword in explained_keywords:
+            if keyword in translated_question.lower():
+                translated_question = translated_question.replace(keyword, "").strip()
+    # ========== END NEW BLOCK ==========
+
     if conversation_history:
         last_user_msg = next((msg["content"] for msg in reversed(conversation_history) if msg["role"] == "user"), "")
         pronouns = ["it", "they", "them", "this"]
@@ -196,7 +216,6 @@ Only answer questions based on the educational data provided."""
         data = res.json()
         content = data.get("choices", [{}])[0].get("message", {}).get("content", "No response.").strip()
 
-        # Check if assistant already responded with the same content
         last_assistant = next((msg["content"] for msg in reversed(conversation_history) if msg["role"] == "assistant"), "")
         if content.strip().lower() == last_assistant.strip().lower():
             try:
@@ -275,4 +294,3 @@ def check_env():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
