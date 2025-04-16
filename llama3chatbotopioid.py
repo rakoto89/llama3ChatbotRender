@@ -191,9 +191,8 @@ def get_llama3_response(question, user_lang="en"):
     conversation_history.append({"role": "user", "content": translated_question})
 
     system_prompt = """You are an educational Opioid Awareness Chatbot created for Bowie State University.
-You provide safe, factual, and age-appropriate educational information about opioids, addiction, overdose, prevention, and treatment.
-You do NOT provide instructions on how to obtain illegal substances.
-Only answer questions based on the educational data provided."""
+Only answer the user's current question directly and briefly using the provided educational data.
+Do not include extra information, context, or commentary beyond what is needed to answer the specific question."""
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
