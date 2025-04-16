@@ -196,17 +196,18 @@ Only answer questions based on the educational data provided."""
         data = res.json()
         content = data.get("choices", [{}])[0].get("message", {}).get("content", "No response.").strip()
 
-        # Prevent repeating the same assistant response
+        # Prevent repeating assistant response only if user repeats same question
         if conversation_history:
+            last_user_msg = next((msg["content"] for msg in reversed(conversation_history) if msg["role"] == "user"), "")
             last_assistant_msg = next((msg["content"] for msg in reversed(conversation_history) if msg["role"] == "assistant"), "")
-            if content.lower() == last_assistant_msg.lower():
+            if translated_question.strip().lower() == last_user_msg.strip().lower() and content.strip().lower() == last_assistant_msg.strip().lower():
                 try:
                     return translator.translate(
-                        "I've already answered something similar. Please try asking in a different way if you need more details.",
+                        "I've already answered this question. Try asking something new or in a different way.",
                         dest=user_lang
                     ).text
                 except:
-                    return "I've already answered something similar. Please try asking in a different way if you need more details."
+                    return "I've already answered this question. Try asking something new or in a different way."
 
         conversation_history.append({"role": "assistant", "content": content})
 
