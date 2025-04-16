@@ -118,7 +118,6 @@ relevant_topics = [
     "brands", "treatment programs", "medication", "young people", "peer pressure"
 ]
 
-# UPDATED FUNCTION — checks last 5 user questions for relevance
 def is_question_relevant(question):
     question_lower = question.lower()
     if any(topic in question_lower for topic in relevant_topics):
@@ -138,6 +137,15 @@ def get_llama3_response(question, user_lang="en"):
     except Exception as e:
         print(f"Translation failed: {str(e)}")
         translated_question = question
+
+    # === NEW DUPLICATE CHECK LOGIC ===
+    if conversation_history and conversation_history[-1]['role'] == 'user':
+        last_user_question = conversation_history[-1]['content']
+        if last_user_question.strip().lower() == translated_question.strip().lower():
+            return translator.translate(
+                "You already asked this question. Please try something different.",
+                dest=user_lang
+            ).text
 
     if not is_question_relevant(translated_question):
         try:
@@ -162,8 +170,10 @@ def get_llama3_response(question, user_lang="en"):
 
     conversation_history.append({"role": "user", "content": translated_question})
 
-    system_prompt = """You are an Opioid Awareness Chatbot created for Bowie State University.
-Only answer questions related to opioids, addiction, overdose, and treatment using the provided data."""
+    system_prompt = """You are an educational Opioid Awareness Chatbot created for Bowie State University.
+You provide safe, factual, and age-appropriate educational information about opioids, addiction, overdose, prevention, and treatment.
+You do NOT provide instructions on how to obtain illegal substances.
+Only answer questions based on the educational data provided."""
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
