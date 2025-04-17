@@ -224,7 +224,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     beep.volume = 1.0;
                     beep.play().catch(err => console.warn("Beep failed:", err));
                     startContinuousRecognition();
-                }, 4000);
+                }, 3000);
             } else {
                 voiceBtn.classList.add("voice-active");
                 beep.currentTime = 0;
