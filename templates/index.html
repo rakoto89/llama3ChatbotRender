@@ -1,59 +1,90 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Opioid Awareness Chatbot</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <script defer src="{{ url_for('static', filename='script.js') }}"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opioid Chatbot Awareness</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="container">
-        <aside class="sidebar">
-            <div class="icon" title="Home">
-                <img src="{{ url_for('static', filename='images/home.png') }}" alt="Home Icon" class="sidebar-icon">
-            </div>
-            <div class="icon" title="Language Preferences" id="lang-btn">
-                <img src="{{ url_for('static', filename='images/language.png') }}" alt="Language Icon" class="sidebar-icon">
-                <div id="language-options" style="display:none;">
-                    <button data-lang="en">English</button>
-                    <button data-lang="es">Español</button>
-                    <button data-lang="fr">Français</button>
-                    <button data-lang="zh">中文</button>
-                </div>
-            </div>
-            <div class="icon" title="Feedback">
-                <img src="{{ url_for('static', filename='images/feedback.png') }}" alt="Feedback Icon" class="sidebar-icon">
-            </div>
-            <div class="icon" title="Resources">
-                <img src="{{ url_for('static', filename='images/resources.png') }}" alt="Resources Icon" class="sidebar-icon">
-            </div>
-            <div class="icon" title="Exit">
-                <img src="{{ url_for('static', filename='images/exit.png') }}" alt="Exit Icon" class="sidebar-icon">
-            </div>
-            <div class="icon" id="volume-toggle" title="Mute">
-                <img id="volume-icon" src="{{ url_for('static', filename='images/volume.png') }}" alt="Volume Icon" class="sidebar-icon">
-            </div>
-        </aside>
+    <!-- Sidebar with images -->
+    <div class="sidebar">
+        <img src="{{ url_for('static', filename='images/bowie_state_white_logo.png') }}" alt="Bowie State Logo" class="top-right-image">
 
-        <main class="chat-container">
-            <div class="chat-header">Opioid Awareness Chatbot</div>
-            <div id="chat-box" class="chat-box">
-                <div class="bot-message">Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!</div>
-            </div>
-            <div class="input-area">
-                <input type="text" id="user-input" placeholder="Enter your question..." autocomplete="off">
-                <button id="send-btn" title="Send">
-                    <img src="{{ url_for('static', filename='images/submit.png') }}" alt="Submit">
-                </button>
-                <button id="voice-btn" title="Voice">
-                    <img src="{{ url_for('static', filename='images/voice.png') }}" alt="Voice">
-                </button>
-                <button id="stop-speaking-btn" title="Stop">
-                    <img src="{{ url_for('static', filename='images/stop.png') }}" alt="Stop">
-                </button>
-                <audio id="beep" src="{{ url_for('static', filename='sounds/beep.mp3') }}"></audio>
-            </div>
-        </main>
+        <div class="icon" onclick="location.href='/'" title="Home">
+            <img src="{{ url_for('static', filename='images/Home.png') }}" alt="Home Icon" class="sidebar-icon">
+        </div>
+        <div class="icon" id="lang-btn" title="Language Preferences">
+            <img src="{{ url_for('static', filename='images/Language_Preferences.png') }}" alt="Language Preferences" class="sidebar-icon">
+        </div>
+        <div class="icon" onclick="location.href='/feedback'" title="Feedback">
+            <img src="{{ url_for('static', filename='images/Feedback.png') }}" alt="Feedback" class="sidebar-icon">
+        </div>
+        <div class="icon" onclick="location.href='https://www.bowiestate.edu/campus-life/health-and-wellness/'" title="Resources">
+            <img src="{{ url_for('static', filename='images/Resources.png') }}" alt="Resources" class="sidebar-icon no-filter">
+        </div>
+        <!-- Volume/Mute Toggle Button (above Exit) -->
+        <div class="icon" id="volume-toggle" title="Mute">
+            <img id="volume-icon" src="{{ url_for('static', filename='images/volume.png') }}" alt="Volume Icon" class="sidebar-icon">
+        </div>
+        <div class="icon" onclick="location.href='https://www.bowiestate.edu'" title="Exit">
+            <img src="{{ url_for('static', filename='images/Exit.png') }}" alt="Exit" class="sidebar-icon">
+        </div>
     </div>
+
+    <!-- Chat section -->
+    <div class="chat-container">
+        <div class="chat-header">Opioid Awareness Chatbot</div>
+        <div class="chat-box" id="chat-box">
+            <div class="bot-message">Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!</div>
+        </div>
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="Enter your question...">
+            <button id="send-btn" title="Send">
+                <img src="{{ url_for('static', filename='images/submit.png') }}" alt="Submit">
+            </button>
+            <button id="voice-btn" title="Voice">
+                <img src="{{ url_for('static', filename='images/voice.png') }}" alt="Voice">
+            </button>
+            <button id="stop-speaking-btn" title="Stop">
+                <img src="{{ url_for('static', filename='images/stop.png') }}" alt="Stop">
+            </button>
+        </div>
+    </div>
+
+    <!-- Language options -->
+    <div id="language-options" class="language-options" style="display: none;">
+        <button data-lang="en">English</button>
+        <button data-lang="es">Español</button>
+        <button data-lang="fr">Français</button>
+        <button data-lang="zh">中文</button>
+    </div>
+
+    <!-- Beep sound -->
+    <audio id="beep" src="{{ url_for('static', filename='beep2.mp3') }}" preload="auto"></audio>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        // Volume/Mute toggle
+        document.addEventListener("DOMContentLoaded", function () {
+            const volumeToggle = document.getElementById("volume-toggle");
+            const volumeIcon = document.getElementById("volume-icon");
+            let isMuted = false;
+
+            volumeToggle.addEventListener("click", () => {
+                isMuted = !isMuted;
+                if (isMuted) {
+                    volumeIcon.src = "/static/images/mute.png";
+                    volumeToggle.title = "Unmute";
+                    window.speechSynthesis.cancel(); // Stop speaking if needed
+                } else {
+                    volumeIcon.src = "/static/images/volume.png";
+                    volumeToggle.title = "Mute";
+                }
+            });
+        });
+    </script>
 </body>
 </html>
+
