@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
     const stopBtn = document.getElementById("stop-speaking-btn");
-    const beep = new Audio("/static/beep2.mp3");
+    const beep = document.getElementById("beep");
 
     let recognition;
     let usingVoice = false;
