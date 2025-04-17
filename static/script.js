@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
     const stopBtn = document.getElementById("stop-speaking-btn");
-    const beep = document.getElementById("beep");
+    const beep = document.getElementById("beep"); // Updated to use HTML <audio> element
 
     let recognition;
     let usingVoice = false;
@@ -141,9 +141,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         recognition.onstart = () => {
             finalTranscript = "";
-            if (!isMuted && !beep.paused) {
-                beep.play();
-            }
         };
 
         recognition.onresult = (event) => {
@@ -218,6 +215,12 @@ document.addEventListener("DOMContentLoaded", function () {
             usingVoice = true;
             voiceBtn.classList.add("voice-active");
             finalTranscript = "";
+
+            // === Beep logic addition (only change) ===
+            beep.currentTime = 0;
+            beep.volume = 1.0;
+            beep.play().catch(err => console.warn("Beep failed:", err));
+
             appendMessage("bot", languageData[currentLanguage].listeningMessage);
             startContinuousRecognition();
         }
