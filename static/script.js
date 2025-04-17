@@ -29,6 +29,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 exit: "Exit",
                 send: "Send your message",
                 voice: "Ask using your voice"
+                Stop: "Stop"
+                mute: "Mute"
+                unmute: "Unmute"
             }
         },
         es: {
@@ -45,6 +48,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 exit: "Salir",
                 send: "Enviar tu mensaje",
                 voice: "Pregunta usando tu voz"
+                stop: "Detener"
+                mute: "Silenciar"
+                unmute: "Reactivar el silencio"
             }
         },
         fr: {
@@ -61,6 +67,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 exit: "Quitter",
                 send: "Envoyez votre message",
                 voice: "Demandez avec votre voix"
+                stop: "arrêt"
+                mute: "Muet"
+                unmute: "Réactiver le son"
             }
         },
         zh: {
@@ -77,6 +86,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 exit: "退出",
                 send: "发送您的消息",
                 voice: "使用语音提问"
+                stop: "停止"
+                mute: "沉默的"
+                unmute: "取消靜音"
             }
         }
     };
