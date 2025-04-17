@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
     const stopBtn = document.getElementById("stop-speaking-btn");
-    const beep = document.getElementById("beep"); // Updated to use HTML <audio> element
+    const beep = document.getElementById("beep");
 
     let recognition;
     let usingVoice = false;
@@ -213,16 +213,26 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             usingVoice = true;
-            voiceBtn.classList.add("voice-active");
             finalTranscript = "";
 
-            // === Beep logic addition (only change) ===
-            beep.currentTime = 0;
-            beep.volume = 1.0;
-            beep.play().catch(err => console.warn("Beep failed:", err));
-
-            appendMessage("bot", languageData[currentLanguage].listeningMessage);
-            startContinuousRecognition();
+            // Delay for Chinese
+            if (currentLanguage === 'zh') {
+                appendMessage("bot", languageData[currentLanguage].listeningMessage);
+                setTimeout(() => {
+                    voiceBtn.classList.add("voice-active");
+                    beep.currentTime = 0;
+                    beep.volume = 1.0;
+                    beep.play().catch(err => console.warn("Beep failed:", err));
+                    startContinuousRecognition();
+                }, 5000);
+            } else {
+                voiceBtn.classList.add("voice-active");
+                beep.currentTime = 0;
+                beep.volume = 1.0;
+                beep.play().catch(err => console.warn("Beep failed:", err));
+                appendMessage("bot", languageData[currentLanguage].listeningMessage);
+                startContinuousRecognition();
+            }
         }
     });
 
