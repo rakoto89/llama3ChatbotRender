@@ -28,7 +28,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 resources: "Resources",
                 exit: "Exit",
                 send: "Send your message",
-                voice: "Ask using your voice"
+                voice: "Ask using your voice",
+                stop: "Stop speaking",
+                mute: "Mute",
+                unmute: "Unmute"
             }
         },
         es: {
@@ -44,7 +47,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 resources: "Recursos",
                 exit: "Salir",
                 send: "Enviar tu mensaje",
-                voice: "Pregunta usando tu voz"
+                voice: "Pregunta usando tu voz",
+                stop: "Detener",
+                mute: "Silenciar",
+                unmute: "Reactivar sonido"
             }
         },
         fr: {
@@ -60,7 +66,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 resources: "Ressources",
                 exit: "Quitter",
                 send: "Envoyez votre message",
-                voice: "Demandez avec votre voix"
+                voice: "Demandez avec votre voix",
+                stop: "Arrêter",
+                mute: "Muet",
+                unmute: "Rétablir le son"
             }
         },
         zh: {
@@ -76,7 +85,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 resources: "资源",
                 exit: "退出",
                 send: "发送您的消息",
-                voice: "使用语音提问"
+                voice: "使用语音提问",
+                stop: "停止",
+                mute: "静音",
+                unmute: "取消静音"
             }
         }
     };
@@ -215,7 +227,6 @@ document.addEventListener("DOMContentLoaded", function () {
             usingVoice = true;
             finalTranscript = "";
 
-            // Delay for Chinese
             if (currentLanguage === 'zh') {
                 appendMessage("bot", languageData[currentLanguage].listeningMessage);
                 setTimeout(() => {
@@ -263,8 +274,9 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelector('[title="Resources"]').title = languageData[currentLanguage].titles.resources;
     document.querySelector('[title="Exit"]').title = languageData[currentLanguage].titles.exit;
 
-    document.getElementById("send-btn").title = languageData[currentLanguage].titles.send;
-    document.getElementById("voice-btn").title = languageData[currentLanguage].titles.voice;
+    sendBtn.title = languageData[currentLanguage].titles.send;
+    voiceBtn.title = languageData[currentLanguage].titles.voice;
+    stopBtn.title = languageData[currentLanguage].titles.stop;
 
     const volumeToggle = document.getElementById("volume-toggle");
     const volumeIcon = document.getElementById("volume-icon");
@@ -274,11 +286,11 @@ document.addEventListener("DOMContentLoaded", function () {
             isMuted = !isMuted;
             if (isMuted) {
                 volumeIcon.src = "/static/images/mute.png";
-                volumeToggle.title = "Unmute";
+                volumeToggle.title = languageData[currentLanguage].titles.unmute;
                 synth.cancel();
             } else {
                 volumeIcon.src = "/static/images/volume.png";
-                volumeToggle.title = "Mute";
+                volumeToggle.title = languageData[currentLanguage].titles.mute;
             }
         });
     }
