@@ -4,8 +4,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
     const stopBtn = document.getElementById("stop-speaking-btn");
-    const pauseBtn = document.getElementById("pause-speech-btn");
-    const playBtn = document.getElementById("play-speech-btn");
+    const playPauseBtn = document.getElementById("play-pause-btn");
+    const playPauseIcon = document.getElementById("play-pause-icon");
     const beep = document.getElementById("beep");
 
     let recognition;
@@ -17,9 +17,9 @@ document.addEventListener("DOMContentLoaded", function () {
     let finalTranscript = "";
     let lastSpokenText = "";
     let currentUtterance = null;
+    let isPaused = false;
 
     const languageData = {
-        // same as before – no changes needed
         en: {
             placeholder: "Enter your question...",
             chatbotTitle: "Opioid Awareness Chatbot",
@@ -36,11 +36,74 @@ document.addEventListener("DOMContentLoaded", function () {
                 voice: "Ask using your voice",
                 stop: "Stop speaking",
                 mute: "Mute",
-                unmute: "Unmute"
+                unmute: "Unmute",
+                play: "Play",
+                pause: "Pause"
             }
         },
-        // other languages: es, fr, zh (unchanged)
-        // ...
+        es: {
+            placeholder: "Escribe tu pregunta...",
+            chatbotTitle: "Chatbot de Conciencia sobre los Opioides",
+            botMessage: "¡Bienvenido al Chatbot de Conciencia sobre los Opioides! ¡Aquí aprenderás todo sobre los opioides!",
+            listeningMessage: "Escuchando...",
+            thinkingMessage: "Pensando...",
+            titles: {
+                home: "Inicio",
+                language: "Preferencias de idioma",
+                feedback: "Comentarios",
+                resources: "Recursos",
+                exit: "Salir",
+                send: "Enviar tu mensaje",
+                voice: "Pregunta usando tu voz",
+                stop: "Detener",
+                mute: "Silenciar",
+                unmute: "Reactivar sonido",
+                play: "Reproducir",
+                pause: "Pausa"
+            }
+        },
+        fr: {
+            placeholder: "Entrez votre question...",
+            chatbotTitle: "Chatbot de Sensibilisation aux Opioïdes",
+            botMessage: "Bienvenue sur le Chatbot de Sensibilisation aux Opioïdes ! Ici, vous apprendrez tout sur les opioïdes !",
+            listeningMessage: "Écoute...",
+            thinkingMessage: "Réflexion...",
+            titles: {
+                home: "Accueil",
+                language: "Préférences linguistiques",
+                feedback: "Retour",
+                resources: "Ressources",
+                exit: "Quitter",
+                send: "Envoyez votre message",
+                voice: "Demandez avec votre voix",
+                stop: "Arrêter",
+                mute: "Muet",
+                unmute: "Rétablir le son",
+                play: "Lecture",
+                pause: "Pause"
+            }
+        },
+        zh: {
+            placeholder: "输入您的问题...",
+            chatbotTitle: "阿片类药物意识聊天机器人",
+            botMessage: "欢迎使用阿片类药物意识聊天机器人！在这里，您将了解有关阿片类药物的所有信息！",
+            listeningMessage: "正在聆听...",
+            thinkingMessage: "正在思考...",
+            titles: {
+                home: "主页",
+                language: "语言偏好",
+                feedback: "反馈",
+                resources: "资源",
+                exit: "退出",
+                send: "发送您的消息",
+                voice: "使用语音提问",
+                stop: "停止",
+                mute: "静音",
+                unmute: "取消静音",
+                play: "播放",
+                pause: "暂停"
+            }
+        }
     };
 
     function appendMessage(sender, message) {
@@ -63,9 +126,13 @@ document.addEventListener("DOMContentLoaded", function () {
         currentUtterance.onend = () => {
             isBotSpeaking = false;
             currentUtterance = null;
-            if (callback) callback();
+            isPaused = false;
+            playPauseIcon.src = "/static/images/pause.png";
+            playPauseBtn.title = languageData[currentLanguage].titles.pause;
         };
         synth.speak(currentUtterance);
+        playPauseIcon.src = "/static/images/pause.png";
+        playPauseBtn.title = languageData[currentLanguage].titles.pause;
     }
 
     function sendMessage(text) {
@@ -103,9 +170,7 @@ document.addEventListener("DOMContentLoaded", function () {
         recognition.continuous = true;
         recognition.interimResults = true;
 
-        recognition.onstart = () => {
-            finalTranscript = "";
-        };
+        recognition.onstart = () => { finalTranscript = ""; };
 
         recognition.onresult = (event) => {
             for (let i = event.resultIndex; i < event.results.length; ++i) {
@@ -121,9 +186,7 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         recognition.onend = () => {
-            if (usingVoice && !recognition.aborted) {
-                recognition.start();
-            }
+            if (usingVoice && !recognition.aborted) recognition.start();
         };
 
         recognition.start();
@@ -145,12 +208,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (usingVoice) {
             usingVoice = false;
             voiceBtn.classList.remove("voice-active");
-
-            if (synth.speaking || isBotSpeaking) {
-                synth.cancel();
-                isBotSpeaking = false;
-            }
-
+            if (synth.speaking || isBotSpeaking) synth.cancel();
             if (recognition) recognition.abort();
 
             const botMessages = document.querySelectorAll(".bot-message");
@@ -163,17 +221,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             });
 
-            if (finalTranscript.trim()) {
-                userInput.value = finalTranscript.trim();
-            }
-
+            if (finalTranscript.trim()) userInput.value = finalTranscript.trim();
             finalTranscript = "";
         } else {
-            if (synth.speaking || isBotSpeaking) {
-                synth.cancel();
-                isBotSpeaking = false;
-            }
-
+            if (synth.speaking || isBotSpeaking) synth.cancel();
             usingVoice = true;
             finalTranscript = "";
 
@@ -227,6 +278,7 @@ document.addEventListener("DOMContentLoaded", function () {
     sendBtn.title = languageData[currentLanguage].titles.send;
     voiceBtn.title = languageData[currentLanguage].titles.voice;
     stopBtn.title = languageData[currentLanguage].titles.stop;
+    playPauseBtn.title = languageData[currentLanguage].titles.pause;
 
     const volumeToggle = document.getElementById("volume-toggle");
     const volumeIcon = document.getElementById("volume-icon");
@@ -250,15 +302,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (stopBtn) {
         stopBtn.addEventListener("click", () => {
-            if (synth.speaking || isBotSpeaking) {
-                synth.cancel();
-                isBotSpeaking = false;
-            }
-
-            if (recognition && usingVoice) {
-                recognition.abort();
-                usingVoice = false;
-            }
+            if (synth.speaking || isBotSpeaking) synth.cancel();
+            if (recognition && usingVoice) recognition.abort();
+            userInput.value = "";
+            finalTranscript = "";
+            voiceBtn.classList.remove("voice-active");
 
             const botMessages = document.querySelectorAll(".bot-message");
             botMessages.forEach(msg => {
@@ -269,22 +317,21 @@ document.addEventListener("DOMContentLoaded", function () {
                     msg.remove();
                 }
             });
-
-            userInput.value = "";
-            finalTranscript = "";
-            voiceBtn.classList.remove("voice-active");
         });
     }
 
-    pauseBtn.addEventListener("click", () => {
+    // Unified Play/Pause button logic
+    playPauseBtn.addEventListener("click", () => {
         if (synth.speaking && !synth.paused) {
             synth.pause();
-        }
-    });
-
-    playBtn.addEventListener("click", () => {
-        if (synth.paused) {
+            isPaused = true;
+            playPauseIcon.src = "/static/images/play.png";
+            playPauseBtn.title = languageData[currentLanguage].titles.play;
+        } else if (synth.paused) {
             synth.resume();
+            isPaused = false;
+            playPauseIcon.src = "/static/images/pause.png";
+            playPauseBtn.title = languageData[currentLanguage].titles.pause;
         } else if (!synth.speaking && lastSpokenText) {
             speakText(lastSpokenText);
         }
