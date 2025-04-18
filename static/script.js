@@ -4,6 +4,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
     const stopBtn = document.getElementById("stop-speaking-btn");
+    const pauseBtn = document.getElementById("pause-speaking-btn");
+    const resumeBtn = document.getElementById("resume-speaking-btn");
     const beep = document.getElementById("beep");
 
     let recognition;
@@ -326,6 +328,22 @@ document.addEventListener("DOMContentLoaded", function () {
             userInput.value = "";
             finalTranscript = "";
             voiceBtn.classList.remove("voice-active");
+        });
+    }
+
+    if (pauseBtn) {
+        pauseBtn.addEventListener("click", () => {
+            if (synth.speaking && !synth.paused) {
+                synth.pause();
+            }
+        });
+    }
+
+    if (resumeBtn) {
+        resumeBtn.addEventListener("click", () => {
+            if (synth.paused) {
+                synth.resume();
+            }
         });
     }
 });
