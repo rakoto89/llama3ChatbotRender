@@ -4,9 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const sendBtn = document.getElementById("send-btn");
     const voiceBtn = document.getElementById("voice-btn");
     const stopBtn = document.getElementById("stop-speaking-btn");
-    const pausePlayBtn = document.getElementById("pause-play-btn");
     const beep = document.getElementById("beep");
-    const pausePlayIcon = document.getElementById("pause-play-icon");
 
     let recognition;
     let usingVoice = false;
@@ -15,7 +13,85 @@ document.addEventListener("DOMContentLoaded", function () {
     let isMuted = localStorage.getItem("isMuted") === "true";
     let isBotSpeaking = false;
     let finalTranscript = "";
-    let utteranceQueue = [];
+
+    const languageData = {
+        en: {
+            placeholder: "Enter your question...",
+            chatbotTitle: "Opioid Awareness Chatbot",
+            botMessage: "Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!",
+            listeningMessage: "Listening...",
+            thinkingMessage: "Thinking...",
+            titles: {
+                home: "Home",
+                language: "Language Preferences",
+                feedback: "Feedback",
+                resources: "Resources",
+                exit: "Exit",
+                send: "Send your message",
+                voice: "Ask using your voice",
+                stop: "Stop speaking",
+                mute: "Mute",
+                unmute: "Unmute"
+            }
+        },
+        es: {
+            placeholder: "Escribe tu pregunta...",
+            chatbotTitle: "Chatbot de Conciencia sobre los Opioides",
+            botMessage: "¡Bienvenido al Chatbot de Conciencia sobre los Opioides! ¡Aquí aprenderás todo sobre los opioides!",
+            listeningMessage: "Escuchando...",
+            thinkingMessage: "Pensando...",
+            titles: {
+                home: "Inicio",
+                language: "Preferencias de idioma",
+                feedback: "Comentarios",
+                resources: "Recursos",
+                exit: "Salir",
+                send: "Enviar tu mensaje",
+                voice: "Pregunta usando tu voz",
+                stop: "Detener",
+                mute: "Silenciar",
+                unmute: "Reactivar sonido"
+            }
+        },
+        fr: {
+            placeholder: "Entrez votre question...",
+            chatbotTitle: "Chatbot de Sensibilisation aux Opioïdes",
+            botMessage: "Bienvenue sur le Chatbot de Sensibilisation aux Opioïdes ! Ici, vous apprendrez tout sur les opioïdes !",
+            listeningMessage: "Écoute...",
+            thinkingMessage: "Réflexion...",
+            titles: {
+                home: "Accueil",
+                language: "Préférences linguistiques",
+                feedback: "Retour",
+                resources: "Ressources",
+                exit: "Quitter",
+                send: "Envoyez votre message",
+                voice: "Demandez avec votre voix",
+                stop: "Arrêter",
+                mute: "Muet",
+                unmute: "Rétablir le son"
+            }
+        },
+        zh: {
+            placeholder: "输入您的问题...",
+            chatbotTitle: "阿片类药物意识聊天机器人",
+            botMessage: "欢迎使用阿片类药物意识聊天机器人！在这里，您将了解有关阿片类药物的所有信息！",
+            listeningMessage: "正在聆听...",
+            thinkingMessage: "正在思考...",
+            titles: {
+                home: "主页",
+                language: "语言偏好",
+                feedback: "反馈",
+                resources: "资源",
+                exit: "退出",
+                send: "发送您的消息",
+                voice: "使用语音提问",
+                stop: "停止",
+                mute: "静音",
+                unmute: "取消静音"
+            }
+        }
+    };
 
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
@@ -29,25 +105,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function speakText(text, callback) {
         if (!text.trim() || isMuted) return;
-
-        if (synth.speaking || isBotSpeaking) {
-            utteranceQueue.push({ text, callback });
-            return;
-        }
-
+        synth.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = currentLanguage;
         isBotSpeaking = true;
-
         utterance.onend = () => {
             isBotSpeaking = false;
             if (callback) callback();
-            if (utteranceQueue.length > 0) {
-                const nextUtterance = utteranceQueue.shift();
-                speakText(nextUtterance.text, nextUtterance.callback);
-            }
         };
-
         synth.speak(utterance);
     }
 
@@ -55,7 +120,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!text.trim()) return;
         appendMessage("user", text);
         userInput.value = "";
-        appendMessage("bot", "Thinking...");
+        appendMessage("bot", languageData[currentLanguage].thinkingMessage);
 
         fetch("/ask", {
             method: "POST",
@@ -141,8 +206,8 @@ document.addEventListener("DOMContentLoaded", function () {
             const botMessages = document.querySelectorAll(".bot-message");
             botMessages.forEach(msg => {
                 if (
-                    msg.textContent === "Listening..." ||
-                    msg.textContent === "Thinking..."
+                    msg.textContent === languageData[currentLanguage].listeningMessage ||
+                    msg.textContent === languageData[currentLanguage].thinkingMessage
                 ) {
                     msg.remove();
                 }
@@ -162,65 +227,102 @@ document.addEventListener("DOMContentLoaded", function () {
             usingVoice = true;
             finalTranscript = "";
 
-            appendMessage("bot", "Listening...");
-            startContinuousRecognition();
-        }
-    });
-
-    pausePlayBtn.addEventListener("click", () => {
-        if (synth.speaking || isBotSpeaking) {
-            if (pausePlayIcon.src.includes("pause.png")) {
-                // Pause the speech synthesis
-                synth.pause();
-                pausePlayIcon.src = "/static/images/play.png";
-                pausePlayBtn.title = "Play";
+            if (currentLanguage === 'zh') {
+                appendMessage("bot", languageData[currentLanguage].listeningMessage);
+                setTimeout(() => {
+                    voiceBtn.classList.add("voice-active");
+                    beep.currentTime = 0;
+                    beep.volume = 1.0;
+                    beep.play().catch(err => console.warn("Beep failed:", err));
+                    startContinuousRecognition();
+                }, 3000);
             } else {
-                // Resume speech synthesis
-                synth.resume();
-                pausePlayIcon.src = "/static/images/pause.png";
-                pausePlayBtn.title = "Pause";
-            }
-        } else {
-            // Start speech again from the beginning (or repeat last message)
-            const lastBotMessage = document.querySelector(".bot-message:last-child");
-            if (lastBotMessage) {
-                speakText(lastBotMessage.textContent);
-                pausePlayIcon.src = "/static/images/pause.png";
-                pausePlayBtn.title = "Pause";
+                voiceBtn.classList.add("voice-active");
+                beep.currentTime = 0;
+                beep.volume = 1.0;
+                beep.play().catch(err => console.warn("Beep failed:", err));
+                appendMessage("bot", languageData[currentLanguage].listeningMessage);
+                startContinuousRecognition();
             }
         }
     });
 
-    stopBtn.addEventListener("click", () => {
-        if (synth.speaking || isBotSpeaking) {
-            synth.cancel();
-            isBotSpeaking = false;
-        }
+    const langBtn = document.getElementById("lang-btn");
+    const langOptions = document.getElementById("language-options");
 
-        if (recognition && usingVoice) {
-            recognition.abort();
-            usingVoice = false;
-        }
-
-        const botMessages = document.querySelectorAll(".bot-message");
-        botMessages.forEach(msg => {
-            if (msg.textContent === "Listening..." || msg.textContent === "Thinking...") {
-                msg.remove();
-            }
+    if (langBtn && langOptions) {
+        langBtn.addEventListener("click", () => {
+            langOptions.style.display = langOptions.style.display === "block" ? "none" : "block";
         });
 
-        userInput.value = "";
-        finalTranscript = "";
-        voiceBtn.classList.remove("voice-active");
-    });
+        document.querySelectorAll("#language-options button").forEach(button => {
+            button.addEventListener("click", () => {
+                const selectedLang = button.getAttribute("data-lang");
+                localStorage.setItem("selectedLanguage", selectedLang);
+                location.reload();
+            });
+        });
+    }
+
+    document.querySelector(".chat-header").textContent = languageData[currentLanguage].chatbotTitle;
+    userInput.placeholder = languageData[currentLanguage].placeholder;
+    document.querySelector(".bot-message").textContent = languageData[currentLanguage].botMessage;
+
+    document.querySelector('[title="Home"]').title = languageData[currentLanguage].titles.home;
+    document.querySelector('[title="Language Preferences"]').title = languageData[currentLanguage].titles.language;
+    document.querySelector('[title="Feedback"]').title = languageData[currentLanguage].titles.feedback;
+    document.querySelector('[title="Resources"]').title = languageData[currentLanguage].titles.resources;
+    document.querySelector('[title="Exit"]').title = languageData[currentLanguage].titles.exit;
+
+    sendBtn.title = languageData[currentLanguage].titles.send;
+    voiceBtn.title = languageData[currentLanguage].titles.voice;
+    stopBtn.title = languageData[currentLanguage].titles.stop;
 
     const volumeToggle = document.getElementById("volume-toggle");
     const volumeIcon = document.getElementById("volume-icon");
 
-    volumeToggle.addEventListener("click", () => {
-        isMuted = !isMuted;
-        localStorage.setItem("isMuted", isMuted.toString());
+    if (volumeToggle && volumeIcon) {
+        volumeToggle.title = isMuted
+            ? languageData[currentLanguage].titles.unmute
+            : languageData[currentLanguage].titles.mute;
+
         volumeIcon.src = isMuted ? "/static/images/mute.png" : "/static/images/volume.png";
-        volumeToggle.title = isMuted ? "Unmute" : "Mute";
-    });
+
+        volumeToggle.addEventListener("click", () => {
+            isMuted = !isMuted;
+            localStorage.setItem("isMuted", isMuted.toString());
+            volumeIcon.src = isMuted ? "/static/images/mute.png" : "/static/images/volume.png";
+            volumeToggle.title = isMuted
+                ? languageData[currentLanguage].titles.unmute
+                : languageData[currentLanguage].titles.mute;
+        });
+    }
+
+    if (stopBtn) {
+        stopBtn.addEventListener("click", () => {
+            if (synth.speaking || isBotSpeaking) {
+                synth.cancel();
+                isBotSpeaking = false;
+            }
+
+            if (recognition && usingVoice) {
+                recognition.abort();
+                usingVoice = false;
+            }
+
+            const botMessages = document.querySelectorAll(".bot-message");
+            botMessages.forEach(msg => {
+                if (
+                    msg.textContent === languageData[currentLanguage].listeningMessage ||
+                    msg.textContent === languageData[currentLanguage].thinkingMessage
+                ) {
+                    msg.remove();
+                }
+            });
+
+            userInput.value = "";
+            finalTranscript = "";
+            voiceBtn.classList.remove("voice-active");
+        });
+    }
 });
