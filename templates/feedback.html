@@ -40,7 +40,7 @@
           <div class="emoji-rating">
             <div class="rating-row" id="rating-1" tabindex="0">
               <input type="radio" name="rate" value="1" />
-              <img src="{{ url_for('static', filename='images/emoji-1.png') }}" alt="Very Bad">
+              <img src="{{ url_for('static', filename='images/emoji-1.gif') }}" alt="Very Bad" onclick="restartGif(this)">
               <div class="stars">
                 <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
               </div>
@@ -48,7 +48,7 @@
             </div>
             <div class="rating-row" id="rating-2" tabindex="0">
               <input type="radio" name="rate" value="2" />
-              <img src="{{ url_for('static', filename='images/emoji-2.png') }}" alt="Bad">
+              <img src="{{ url_for('static', filename='images/emoji-2.gif') }}" alt="Bad" onclick="restartGif(this)">
               <div class="stars">
                 <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
                 <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
@@ -57,7 +57,7 @@
             </div>
             <div class="rating-row" id="rating-3" tabindex="0">
               <input type="radio" name="rate" value="3" />
-              <img src="{{ url_for('static', filename='images/emoji-3.png') }}" alt="Okay">
+              <img src="{{ url_for('static', filename='images/emoji-3.gif') }}" alt="Okay" onclick="restartGif(this)">
               <div class="stars">
                 <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
                 <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
@@ -67,7 +67,7 @@
             </div>
             <div class="rating-row" id="rating-4" tabindex="0">
               <input type="radio" name="rate" value="4" />
-              <img src="{{ url_for('static', filename='images/emoji-4.png') }}" alt="Good">
+              <img src="{{ url_for('static', filename='images/emoji-4.gif') }}" alt="Good" onclick="restartGif(this)">
               <div class="stars">
                 <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
                 <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
@@ -78,7 +78,7 @@
             </div>
             <div class="rating-row" id="rating-5" tabindex="0">
               <input type="radio" name="rate" value="5" />
-              <img src="{{ url_for('static', filename='images/emoji-5.png') }}" alt="Amazing">
+              <img src="{{ url_for('static', filename='images/emoji-5.gif') }}" alt="Amazing" onclick="restartGif(this)">
               <div class="stars">
                 <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
                 <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
@@ -116,25 +116,34 @@
       <button data-lang="fr">Français</button>
       <button data-lang="zh">中文</button>
     </div>
-<script>
-  // Volume/Mute toggle
-  document.addEventListener("DOMContentLoaded", function () {
-      const volumeToggle = document.getElementById("volume-toggle");
-      const volumeIcon = document.getElementById("volume-icon");
-      let isMuted = false;
 
-      volumeToggle.addEventListener("click", () => {
-          isMuted = !isMuted;
-          if (isMuted) {
-              volumeIcon.src = "/static/images/mute.png";
-              volumeToggle.title = "Unmute";
-              window.speechSynthesis.cancel(); // Stop speaking if needed
-          } else {
-              volumeIcon.src = "/static/images/volume.png";
-              volumeToggle.title = "Mute";
-          }
+    <!-- Volume/Mute toggle -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+          const volumeToggle = document.getElementById("volume-toggle");
+          const volumeIcon = document.getElementById("volume-icon");
+          let isMuted = false;
+
+          volumeToggle.addEventListener("click", () => {
+              isMuted = !isMuted;
+              if (isMuted) {
+                  volumeIcon.src = "/static/images/mute.png";
+                  volumeToggle.title = "Unmute";
+                  window.speechSynthesis.cancel();
+              } else {
+                  volumeIcon.src = "/static/images/volume.png";
+                  volumeToggle.title = "Mute";
+              }
+          });
       });
-  });
-</script>
+
+      // GIF click-to-restart logic
+      function restartGif(imgElement) {
+          const src = imgElement.src;
+          imgElement.src = '';
+          imgElement.offsetHeight;
+          imgElement.src = src;
+      }
+    </script>
 </body>
 </html>
