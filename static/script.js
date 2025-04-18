@@ -278,15 +278,14 @@ document.addEventListener("DOMContentLoaded", function () {
     voiceBtn.title = languageData[currentLanguage].titles.voice;
     stopBtn.title = languageData[currentLanguage].titles.stop;
 
-    volumeToggle.title = isMuted
-    ? languageData[currentLanguage].titles.unmute
-    : languageData[currentLanguage].titles.mute;
-
-
     const volumeToggle = document.getElementById("volume-toggle");
     const volumeIcon = document.getElementById("volume-icon");
 
     if (volumeToggle && volumeIcon) {
+        volumeToggle.title = isMuted
+            ? languageData[currentLanguage].titles.unmute
+            : languageData[currentLanguage].titles.mute;
+
         volumeToggle.addEventListener("click", () => {
             isMuted = !isMuted;
             if (isMuted) {
