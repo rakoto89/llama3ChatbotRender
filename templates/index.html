@@ -25,7 +25,7 @@
         </div>
 
         <!-- Volume/Mute Toggle Button (above Exit) -->
-        <div class="icon" id="volume-toggle" title="Mute/Unmute">
+        <div class="icon" id="volume-toggle" title="">
             <img id="volume-icon" src="{{ url_for('static', filename='images/volume.png') }}" alt="Volume Icon" class="sidebar-icon">
         </div>
 
@@ -47,9 +47,6 @@
             </button>
             <button id="voice-btn" title="Voice">
                 <img src="{{ url_for('static', filename='images/voice.png') }}" alt="Voice">
-            </button>
-            <button id="pause-play-btn" title="Play">
-                <img src="{{ url_for('static', filename='images/play.png') }}" id="pause-play-icon" alt="Pause/Play">
             </button>
             <button id="stop-speaking-btn" title="Stop">
                 <img src="{{ url_for('static', filename='images/stop.png') }}" alt="Stop">
