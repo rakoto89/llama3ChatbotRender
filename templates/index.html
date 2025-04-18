@@ -24,8 +24,7 @@
             <img src="{{ url_for('static', filename='images/Resources.png') }}" alt="Resources" class="sidebar-icon no-filter">
         </div>
 
-        <!-- Volume/Mute Toggle Button (above Exit) -->
-        <!-- UPDATED: Removed hardcoded title -->
+        <!-- Volume/Mute Toggle Button -->
         <div class="icon" id="volume-toggle" title="">
             <img id="volume-icon" src="{{ url_for('static', filename='images/volume.png') }}" alt="Volume Icon" class="sidebar-icon">
         </div>
@@ -52,6 +51,14 @@
             <button id="stop-speaking-btn" title="Stop">
                 <img src="{{ url_for('static', filename='images/stop.png') }}" alt="Stop">
             </button>
+
+            <!-- ✅ New Pause/Resume Buttons -->
+            <button id="pause-speaking-btn" title="Pause Speaking">
+                <img src="{{ url_for('static', filename='images/pause.png') }}" alt="Pause">
+            </button>
+            <button id="resume-speaking-btn" title="Resume Speaking">
+                <img src="{{ url_for('static', filename='images/play.png') }}" alt="Resume">
+            </button>
         </div>
     </div>
 
@@ -69,7 +76,6 @@
     <!-- Scripts -->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script>
-        // Volume/Mute toggle (this part is now handled in script.js — remove or ignore this if already managed there)
         document.addEventListener("DOMContentLoaded", function () {
             const volumeToggle = document.getElementById("volume-toggle");
             const volumeIcon = document.getElementById("volume-icon");
