@@ -261,4 +261,12 @@ document.addEventListener("DOMContentLoaded", function () {
             row.classList.add("selected");
         });
     });
+
+    // Added only this for GIF emoji reset functionality
+    function restartGif(imgElement) {
+        const src = imgElement.src;
+        imgElement.src = '';
+        imgElement.offsetHeight;
+        imgElement.src = src;
+    }
 });
