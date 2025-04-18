@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -23,10 +23,13 @@
         <div class="icon" onclick="location.href='https://www.bowiestate.edu/campus-life/health-and-wellness/'" title="Resources">
             <img src="{{ url_for('static', filename='images/Resources.png') }}" alt="Resources" class="sidebar-icon no-filter">
         </div>
+
         <!-- Volume/Mute Toggle Button (above Exit) -->
-        <div class="icon" id="volume-toggle" title="Mute">
+        <!-- UPDATED: Removed hardcoded title -->
+        <div class="icon" id="volume-toggle" title="">
             <img id="volume-icon" src="{{ url_for('static', filename='images/volume.png') }}" alt="Volume Icon" class="sidebar-icon">
         </div>
+
         <div class="icon" onclick="location.href='https://www.bowiestate.edu'" title="Exit">
             <img src="{{ url_for('static', filename='images/Exit.png') }}" alt="Exit" class="sidebar-icon">
         </div>
@@ -66,7 +69,7 @@
     <!-- Scripts -->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script>
-        // Volume/Mute toggle
+        // Volume/Mute toggle (this part is now handled in script.js — remove or ignore this if already managed there)
         document.addEventListener("DOMContentLoaded", function () {
             const volumeToggle = document.getElementById("volume-toggle");
             const volumeIcon = document.getElementById("volume-icon");
@@ -87,4 +90,3 @@
     </script>
 </body>
 </html>
-
