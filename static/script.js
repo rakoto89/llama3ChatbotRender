@@ -290,14 +290,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
         volumeToggle.addEventListener("click", () => {
             isMuted = !isMuted;
-            localStorage.setItem("isMuted", isMuted);
-            if (isMuted) {
-                volumeIcon.src = "/static/images/mute.png";
-                volumeToggle.title = languageData[currentLanguage].titles.unmute;
-            } else {
-                volumeIcon.src = "/static/images/volume.png";
-                volumeToggle.title = languageData[currentLanguage].titles.mute;
-            }
+            localStorage.setItem("isMuted", isMuted.toString());
+            volumeIcon.src = isMuted ? "/static/images/mute.png" : "/static/images/volume.png";
+            volumeToggle.title = isMuted
+                ? languageData[currentLanguage].titles.unmute
+                : languageData[currentLanguage].titles.mute;
         });
     }
 
