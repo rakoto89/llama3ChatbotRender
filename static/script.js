@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let usingVoice = false;
     const synth = window.speechSynthesis;
     let currentLanguage = localStorage.getItem("selectedLanguage") || 'en';
-    let isMuted = false;
+    let isMuted = localStorage.getItem("isMuted") === "true";
     let isBotSpeaking = false;
     let finalTranscript = "";
 
@@ -290,6 +290,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         volumeToggle.addEventListener("click", () => {
             isMuted = !isMuted;
+            localStorage.setItem("isMuted", isMuted);
             if (isMuted) {
                 volumeIcon.src = "/static/images/mute.png";
                 volumeToggle.title = languageData[currentLanguage].titles.unmute;
