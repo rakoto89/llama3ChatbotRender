@@ -138,15 +138,6 @@ def get_llama3_response(question, user_lang="en"):
         print(f"Translation failed: {str(e)}")
         translated_question = question
 
-    # Prevent repeated questions
-    if conversation_history and conversation_history[-1]['role'] == 'user':
-        last_user_question = conversation_history[-1]['content']
-        if last_user_question.strip().lower() == translated_question.strip().lower():
-            return translator.translate(
-                "You already asked this question. Please try something different.",
-                dest=user_lang
-            ).text
-
     if not is_question_relevant(translated_question):
         try:
             return translator.translate(
@@ -193,16 +184,6 @@ Only answer questions based on the educational data provided."""
         res.raise_for_status()
         data = res.json()
         content = data.get("choices", [{}])[0].get("message", {}).get("content", "No response.").strip()
-
-        last_assistant = next((msg["content"] for msg in reversed(conversation_history) if msg["role"] == "assistant"), "")
-        if content.strip().lower() == last_assistant.strip().lower():
-            try:
-                return translator.translate(
-                    "I've already answered this question. Try asking something new or in a different way.",
-                    dest=user_lang
-                ).text
-            except:
-                return "I've already answered this question. Try asking something new or in a different way."
 
         conversation_history.append({"role": "assistant", "content": content})
 
@@ -272,4 +253,3 @@ def check_env():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
