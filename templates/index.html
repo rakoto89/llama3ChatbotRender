@@ -25,7 +25,6 @@
         </div>
 
         <!-- Volume/Mute Toggle Button (above Exit) -->
-        <!-- UPDATED: Removed hardcoded title -->
         <div class="icon" id="volume-toggle" title="">
             <img id="volume-icon" src="{{ url_for('static', filename='images/volume.png') }}" alt="Volume Icon" class="sidebar-icon">
         </div>
@@ -66,27 +65,7 @@
     <!-- Beep sound -->
     <audio id="beep" src="{{ url_for('static', filename='beep2.mp3') }}" preload="auto"></audio>
 
-    <!-- Scripts -->
+    <!-- External JS (handles volume toggle, speech, chatbot logic) -->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
-    <script>
-        // Volume/Mute toggle (this part is now handled in script.js — remove or ignore this if already managed there)
-        document.addEventListener("DOMContentLoaded", function () {
-            const volumeToggle = document.getElementById("volume-toggle");
-            const volumeIcon = document.getElementById("volume-icon");
-            let isMuted = false;
-
-            volumeToggle.addEventListener("click", () => {
-                isMuted = !isMuted;
-                if (isMuted) {
-                    volumeIcon.src = "/static/images/mute.png";
-                    volumeToggle.title = "Unmute";
-                    window.speechSynthesis.cancel(); // Stop speaking if needed
-                } else {
-                    volumeIcon.src = "/static/images/volume.png";
-                    volumeToggle.title = "Mute";
-                }
-            });
-        });
-    </script>
 </body>
 </html>
