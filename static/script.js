@@ -282,23 +282,20 @@ document.addEventListener("DOMContentLoaded", function () {
     const volumeIcon = document.getElementById("volume-icon");
 
     if (volumeToggle && volumeIcon) {
-        // Initial title set when the page loads
         volumeToggle.title = isMuted
             ? languageData[currentLanguage].titles.unmute
             : languageData[currentLanguage].titles.mute;
 
-        // Set the correct icon based on the mute state
         volumeIcon.src = isMuted ? "/static/images/mute.png" : "/static/images/volume.png";
 
-        // Toggle mute/unmute and update the title when clicked
         volumeToggle.addEventListener("click", () => {
             isMuted = !isMuted;
             if (isMuted) {
                 volumeIcon.src = "/static/images/mute.png";
-                volumeToggle.title = languageData[currentLanguage].titles.unmute;  // Set title to "Unmute"
+                volumeToggle.title = languageData[currentLanguage].titles.unmute;
             } else {
                 volumeIcon.src = "/static/images/volume.png";
-                volumeToggle.title = languageData[currentLanguage].titles.mute;  // Set title to "Mute"
+                volumeToggle.title = languageData[currentLanguage].titles.mute;
             }
         });
     }
