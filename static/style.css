@@ -203,6 +203,7 @@ body {
     padding: 10px;
     border-radius: 8px;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
 }
 
 .language-options button {
@@ -210,15 +211,13 @@ body {
     margin: 5px;
     font-size: 16px;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
 }
 
-.language-options button .language-flag {
-    width: 24px;  /* Adjust this size as needed */
-    height: 16px;  /* Adjust this size as needed */
-    margin-right: 8px;  /* Space between flag and text */
+.language-options button:hover {
+    background-color: #f0f0f0;
 }
 
 /* Mute/Unmute button for voice mode */
