@@ -1,252 +1,108 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const chatBox = document.getElementById("chat-box");
-    const userInput = document.getElementById("user-input");
-    const sendBtn = document.getElementById("send-btn");
-    const voiceBtn = document.getElementById("voice-btn");
-    const stopBtn = document.getElementById("stop-speaking-btn");
-    const playPauseBtn = document.getElementById("play-pause-btn");
-    const playPauseIcon = document.getElementById("play-pause-icon");
-    const beep = document.getElementById("beep");
+ocument.addEventListener("DOMContentLoaded", function () { 
+    let lastInteractionWasKeyboard = false;
+    let currentLanguage = localStorage.getItem("selectedLanguage") || "en";
 
-    let recognition;
-    let usingVoice = false;
-    const synth = window.speechSynthesis;
-    let currentLanguage = localStorage.getItem("selectedLanguage") || 'en';
-    let isMuted = localStorage.getItem("isMuted") === "true";
-    let isBotSpeaking = false;
-    let finalTranscript = "";
-    let lastSpokenText = "";
-    let currentUtterance = null;
-    let isPaused = false;
-
-    const languageData = {
+    const translations = {
         en: {
-            placeholder: "Enter your question...",
-            chatbotTitle: "Opioid Awareness Chatbot",
-            botMessage: "Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!",
-            listeningMessage: "Listening...",
-            thinkingMessage: "Thinking...",
+            title: "Rate your experience",
+            description: "We highly value your feedback! Rate your experience and provide us with your valuable feedback.",
+            feedbackPlaceholder: "Write your feedback here...",
+            submitAlt: "Submit Feedback",
+            success: "Thank you for your feedback!",
+            exit: "Exit",
+            ratingLabels: ["Terrible", "Bad", "Okay", "Good", "Amazing"],
             titles: {
                 home: "Home",
                 language: "Language Preferences",
                 feedback: "Feedback",
                 resources: "Resources",
-                exit: "Exit",
-                send: "Send your message",
-                voice: "Ask using your voice",
-                stop: "Stop speaking",
-                mute: "Mute",
-                unmute: "Unmute",
-                play: "Play",
-                pause: "Pause"
+                exit: "Exit"
             }
         },
         es: {
-            placeholder: "Escribe tu pregunta...",
-            chatbotTitle: "Chatbot de Conciencia sobre los Opioides",
-            botMessage: "¡Bienvenido al Chatbot de Conciencia sobre los Opioides! ¡Aquí aprenderás todo sobre los opioides!",
-            listeningMessage: "Escuchando...",
-            thinkingMessage: "Pensando...",
+            title: "Califica tu experiencia",
+            description: "¡Valoramos mucho tus comentarios! Califica tu experiencia y proporciónanos tus valiosos comentarios.",
+            feedbackPlaceholder: "Escribe tus comentarios aquí...",
+            submitAlt: "Enviar comentarios",
+            success: "¡Gracias por tus comentarios!",
+            exit: "Salir",
+            ratingLabels: ["Terrible", "Malo", "Regular", "Bueno", "Increíble"],
             titles: {
                 home: "Inicio",
                 language: "Preferencias de idioma",
                 feedback: "Comentarios",
                 resources: "Recursos",
-                exit: "Salir",
-                send: "Enviar tu mensaje",
-                voice: "Pregunta usando tu voz",
-                stop: "Detener",
-                mute: "Silenciar",
-                unmute: "Reactivar sonido",
-                play: "Reproducir",
-                pause: "Pausa"
+                exit: "Salir"
             }
         },
         fr: {
-            placeholder: "Entrez votre question...",
-            chatbotTitle: "Chatbot de Sensibilisation aux Opioïdes",
-            botMessage: "Bienvenue sur le Chatbot de Sensibilisation aux Opioïdes ! Ici, vous apprendrez tout sur les opioïdes !",
-            listeningMessage: "Écoute...",
-            thinkingMessage: "Réflexion...",
+            title: "Évaluez votre expérience",
+            description: "Nous apprécions beaucoup vos commentaires ! Évaluez votre expérience et fournissez-nous vos précieux retours.",
+            feedbackPlaceholder: "Écrivez vos commentaires ici...",
+            submitAlt: "Soumettre des commentaires",
+            success: "Merci pour vos commentaires !",
+            exit: "Quitter",
+            ratingLabels: ["Terrible", "Mauvais", "Moyen", "Bon", "Incroyable"],
             titles: {
                 home: "Accueil",
                 language: "Préférences linguistiques",
-                feedback: "Retour",
+                feedback: "Commentaires",
                 resources: "Ressources",
-                exit: "Quitter",
-                send: "Envoyez votre message",
-                voice: "Demandez avec votre voix",
-                stop: "Arrêter",
-                mute: "Muet",
-                unmute: "Rétablir le son",
-                play: "Lecture",
-                pause: "Pause"
+                exit: "Quitter"
             }
         },
         zh: {
-            placeholder: "输入您的问题...",
-            chatbotTitle: "阿片类药物意识聊天机器人",
-            botMessage: "欢迎使用阿片类药物意识聊天机器人！在这里，您将了解有关阿片类药物的所有信息！",
-            listeningMessage: "正在聆听...",
-            thinkingMessage: "正在思考...",
+            title: "评价您的体验",
+            description: "我们非常重视您的反馈！请评价您的体验并提供宝贵意见。",
+            feedbackPlaceholder: "请在此写下您的反馈...",
+            submitAlt: "提交反馈",
+            success: "感谢您的反馈！",
+            exit: "退出",
+            ratingLabels: ["糟糕", "差", "一般", "好", "非常好"],
             titles: {
-                home: "主页",
+                home: "首页",
                 language: "语言偏好",
                 feedback: "反馈",
                 resources: "资源",
-                exit: "退出",
-                send: "发送您的消息",
-                voice: "使用语音提问",
-                stop: "停止",
-                mute: "静音",
-                unmute: "取消静音",
-                play: "播放",
-                pause: "暂停"
+                exit: "退出"
             }
         }
     };
 
-    function appendMessage(sender, message) {
-        const msgDiv = document.createElement("div");
-        msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
-        msgDiv.innerHTML = message;
-        chatBox.appendChild(msgDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
-
-        if (sender === "bot") speakText(message);
-    }
-
-    function speakText(text, callback) {
-        if (!text.trim() || isMuted) return;
-        synth.cancel();
-        lastSpokenText = text;
-        currentUtterance = new SpeechSynthesisUtterance(text);
-        currentUtterance.lang = currentLanguage;
-        isBotSpeaking = true;
-        currentUtterance.onend = () => {
-            isBotSpeaking = false;
-            currentUtterance = null;
-            isPaused = false;
-            playPauseIcon.src = "/static/images/pause.png";
-            playPauseBtn.title = languageData[currentLanguage].titles.pause;
+    function updateSubmitImage(lang) {
+        const img = document.getElementById("submit-img");
+        const imgMap = {
+            en: "Send_Feedback2.png",
+            es: "Enviar_Comentarios.png",
+            fr: "Soumettre.png",
+            zh: "提交反馈.png"
         };
-        synth.speak(currentUtterance);
-        playPauseIcon.src = "/static/images/pause.png";
-        playPauseBtn.title = languageData[currentLanguage].titles.pause;
+        if (img && imgMap[lang]) {
+            img.src = `/static/images/${imgMap[lang]}`;
+        }
     }
 
-    function sendMessage(text) {
-        if (!text.trim()) return;
-        appendMessage("user", text);
-        userInput.value = "";
-        appendMessage("bot", languageData[currentLanguage].thinkingMessage);
-
-        fetch("/ask", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ question: text, language: currentLanguage })
-        })
-        .then(res => res.json())
-        .then(data => {
-            document.querySelector(".bot-message:last-child").remove();
-            const response = data.answer || "Error: Could not get a response.";
-            appendMessage("bot", response);
-        })
-        .catch(() => {
-            document.querySelector(".bot-message:last-child").remove();
-            appendMessage("bot", "Error: Could not get a response.");
+    function applyLanguage(lang) {
+        const t = translations[lang];
+        document.getElementById("rate-experience").textContent = t.title;
+        document.getElementById("rate-description").textContent = t.description;
+        document.getElementById("comments").placeholder = t.feedbackPlaceholder;
+        document.querySelector("#send-feedback img").alt = t.submitAlt;
+        document.querySelectorAll(".rating-label").forEach((label, i) => {
+            label.textContent = t.ratingLabels[i];
         });
+        updateSubmitImage(lang);
+        currentLanguage = lang;
+
+        // ✅ Update sidebar tooltip titles
+        document.querySelector('[title="Home"]').title = t.titles.home;
+        document.querySelector('[title="Language Preferences"]').title = t.titles.language;
+        document.querySelector('[title="Feedback"]').title = t.titles.feedback;
+        document.querySelector('[title="Resources"]').title = t.titles.resources;
+        document.querySelector('[title="Exit"]').title = t.titles.exit;
     }
 
-    function startContinuousRecognition() {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            appendMessage("bot", "Voice recognition not supported.");
-            return;
-        }
-
-        recognition = new SpeechRecognition();
-        recognition.lang = currentLanguage;
-        recognition.continuous = true;
-        recognition.interimResults = true;
-
-        recognition.onstart = () => { finalTranscript = ""; };
-
-        recognition.onresult = (event) => {
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-                const transcript = event.results[i][0].transcript;
-                if (event.results[i].isFinal) {
-                    finalTranscript += transcript + " ";
-                }
-            }
-        };
-
-        recognition.onerror = (event) => {
-            console.error("Recognition error:", event.error);
-        };
-
-        recognition.onend = () => {
-            if (usingVoice && !recognition.aborted) recognition.start();
-        };
-
-        recognition.start();
-    }
-
-    sendBtn.addEventListener("click", () => {
-        usingVoice = false;
-        sendMessage(userInput.value);
-    });
-
-    userInput.addEventListener("keydown", e => {
-        if (e.key === "Enter") {
-            usingVoice = false;
-            sendMessage(userInput.value);
-        }
-    });
-
-    voiceBtn.addEventListener("click", () => {
-        if (usingVoice) {
-            usingVoice = false;
-            voiceBtn.classList.remove("voice-active");
-            if (synth.speaking || isBotSpeaking) synth.cancel();
-            if (recognition) recognition.abort();
-
-            const botMessages = document.querySelectorAll(".bot-message");
-            botMessages.forEach(msg => {
-                if (
-                    msg.textContent === languageData[currentLanguage].listeningMessage ||
-                    msg.textContent === languageData[currentLanguage].thinkingMessage
-                ) {
-                    msg.remove();
-                }
-            });
-
-            if (finalTranscript.trim()) userInput.value = finalTranscript.trim();
-            finalTranscript = "";
-        } else {
-            if (synth.speaking || isBotSpeaking) synth.cancel();
-            usingVoice = true;
-            finalTranscript = "";
-
-            if (currentLanguage === 'zh') {
-                appendMessage("bot", languageData[currentLanguage].listeningMessage);
-                setTimeout(() => {
-                    voiceBtn.classList.add("voice-active");
-                    beep.currentTime = 0;
-                    beep.volume = 1.0;
-                    beep.play().catch(err => console.warn("Beep failed:", err));
-                    startContinuousRecognition();
-                }, 3000);
-            } else {
-                voiceBtn.classList.add("voice-active");
-                beep.currentTime = 0;
-                beep.volume = 1.0;
-                beep.play().catch(err => console.warn("Beep failed:", err));
-                appendMessage("bot", languageData[currentLanguage].listeningMessage);
-                startContinuousRecognition();
-            }
-        }
-    });
+    applyLanguage(currentLanguage);
 
     const langBtn = document.getElementById("lang-btn");
     const langOptions = document.getElementById("language-options");
@@ -260,82 +116,149 @@ document.addEventListener("DOMContentLoaded", function () {
             button.addEventListener("click", () => {
                 const selectedLang = button.getAttribute("data-lang");
                 localStorage.setItem("selectedLanguage", selectedLang);
-                location.reload();
+                applyLanguage(selectedLang);  // updates the text AND tooltips
             });
         });
     }
 
-    document.querySelector(".chat-header").textContent = languageData[currentLanguage].chatbotTitle;
-    userInput.placeholder = languageData[currentLanguage].placeholder;
-    document.querySelector(".bot-message").textContent = languageData[currentLanguage].botMessage;
-
-    document.querySelector('[title="Home"]').title = languageData[currentLanguage].titles.home;
-    document.querySelector('[title="Language Preferences"]').title = languageData[currentLanguage].titles.language;
-    document.querySelector('[title="Feedback"]').title = languageData[currentLanguage].titles.feedback;
-    document.querySelector('[title="Resources"]').title = languageData[currentLanguage].titles.resources;
-    document.querySelector('[title="Exit"]').title = languageData[currentLanguage].titles.exit;
-
-    sendBtn.title = languageData[currentLanguage].titles.send;
-    voiceBtn.title = languageData[currentLanguage].titles.voice;
-    stopBtn.title = languageData[currentLanguage].titles.stop;
-    playPauseBtn.title = languageData[currentLanguage].titles.pause;
-
-    const volumeToggle = document.getElementById("volume-toggle");
-    const volumeIcon = document.getElementById("volume-icon");
-
-    if (volumeToggle && volumeIcon) {
-        volumeToggle.title = isMuted
-            ? languageData[currentLanguage].titles.unmute
-            : languageData[currentLanguage].titles.mute;
-
-        volumeIcon.src = isMuted ? "/static/images/mute.png" : "/static/images/volume.png";
-
-        volumeToggle.addEventListener("click", () => {
-            isMuted = !isMuted;
-            localStorage.setItem("isMuted", isMuted.toString());
-            volumeIcon.src = isMuted ? "/static/images/mute.png" : "/static/images/volume.png";
-            volumeToggle.title = isMuted
-                ? languageData[currentLanguage].titles.unmute
-                : languageData[currentLanguage].titles.mute;
-        });
-    }
-
-    if (stopBtn) {
-        stopBtn.addEventListener("click", () => {
-            if (synth.speaking || isBotSpeaking) synth.cancel();
-            if (recognition && usingVoice) recognition.abort();
-            userInput.value = "";
-            finalTranscript = "";
-            voiceBtn.classList.remove("voice-active");
-
-            const botMessages = document.querySelectorAll(".bot-message");
-            botMessages.forEach(msg => {
-                if (
-                    msg.textContent === languageData[currentLanguage].listeningMessage ||
-                    msg.textContent === languageData[currentLanguage].thinkingMessage
-                ) {
-                    msg.remove();
-                }
-            });
-        });
-    }
-
-    // Unified Play/Pause button logic
-    playPauseBtn.addEventListener("click", () => {
-        if (synth.speaking && !synth.paused) {
-            synth.pause();
-            isPaused = true;
-            playPauseIcon.src = "/static/images/play.png";
-            playPauseBtn.title = languageData[currentLanguage].titles.play;
-        } else if (synth.paused) {
-            synth.resume();
-            isPaused = false;
-            playPauseIcon.src = "/static/images/pause.png";
-            playPauseBtn.title = languageData[currentLanguage].titles.pause;
-        } else if (!synth.speaking && lastSpokenText) {
-            speakText(lastSpokenText);
+    window.addEventListener("keydown", (e) => {
+        if (e.key === "Tab") {
+            lastInteractionWasKeyboard = true;
         }
     });
+
+    window.addEventListener("mousedown", () => {
+        lastInteractionWasKeyboard = false;
+    });
+
+    const speak = (text) => {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        window.speechSynthesis.speak(utterance);
+    };
+
+    const tabbableElements = document.querySelectorAll('[tabindex="0"]');
+    tabbableElements.forEach((el) => {
+        el.addEventListener("focus", () => {
+            if (!lastInteractionWasKeyboard) return;
+
+            let text = "";
+            const t = translations[currentLanguage];
+
+            if (el.id === "rate-experience") {
+                text = t.title;
+            } else if (el.classList.contains("rating-row")) {
+                const input = el.querySelector("input[type='radio']");
+                const value = input ? input.value : null;
+                text = value ? `${value} star${value === "1" ? "" : "s"}` : "Rating option";
+            } else if (el.id === "comments") {
+                text = t.feedbackPlaceholder;
+            } else if (el.id === "send-feedback") {
+                text = t.submitAlt;
+            } else if (el.id === "return-chatbot") {
+                text = "Return to Chatbot";
+            } else if (el.id === "skip-feedback") {
+                text = t.exit;
+            } else if (el.id === "success-message") {
+                text = t.success;
+            }
+
+            if (text) speak(text);
+        });
+    });
+
+    document.getElementById("send-feedback").addEventListener("click", function (e) {
+        e.preventDefault();
+
+        const rating = document.querySelector('input[name="rate"]:checked');
+        const feedback = document.getElementById("comments").value.trim();
+
+        if (!rating || !feedback) {
+            alert("Please select a rating and write your feedback.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("rate", rating.value);
+        formData.append("feedback", feedback);
+
+        // Add audio element to play the success sound
+        const successAudio = new Audio('/static/Voicy_Confetti.mp3');
+
+        fetch("/feedback", {
+            method: "POST",
+            body: formData
+        })
+        .then((response) => {
+            if (response.ok) {
+                document.getElementById("feedback-form").style.display = "none";
+                document.getElementById("rate-experience").style.display = "none";
+                document.getElementById("rate-description").style.display = "none";
+
+                const successMessage = document.getElementById("success-message");
+                successMessage.style.display = "block";
+                successMessage.tabIndex = "0";
+                successMessage.querySelector("h2").textContent = translations[currentLanguage].success;
+
+                successMessage.addEventListener("focus", () => {
+                    if (lastInteractionWasKeyboard) {
+                        speak(translations[currentLanguage].success);
+                    }
+                });
+
+                const exitButton = document.createElement("button");
+                exitButton.textContent = translations[currentLanguage].exit;
+                exitButton.id = "skip-feedback";
+                exitButton.tabIndex = "0";
+                exitButton.style.backgroundColor = "red";
+                exitButton.style.color = "white";
+                exitButton.style.padding = "10px 20px";
+                exitButton.style.border = "none";
+                exitButton.style.cursor = "pointer";
+                exitButton.style.fontSize = "16px";
+                exitButton.style.borderRadius = "5px";
+                exitButton.style.marginTop = "20px";
+                exitButton.style.display = "block";
+                exitButton.style.margin = "20px auto";
+                exitButton.style.textAlign = "center";
+                exitButton.style.width = "fit-content";
+
+                exitButton.addEventListener("focus", () => {
+                    if (lastInteractionWasKeyboard) {
+                        speak(translations[currentLanguage].exit);
+                    }
+                });
+
+                exitButton.addEventListener("click", function () {
+                    window.location.href = "https://www.bowiestate.edu";
+                });
+
+                successMessage.appendChild(exitButton);
+
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+
+                // Play the success sound effect
+                successAudio.play();
+            } else {
+                alert("There was an error submitting your feedback.");
+            }
+        })
+        .catch(() => {
+            alert("An error occurred. Please try again later.");
+        });
+    });
+
+    const ratingRows = document.querySelectorAll(".rating-row");
+    ratingRows.forEach(row => {
+        const radio = row.querySelector("input[type='radio']");
+        row.addEventListener("click", () => {
+            radio.checked = true;
+            ratingRows.forEach(r => r.classList.remove("selected"));
+            row.classList.add("selected");
+        });
+    });
 });
-
-
