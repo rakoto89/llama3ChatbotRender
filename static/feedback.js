@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () { 
+document.addEventListener("DOMContentLoaded", function () {
     let lastInteractionWasKeyboard = false;
     let currentLanguage = localStorage.getItem("selectedLanguage") || "en";
 
