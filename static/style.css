@@ -44,7 +44,6 @@ body {
     border-radius: 50%;
 }
 
-
 .sidebar-icon:hover {
     transform: scale(1.1);
     cursor: pointer;
@@ -235,4 +234,52 @@ body {
 
 #mute-btn:hover img {
     transform: scale(1.2);
+}
+
+
+/* -----------------------------------
+   ADDITIONS FOR LANGUAGE FLAG ICONS
+-------------------------------------- */
+.language-options button[data-lang="en"]::before {
+    content: "";
+    display: inline-block;
+    background-image: url('/static/images/flags/us.png');
+    background-size: cover;
+    width: 20px;
+    height: 14px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.language-options button[data-lang="es"]::before {
+    content: "";
+    display: inline-block;
+    background-image: url('/static/images/flags/es.png');
+    background-size: cover;
+    width: 20px;
+    height: 14px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.language-options button[data-lang="fr"]::before {
+    content: "";
+    display: inline-block;
+    background-image: url('/static/images/flags/fr.png');
+    background-size: cover;
+    width: 20px;
+    height: 14px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.language-options button[data-lang="zh"]::before {
+    content: "";
+    display: inline-block;
+    background-image: url('/static/images/flags/cn.png');
+    background-size: cover;
+    width: 20px;
+    height: 14px;
+    margin-right: 8px;
+    vertical-align: middle;
 }
