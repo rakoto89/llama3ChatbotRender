@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", function () {
             zh: "提交反馈.png"
         };
         if (img && imgMap[lang]) {
-            img.src = `/static/images/${imgMap[lang]}`;
+            img.src = /static/images/${imgMap[lang]};
         }
     }
 
@@ -150,7 +150,7 @@ document.addEventListener("DOMContentLoaded", function () {
             } else if (el.classList.contains("rating-row")) {
                 const input = el.querySelector("input[type='radio']");
                 const value = input ? input.value : null;
-                text = value ? `${value} star${value === "1" ? "" : "s"}` : "Rating option";
+                text = value ? ${value} star${value === "1" ? "" : "s"} : "Rating option";
             } else if (el.id === "comments") {
                 text = t.feedbackPlaceholder;
             } else if (el.id === "send-feedback") {
