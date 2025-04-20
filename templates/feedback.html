@@ -7,123 +7,42 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='feedback.css') }}">
 </head>
 <body>
-    <!-- Sidebar with images -->
+    <!-- Sidebar with Language Button -->
     <div class="sidebar">
-        <img src="{{ url_for('static', filename='images/bowie_state_white_logo.png') }}" alt="Bowie State Logo" class="top-right-image">
-        <div class="icon" onclick="location.href='/'" title="Home">
-            <img src="{{ url_for('static', filename='images/Home.png') }}" alt="Home Icon" class="sidebar-icon">
-        </div>
         <div class="icon" id="lang-btn" title="Language Preferences">
             <img src="{{ url_for('static', filename='images/Language_Preferences.png') }}" alt="Language Preferences" class="sidebar-icon">
         </div>
-        <div class="icon" onclick="location.href='https://www.bowiestate.edu/campus-life/health-and-wellness/'" title="Resources">
-            <img src="{{ url_for('static', filename='images/Resources.png') }}" alt="Resources" class="sidebar-icon no-filter">
-        </div>
-        <div class="icon" onclick="location.href='/feedback'" title="Feedback">
-            <img src="{{ url_for('static', filename='images/Feedback.png') }}" alt="Feedback" class="sidebar-icon">
-        </div>
-        <div class="icon" id="volume-toggle" title="Mute">
-            <img id="volume-icon" src="{{ url_for('static', filename='images/volume.png') }}" alt="Volume Icon" class="sidebar-icon">
-        </div>
-        <div class="icon" onclick="location.href='https://www.bowiestate.edu'" title="Exit">
-            <img src="{{ url_for('static', filename='images/Exit.png') }}" alt="Exit" class="sidebar-icon">
-        </div>
     </div>
 
-    <!-- Main Feedback Card -->
-    <div class="feedback-container">
-      <div class="feedback-card">
-        <h1 id="rate-experience" tabindex="0">Rate your experience</h1>
-        <p id="rate-description">We highly value your feedback! Rate your experience and provide us with your valuable feedback.</p>
-
-        <form id="feedback-form" method="POST" action="/feedback">
-          <div class="emoji-rating">
-            {% for i in range(1, 6) %}
-              <div class="rating-row" id="rating-{{ i }}" tabindex="0">
-                <input type="radio" name="rate" value="{{ i }}" />
-                <img src="{{ url_for('static', filename='images/emoji-' + i|string + '.gif') }}" alt="{{ ['Very Bad', 'Bad', 'Okay', 'Good', 'Amazing'][i-1] }}" onclick="restartGif(this)">
-                <div class="stars">
-                  {% for j in range(i) %}
-                    <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
-                  {% endfor %}
-                </div>
-                <div class="rating-label">{{ ['Terrible', 'Bad', 'Okay', 'Good', 'Amazing'][i-1] }}</div>
-              </div>
-            {% endfor %}
-          </div>
-
-          <textarea id="comments" name="feedback" rows="4" placeholder="Write your feedback here..." tabindex="0"></textarea>
-
-          <div class="button-container">
-            <button type="submit" class="btn-submit" id="send-feedback" tabindex="0">
-              <img id="submit-img" src="{{ url_for('static', filename='images/Send_Feedback2.png') }}" alt="Send Feedback">
-            </button>
-          </div>
-        </form>
-
-        <div id="success-message" style="display: none;">
-          <h2 id="thank-you-text">Thank you for your feedback!</h2>
-        </div>
-      </div>
-    </div>
-
-    <!-- Language options dropdown with flags -->
+    <!-- Language options dropdown -->
     <div id="language-options" class="language-options" style="display: none; position: fixed; top: 100px; left: 80px; background: #fff; border: 1px solid #ccc; padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 999;">
-      <button data-lang="en">
-        <img src="{{ url_for('static', filename='images/us.png') }}" alt="English Flag" style="width: 20px; height: 14px; margin-right: 8px;">
-        English
-      </button>
-      <button data-lang="es">
-        <img src="{{ url_for('static', filename='images/es.png') }}" alt="Spanish Flag" style="width: 20px; height: 14px; margin-right: 8px;">
-        Español
-      </button>
-      <button data-lang="fr">
-        <img src="{{ url_for('static', filename='images/fr.png') }}" alt="French Flag" style="width: 20px; height: 14px; margin-right: 8px;">
-        Français
-      </button>
-      <button data-lang="zh">
-        <img src="{{ url_for('static', filename='images/cn.png') }}" alt="Chinese Flag" style="width: 20px; height: 14px; margin-right: 8px;">
-        中文
-      </button>
+        <button data-lang="en">
+            <img src="{{ url_for('static', filename='images/us.png') }}" alt="English Flag" style="width: 20px; height: 14px; margin-right: 8px;">
+            English
+        </button>
+        <button data-lang="es">
+            <img src="{{ url_for('static', filename='images/es.png') }}" alt="Spanish Flag" style="width: 20px; height: 14px; margin-right: 8px;">
+            Español
+        </button>
+        <button data-lang="fr">
+            <img src="{{ url_for('static', filename='images/fr.png') }}" alt="French Flag" style="width: 20px; height: 14px; margin-right: 8px;">
+            Français
+        </button>
+        <button data-lang="zh">
+            <img src="{{ url_for('static', filename='images/cn.png') }}" alt="Chinese Flag" style="width: 20px; height: 14px; margin-right: 8px;">
+            中文
+        </button>
     </div>
 
-    <!-- Main JS and Confetti Library -->
+    <!-- Feedback Form -->
+    <div class="feedback-container">
+        <div class="feedback-card">
+            <h1 id="feedback-title">Feedback</h1>
+            <textarea id="feedback-placeholder" placeholder="Your feedback here..."></textarea>
+        </div>
+    </div>
+
+    <!-- External JS -->
     <script src="{{ url_for('static', filename='feedback.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
-    <!-- Volume/Mute toggle -->
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-          const volumeToggle = document.getElementById("volume-toggle");
-          const volumeIcon = document.getElementById("volume-icon");
-          const langBtn = document.getElementById("lang-btn");
-          const langOptions = document.getElementById("language-options");
-          let isMuted = false;
-
-          volumeToggle.addEventListener("click", () => {
-              isMuted = !isMuted;
-              if (isMuted) {
-                  volumeIcon.src = "/static/images/mute.png";
-                  volumeToggle.title = "Unmute";
-                  window.speechSynthesis.cancel();
-              } else {
-                  volumeIcon.src = "/static/images/volume.png";
-                  volumeToggle.title = "Mute";
-              }
-          });
-
-          langBtn.addEventListener("click", () => {
-              langOptions.style.display = langOptions.style.display === "none" ? "block" : "none";
-          });
-      });
-
-      // GIF click-to-restart logic
-      function restartGif(imgElement) {
-          const src = imgElement.src;
-          imgElement.src = '';
-          imgElement.offsetHeight;
-          imgElement.src = src;
-      }
-    </script>
 </body>
 </html>
