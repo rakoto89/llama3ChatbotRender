@@ -44,6 +44,7 @@ body {
     border-radius: 50%;
 }
 
+
 .sidebar-icon:hover {
     transform: scale(1.1);
     cursor: pointer;
@@ -210,15 +211,6 @@ body {
     margin: 5px;
     font-size: 16px;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.language-options button .language-flag {
-    width: 24px;  /* Adjust this size as needed */
-    height: 16px;  /* Adjust this size as needed */
-    margin-right: 8px;  /* Space between flag and text */
 }
 
 /* Mute/Unmute button for voice mode */
