@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='feedback.css') }}">
 </head>
 <body>
-    <!-- Sidebar with images -->
+    <!-- Sidebar -->
     <div class="sidebar">
         <img src="{{ url_for('static', filename='images/bowie_state_white_logo.png') }}" alt="Bowie State Logo" class="top-right-image">
         <div class="icon" onclick="location.href='/'" title="Home">
@@ -30,7 +30,7 @@
         </div>
     </div>
 
-    <!-- Main Feedback Card -->
+    <!-- Feedback Form -->
     <div class="feedback-container">
       <div class="feedback-card">
         <h1 id="rate-experience" tabindex="0">Rate your experience</h1>
@@ -67,63 +67,16 @@
       </div>
     </div>
 
-    <!-- Language options dropdown with flags -->
+    <!-- Language Menu -->
     <div id="language-options" class="language-options" style="display: none; position: fixed; top: 100px; left: 80px; background: #fff; border: 1px solid #ccc; padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 999;">
-      <button data-lang="en">
-        <img src="{{ url_for('static', filename='images/us.png') }}" alt="English Flag" style="width: 20px; height: 14px; margin-right: 8px;">
-        English
-      </button>
-      <button data-lang="es">
-        <img src="{{ url_for('static', filename='images/es.png') }}" alt="Spanish Flag" style="width: 20px; height: 14px; margin-right: 8px;">
-        Español
-      </button>
-      <button data-lang="fr">
-        <img src="{{ url_for('static', filename='images/fr.png') }}" alt="French Flag" style="width: 20px; height: 14px; margin-right: 8px;">
-        Français
-      </button>
-      <button data-lang="zh">
-        <img src="{{ url_for('static', filename='images/cn.png') }}" alt="Chinese Flag" style="width: 20px; height: 14px; margin-right: 8px;">
-        中文
-      </button>
+      <button data-lang="en"><img src="{{ url_for('static', filename='images/us.png') }}" alt="English Flag"> English</button>
+      <button data-lang="es"><img src="{{ url_for('static', filename='images/es.png') }}" alt="Spanish Flag"> Español</button>
+      <button data-lang="fr"><img src="{{ url_for('static', filename='images/fr.png') }}" alt="French Flag"> Français</button>
+      <button data-lang="zh"><img src="{{ url_for('static', filename='images/cn.png') }}" alt="Chinese Flag"> 中文</button>
     </div>
 
-    <!-- Main JS and Confetti Library -->
+    <!-- JS -->
     <script src="{{ url_for('static', filename='feedback.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
-    <!-- Volume/Mute toggle -->
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-          const volumeToggle = document.getElementById("volume-toggle");
-          const volumeIcon = document.getElementById("volume-icon");
-          const langBtn = document.getElementById("lang-btn");
-          const langOptions = document.getElementById("language-options");
-          let isMuted = false;
-
-          volumeToggle.addEventListener("click", () => {
-              isMuted = !isMuted;
-              if (isMuted) {
-                  volumeIcon.src = "/static/images/mute.png";
-                  volumeToggle.title = "Unmute";
-                  window.speechSynthesis.cancel();
-              } else {
-                  volumeIcon.src = "/static/images/volume.png";
-                  volumeToggle.title = "Mute";
-              }
-          });
-
-          langBtn.addEventListener("click", () => {
-              langOptions.style.display = langOptions.style.display === "none" ? "block" : "none";
-          });
-      });
-
-      // GIF click-to-restart logic
-      function restartGif(imgElement) {
-          const src = imgElement.src;
-          imgElement.src = '';
-          imgElement.offsetHeight;
-          imgElement.src = src;
-      }
-    </script>
 </body>
 </html>
