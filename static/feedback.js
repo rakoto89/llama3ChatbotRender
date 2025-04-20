@@ -94,7 +94,6 @@ document.addEventListener("DOMContentLoaded", function () {
         updateSubmitImage(lang);
         currentLanguage = lang;
 
-        // ✅ Update sidebar tooltip titles
         document.querySelector('[title="Home"]').title = t.titles.home;
         document.querySelector('[title="Language Preferences"]').title = t.titles.language;
         document.querySelector('[title="Feedback"]').title = t.titles.feedback;
@@ -116,8 +115,18 @@ document.addEventListener("DOMContentLoaded", function () {
             button.addEventListener("click", () => {
                 const selectedLang = button.getAttribute("data-lang");
                 localStorage.setItem("selectedLanguage", selectedLang);
-                applyLanguage(selectedLang);  // updates the text AND tooltips
+                applyLanguage(selectedLang);
             });
+        });
+
+        // ✅ ADDED: Close language menu when clicking outside
+        document.addEventListener("click", function (e) {
+            const langOptionsVisible = langOptions.style.display === "block";
+            const clickedOutside = !langOptions.contains(e.target) && !langBtn.contains(e.target);
+
+            if (langOptionsVisible && clickedOutside) {
+                langOptions.style.display = "none";
+            }
         });
     }
 
@@ -182,7 +191,6 @@ document.addEventListener("DOMContentLoaded", function () {
         formData.append("rate", rating.value);
         formData.append("feedback", feedback);
 
-        // Add audio element to play the success sound
         const successAudio = new Audio('/static/Voicy_Confetti.mp3');
 
         fetch("/feedback", {
@@ -241,7 +249,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     origin: { y: 0.6 }
                 });
 
-                // Play the success sound effect
                 successAudio.play();
             } else {
                 alert("There was an error submitting your feedback.");
@@ -262,7 +269,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // Added only this for GIF emoji reset functionality
     function restartGif(imgElement) {
         const src = imgElement.src;
         imgElement.src = '';
