@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -60,10 +60,22 @@
 
     <!-- Language options -->
     <div id="language-options" class="language-options" style="display: none;">
-        <button data-lang="en">English</button>
-        <button data-lang="es">Español</button>
-        <button data-lang="fr">Français</button>
-        <button data-lang="zh">中文</button>
+        <button data-lang="en">
+            <img src="{{ url_for('static', filename='images/us.png') }}" alt="English Flag" class="language-flag">
+            English
+        </button>
+        <button data-lang="es">
+            <img src="{{ url_for('static', filename='images/es.png') }}" alt="Spanish Flag" class="language-flag">
+            Español
+        </button>
+        <button data-lang="fr">
+            <img src="{{ url_for('static', filename='images/fr.png') }}" alt="French Flag" class="language-flag">
+            Français
+        </button>
+        <button data-lang="zh">
+            <img src="{{ url_for('static', filename='images/cn.png') }}" alt="Chinese Flag" class="language-flag">
+            中文
+        </button>
     </div>
 
     <!-- Beep sound -->
