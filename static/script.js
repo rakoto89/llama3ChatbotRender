@@ -336,4 +336,11 @@ document.addEventListener("DOMContentLoaded", function () {
             speakText(lastSpokenText);
         }
     });
+
+    // === Speak welcome message on page load ===
+    if (!localStorage.getItem("hasSpokenWelcome")) {
+        const welcomeText = languageData[currentLanguage].botMessage;
+        speakText(welcomeText);
+        localStorage.setItem("hasSpokenWelcome", "true");
+    }
 });
