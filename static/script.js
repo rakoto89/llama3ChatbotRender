@@ -106,12 +106,13 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-     function appendMessage(sender, message) {
+    function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
         msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
         msgDiv.innerHTML = message;
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
+
         if (sender === "bot") speakText(message);
     }
 
@@ -139,6 +140,7 @@ document.addEventListener("DOMContentLoaded", function () {
         appendMessage("user", text);
         userInput.value = "";
         appendMessage("bot", languageData[currentLanguage].thinkingMessage);
+
         fetch("/ask", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -162,11 +164,14 @@ document.addEventListener("DOMContentLoaded", function () {
             appendMessage("bot", "Voice recognition not supported.");
             return;
         }
+
         recognition = new SpeechRecognition();
         recognition.lang = currentLanguage;
         recognition.continuous = true;
         recognition.interimResults = true;
+
         recognition.onstart = () => { finalTranscript = ""; };
+
         recognition.onresult = (event) => {
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 const transcript = event.results[i][0].transcript;
@@ -175,12 +180,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             }
         };
+
         recognition.onerror = (event) => {
             console.error("Recognition error:", event.error);
         };
+
         recognition.onend = () => {
             if (usingVoice && !recognition.aborted) recognition.start();
         };
+
         recognition.start();
     }
 
@@ -202,6 +210,7 @@ document.addEventListener("DOMContentLoaded", function () {
             voiceBtn.classList.remove("voice-active");
             if (synth.speaking || isBotSpeaking) synth.cancel();
             if (recognition) recognition.abort();
+
             const botMessages = document.querySelectorAll(".bot-message");
             botMessages.forEach(msg => {
                 if (
@@ -211,12 +220,14 @@ document.addEventListener("DOMContentLoaded", function () {
                     msg.remove();
                 }
             });
+
             if (finalTranscript.trim()) userInput.value = finalTranscript.trim();
             finalTranscript = "";
         } else {
             if (synth.speaking || isBotSpeaking) synth.cancel();
             usingVoice = true;
             finalTranscript = "";
+
             if (currentLanguage === 'zh') {
                 appendMessage("bot", languageData[currentLanguage].listeningMessage);
                 setTimeout(() => {
@@ -239,10 +250,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const langBtn = document.getElementById("lang-btn");
     const langOptions = document.getElementById("language-options");
+
     if (langBtn && langOptions) {
         langBtn.addEventListener("click", () => {
             langOptions.style.display = langOptions.style.display === "block" ? "none" : "block";
         });
+
         document.querySelectorAll("#language-options button").forEach(button => {
             button.addEventListener("click", () => {
                 const selectedLang = button.getAttribute("data-lang");
@@ -269,11 +282,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const volumeToggle = document.getElementById("volume-toggle");
     const volumeIcon = document.getElementById("volume-icon");
+
     if (volumeToggle && volumeIcon) {
         volumeToggle.title = isMuted
             ? languageData[currentLanguage].titles.unmute
             : languageData[currentLanguage].titles.mute;
+
         volumeIcon.src = isMuted ? "/static/images/mute.png" : "/static/images/volume.png";
+
         volumeToggle.addEventListener("click", () => {
             isMuted = !isMuted;
             localStorage.setItem("isMuted", isMuted.toString());
@@ -291,6 +307,7 @@ document.addEventListener("DOMContentLoaded", function () {
             userInput.value = "";
             finalTranscript = "";
             voiceBtn.classList.remove("voice-active");
+
             const botMessages = document.querySelectorAll(".bot-message");
             botMessages.forEach(msg => {
                 if (
@@ -303,6 +320,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // Unified Play/Pause button logic
     playPauseBtn.addEventListener("click", () => {
         if (synth.speaking && !synth.paused) {
             synth.pause();
@@ -317,46 +335,5 @@ document.addEventListener("DOMContentLoaded", function () {
         } else if (!synth.speaking && lastSpokenText) {
             speakText(lastSpokenText);
         }
-    });
-
-    // --- Feedback Modal Logic ---
-    const feedbackModal = document.getElementById("feedbackModal");
-    const feedbackContainer = document.querySelector(".feedback-container");
-    const closeModal = document.getElementById("closeModal");
-    const emojis = document.querySelectorAll(".emoji");
-    const feedbackResponse = document.getElementById("feedback-response");
-
-    const confettiScript = document.createElement("script");
-    confettiScript.src = "https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js";
-    document.body.appendChild(confettiScript);
-
-    setTimeout(() => {
-        if (feedbackModal) feedbackModal.style.display = "flex";
-    }, 60000);
-
-    if (closeModal) {
-        closeModal.addEventListener("click", () => {
-            feedbackModal.style.display = "none";
-        });
-    }
-
-    emojis.forEach(emoji => {
-        emoji.addEventListener("click", () => {
-            const rating = emoji.getAttribute("data-rating");
-            feedbackResponse.textContent = `Thanks for your feedback! You rated us ${rating}/5`;
-            feedbackModal.style.display = "none";
-            if (window.confetti) {
-                confetti({
-                    particleCount: 150,
-                    spread: 70,
-                    origin: { y: 0.6 }
-                });
-            }
-            fetch("/submit-feedback", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ rating: parseInt(rating), language: currentLanguage })
-            }).catch(console.error);
-        });
     });
 });
