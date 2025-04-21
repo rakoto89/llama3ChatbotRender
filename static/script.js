@@ -320,7 +320,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Unified Play/Pause button logic
     playPauseBtn.addEventListener("click", () => {
         if (synth.speaking && !synth.paused) {
             synth.pause();
@@ -337,10 +336,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // === Speak welcome message on page load ===
-    if (!localStorage.getItem("hasSpokenWelcome")) {
-        const welcomeText = languageData[currentLanguage].botMessage;
-        speakText(welcomeText);
-        localStorage.setItem("hasSpokenWelcome", "true");
-    }
+    // === Speak welcome message on every page load ===
+    const welcomeText = languageData[currentLanguage].botMessage;
+    speakText(welcomeText);
 });
