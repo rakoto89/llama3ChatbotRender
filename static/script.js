@@ -297,6 +297,8 @@ document.addEventListener("DOMContentLoaded", function () {
             volumeToggle.title = isMuted
                 ? languageData[currentLanguage].titles.unmute
                 : languageData[currentLanguage].titles.mute;
+
+            if (synth.speaking) synth.cancel(); // << THE ONLY LINE ADDED
         });
     }
 
