@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let isMuted = localStorage.getItem("isMuted") === "true";
     let isBotSpeaking = false;
     let finalTranscript = "";
-    let lastSpokenText = localStorage.getItem("lastSpokenText") || "";
+    let lastSpokenText = "";
     let currentUtterance = null;
     let isPaused = false;
 
@@ -106,27 +106,12 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    // === Reload chat history from localStorage ===
-    const savedConversation = JSON.parse(localStorage.getItem("chatHistory") || "[]");
-    savedConversation.forEach(({ sender, message }) => {
-        const msgDiv = document.createElement("div");
-        msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
-        msgDiv.innerHTML = message;
-        chatBox.appendChild(msgDiv);
-    });
-    chatBox.scrollTop = chatBox.scrollHeight;
-
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
         msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
         msgDiv.innerHTML = message;
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
-
-        // === Save to chat history in localStorage ===
-        const history = JSON.parse(localStorage.getItem("chatHistory") || "[]");
-        history.push({ sender, message });
-        localStorage.setItem("chatHistory", JSON.stringify(history));
 
         if (sender === "bot") speakText(message);
     }
@@ -135,7 +120,6 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!text.trim() || isMuted) return;
         synth.cancel();
         lastSpokenText = text;
-        localStorage.setItem("lastSpokenText", text);
         currentUtterance = new SpeechSynthesisUtterance(text);
         currentUtterance.lang = currentLanguage;
         isBotSpeaking = true;
@@ -314,7 +298,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 ? languageData[currentLanguage].titles.unmute
                 : languageData[currentLanguage].titles.mute;
 
-            if (synth.speaking) synth.cancel();
+            if (synth.speaking) synth.cancel(); // << THE ONLY LINE ADDED
         });
     }
 
@@ -354,7 +338,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // === Speak welcome message and save it ===
+    // === Speak welcome message on every page load ===
     const welcomeText = languageData[currentLanguage].botMessage;
-    appendMessage("bot", welcomeText);
+    speakText(welcomeText);
 });
