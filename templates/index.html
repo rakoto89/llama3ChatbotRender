@@ -1,16 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Opioid Chatbot Awareness</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rate your experience</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='feedback.css') }}">
 </head>
 <body>
     <!-- Sidebar with images -->
     <div class="sidebar">
         <img src="{{ url_for('static', filename='images/bowie_state_white_logo.png') }}" alt="Bowie State Logo" class="top-right-image">
-
         <div class="icon" onclick="location.href='/'" title="Home">
             <img src="{{ url_for('static', filename='images/Home.png') }}" alt="Home Icon" class="sidebar-icon">
         </div>
@@ -23,53 +22,144 @@
         <div class="icon" onclick="location.href='/feedback'" title="Feedback">
             <img src="{{ url_for('static', filename='images/Feedback.png') }}" alt="Feedback" class="sidebar-icon">
         </div>
-
-        <!-- Volume/Mute Toggle Button (above Exit) -->
-        <div class="icon" id="volume-toggle" title="">
+        <div class="icon" id="volume-toggle" title="Mute">
             <img id="volume-icon" src="{{ url_for('static', filename='images/volume.png') }}" alt="Volume Icon" class="sidebar-icon">
         </div>
-
         <div class="icon" onclick="location.href='https://www.bowiestate.edu'" title="Exit">
             <img src="{{ url_for('static', filename='images/Exit.png') }}" alt="Exit" class="sidebar-icon">
         </div>
     </div>
 
-    <!-- Chat section -->
-    <div class="chat-container">
-        <div class="chat-header">Opioid Awareness Chatbot</div>
-        <div class="chat-box" id="chat-box">
-            <div class="bot-message">Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!</div>
+    <!-- Feedback Popup Modal -->
+    <div id="feedbackModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
+      <div class="feedback-container">
+        <div class="feedback-card" style="position: relative;">
+          <span id="closeModal" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">&times;</span>
+
+          <h1 id="rate-experience" tabindex="0">Rate your experience</h1>
+          <p id="rate-description">We highly value your feedback! Rate your experience and provide us with your valuable feedback.</p>
+
+          <form id="feedback-form" method="POST" action="/feedback">
+            <div class="emoji-rating">
+              <div class="rating-row" id="rating-1" tabindex="0">
+                <input type="radio" name="rate" value="1" />
+                <img src="{{ url_for('static', filename='images/emoji-1.gif') }}" alt="Very Bad" onclick="restartGif(this)">
+                <div class="stars">
+                  <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                </div>
+                <div class="rating-label">Terrible</div>
+              </div>
+              <div class="rating-row" id="rating-2" tabindex="0">
+                <input type="radio" name="rate" value="2" />
+                <img src="{{ url_for('static', filename='images/emoji-2.gif') }}" alt="Bad" onclick="restartGif(this)">
+                <div class="stars">
+                  <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                  <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                </div>
+                <div class="rating-label">Bad</div>
+              </div>
+              <div class="rating-row" id="rating-3" tabindex="0">
+                <input type="radio" name="rate" value="3" />
+                <img src="{{ url_for('static', filename='images/emoji-3.gif') }}" alt="Okay" onclick="restartGif(this)">
+                <div class="stars">
+                  <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                  <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                  <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                </div>
+                <div class="rating-label">Okay</div>
+              </div>
+              <div class="rating-row" id="rating-4" tabindex="0">
+                <input type="radio" name="rate" value="4" />
+                <img src="{{ url_for('static', filename='images/emoji-4.gif') }}" alt="Good" onclick="restartGif(this)">
+                <div class="stars">
+                  <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                  <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                  <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                  <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                </div>
+                <div class="rating-label">Good</div>
+              </div>
+              <div class="rating-row" id="rating-5" tabindex="0">
+                <input type="radio" name="rate" value="5" />
+                <img src="{{ url_for('static', filename='images/emoji-5.gif') }}" alt="Amazing" onclick="restartGif(this)">
+                <div class="stars">
+                  <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                  <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                  <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                  <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                  <img src="{{ url_for('static', filename='images/star.png') }}" alt="Star">
+                </div>
+                <div class="rating-label">Amazing</div>
+              </div>
+            </div>
+
+            <textarea id="comments" name="feedback" rows="4" placeholder="Write your feedback here..." tabindex="0"></textarea>
+
+            <div class="button-container">
+              <button type="submit" class="btn-submit" id="send-feedback" tabindex="0">
+                <img id="submit-img" src="{{ url_for('static', filename='images/Send_Feedback2.png') }}" alt="Send Feedback">
+              </button>
+            </div>
+          </form>
+
+          <div id="success-message" style="display: none;">
+            <h2 id="thank-you-text">Thank you for your feedback!</h2>
+          </div>
         </div>
-        <div class="input-container">
-            <input type="text" id="user-input" placeholder="Enter your question...">
-            <button id="send-btn" title="Send">
-                <img src="{{ url_for('static', filename='images/submit.png') }}" alt="Submit">
-            </button>
-            <button id="voice-btn" title="Voice">
-                <img src="{{ url_for('static', filename='images/voice.png') }}" alt="Voice">
-            </button>
-            <button id="stop-speaking-btn" title="Stop">
-                <img src="{{ url_for('static', filename='images/stop.png') }}" alt="Stop">
-            </button>
-            <!-- Unified Play/Pause Button -->
-            <button id="play-pause-btn" title="Pause">
-                <img id="play-pause-icon" src="{{ url_for('static', filename='images/pause.png') }}" alt="Play/Pause">
-            </button>
-        </div>
+      </div>
     </div>
 
-    <!-- Language options -->
-    <div id="language-options" class="language-options" style="display: none;">
-        <button data-lang="en">English</button>
-        <button data-lang="es">Español</button>
-        <button data-lang="fr">Français</button>
-        <button data-lang="zh">中文</button>
+    <!-- Main JS and Confetti Library -->
+    <script src="{{ url_for('static', filename='feedback.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Language options dropdown -->
+    <div id="language-options" class="language-options" style="display: none; position: fixed; top: 100px; left: 80px; background: #fff; border: 1px solid #ccc; padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 999;">
+      <button data-lang="en">English</button>
+      <button data-lang="es">Español</button>
+      <button data-lang="fr">Français</button>
+      <button data-lang="zh">中文</button>
     </div>
 
-    <!-- Beep sound -->
-    <audio id="beep" src="{{ url_for('static', filename='beep2.mp3') }}" preload="auto"></audio>
+    <!-- Volume/Mute toggle -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+          const volumeToggle = document.getElementById("volume-toggle");
+          const volumeIcon = document.getElementById("volume-icon");
+          let isMuted = false;
 
-    <!-- External JS -->
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+          volumeToggle.addEventListener("click", () => {
+              isMuted = !isMuted;
+              if (isMuted) {
+                  volumeIcon.src = "/static/images/mute.png";
+                  volumeToggle.title = "Unmute";
+                  window.speechSynthesis.cancel();
+              } else {
+                  volumeIcon.src = "/static/images/volume.png";
+                  volumeToggle.title = "Mute";
+              }
+          });
+
+          // Show feedback popup after 10 minutes
+          if (!localStorage.getItem("feedbackPopupShown")) {
+              setTimeout(() => {
+                  document.getElementById("feedbackModal").style.display = "flex";
+                  localStorage.setItem("feedbackPopupShown", "true");
+              }, 10 * 60 * 1000);
+          }
+
+          document.getElementById("closeModal").addEventListener("click", function () {
+              document.getElementById("feedbackModal").style.display = "none";
+          });
+      });
+
+      // GIF click-to-restart logic
+      function restartGif(imgElement) {
+          const src = imgElement.src;
+          imgElement.src = '';
+          imgElement.offsetHeight;
+          imgElement.src = src;
+      }
+    </script>
 </body>
 </html>
