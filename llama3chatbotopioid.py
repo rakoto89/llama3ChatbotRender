@@ -183,7 +183,7 @@ Only answer questions based on the educational data provided."""
         )
         res.raise_for_status()
         data = res.json()
-        content = data.get("choices", [{}])[0].get("message", {}).get("content", "No response.").strip()
+        content = data.get("choices", [{}])[0].get("message", {}).get("content", "Our apologies, there seems to be a technical problem please contact the system admin at akotor0621@students.bowiestate.edu.").strip()
 
         conversation_history.append({"role": "assistant", "content": content})
 
