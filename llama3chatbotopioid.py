@@ -179,7 +179,7 @@ Only answer questions based on the educational data provided."""
             LLAMA3_ENDPOINT,
             headers=headers,
             json={"model": "meta-llama/llama-3-8b-instruct", "messages": messages},
-            timeout=45
+            timeout=60
         )
         res.raise_for_status()
         data = res.json()
