@@ -148,12 +148,7 @@ def get_llama3_response(question, user_lang="en"):
             print(f"Translation fallback failed: {str(e)}")
             return "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment."
 
-    if conversation_history:
-        last_user_msg = next((msg["content"] for msg in reversed(conversation_history) if msg["role"] == "user"), "")
-        last_assistant_msg = next((msg["content"] for msg in reversed(conversation_history) if msg["role"] == "assistant"), "")
-        combined_context = f"User: {last_user_msg}\nAssistant: {last_assistant_msg}\nUser follow-up: {translated_question}"
-        translated_question = combined_context
-
+    # No longer combining messages manually to prevent malformed input
     conversation_history.append({"role": "user", "content": translated_question})
 
     system_prompt = """You are an educational Opioid Awareness Chatbot created for Bowie State University.
