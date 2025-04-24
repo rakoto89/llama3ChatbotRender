@@ -148,12 +148,9 @@ def get_llama3_response(question, user_lang="en"):
             print(f"Translation fallback failed: {str(e)}")
             return "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment."
 
-    # ========= Handle follow-up questions by adding previous conversation context =========
     if conversation_history:
         last_user_msg = next((msg["content"] for msg in reversed(conversation_history) if msg["role"] == "user"), "")
         last_assistant_msg = next((msg["content"] for msg in reversed(conversation_history) if msg["role"] == "assistant"), "")
-
-        # Combine both the last user and assistant messages for better context
         combined_context = f"User: {last_user_msg}\nAssistant: {last_assistant_msg}\nUser follow-up: {translated_question}"
         translated_question = combined_context
 
@@ -182,20 +179,37 @@ Only answer questions based on the educational data provided."""
             timeout=60
         )
         res.raise_for_status()
+        
+        print("Status Code:", res.status_code)
+        print("Raw Response:", res.text)
+
         data = res.json()
-        content = data.get("choices", [{}])[0].get("message", {}).get("content", "Our apologies, there seems to be a technical problem please contact the system admin at akotor0621@students.bowiestate.edu.").strip()
 
-        conversation_history.append({"role": "assistant", "content": content})
+        if "choices" in data and data["choices"]:
+            message = data["choices"][0].get("message", {})
+            content = message.get("content", "").strip()
+            if not content:
+                content = "I’m here to help, but the response was unexpectedly empty. Please try again."
+        else:
+            content = "I'm having trouble getting a valid response right now. Please try again or rephrase your question."
 
-        try:
-            return translator.translate(content, dest=user_lang).text
-        except Exception as e:
-            print(f"Response translation failed: {str(e)}")
-            return content
+    except requests.exceptions.Timeout:
+        content = "The server took too long to respond. Please try again shortly."
+
+    except requests.exceptions.HTTPError as e:
+        content = f"Server returned an HTTP error: {str(e)}"
 
     except Exception as e:
-        print(f"OpenRouter API Error: {str(e)}")
-        return f"ERROR: {str(e)}"
+        print("Unhandled error:", str(e))
+        content = "Our apologies, a technical error occurred. Please try again later."
+
+    conversation_history.append({"role": "assistant", "content": content})
+
+    try:
+        return translator.translate(content, dest=user_lang).text
+    except Exception as e:
+        print(f"Response translation failed: {str(e)}")
+        return content
 
 @app.route("/")
 def index():
