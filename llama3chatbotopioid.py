@@ -11,7 +11,7 @@ from googletrans import Translator
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
 
-LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://openrouter.ai/api/v1/chat/completions").strip()
+LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://api.together.xyz/v1/chat/completions").strip()
 REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
 FEEDBACK_SECRET_KEY = os.environ.get("FEEDBACK_SECRET_KEY", "test-key")
 
@@ -172,33 +172,23 @@ Only answer questions based on the educational data provided."""
     }
 
     try:
-        res = requests.post(
+        response = requests.post(
             LLAMA3_ENDPOINT,
             headers=headers,
-            json={"model": "meta-llama/llama-3-8b-instruct", "messages": messages},
+            json={
+                "model": "meta-llama/Llama-3-8b-chat-hf",
+                "messages": messages,
+                "temperature": 0.7
+            },
             timeout=60
         )
-        res.raise_for_status()
-        
-        print("Status Code:", res.status_code)
-        print("Raw Response:", res.text)
-
-        data = res.json()
-
-        if "choices" in data and data["choices"]:
-            message = data["choices"][0].get("message", {})
-            content = message.get("content", "").strip()
-            if not content:
-                content = "I’m here to help, but the response was unexpectedly empty. Please try again."
-        else:
-            content = "I'm having trouble getting a valid response right now. Please try again or rephrase your question."
-
+        response.raise_for_status()
+        data = response.json()
+        content = data["choices"][0]["message"]["content"].strip()
     except requests.exceptions.Timeout:
         content = "The server took too long to respond. Please try again shortly."
-
     except requests.exceptions.HTTPError as e:
         content = f"Server returned an HTTP error: {str(e)}"
-
     except Exception as e:
         print("Unhandled error:", str(e))
         content = "Our apologies, a technical error occurred. Please try again later."
