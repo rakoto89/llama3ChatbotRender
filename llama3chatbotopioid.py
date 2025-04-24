@@ -171,24 +171,39 @@ Only answer questions based on the educational data provided."""
         "Content-Type": "application/json"
     }
 
+    payload = {
+        "model": "meta-llama/Llama-3-8b-chat-hf",
+        "messages": messages
+    }
+
     try:
-        response = requests.post(
+        res = requests.post(
             LLAMA3_ENDPOINT,
             headers=headers,
-            json={
-                "model": "meta-llama/Llama-3-8b-chat-hf",
-                "messages": messages,
-                "temperature": 0.7
-            },
+            json=payload,
             timeout=60
         )
-        response.raise_for_status()
-        data = response.json()
-        content = data["choices"][0]["message"]["content"].strip()
+        res.raise_for_status()
+
+        print("Status Code:", res.status_code)
+        print("Raw Response:", res.text)
+
+        data = res.json()
+
+        if "choices" in data and data["choices"]:
+            message = data["choices"][0].get("message", {})
+            content = message.get("content", "").strip()
+            if not content:
+                content = "I’m here to help, but the response was unexpectedly empty. Please try again."
+        else:
+            content = "I'm having trouble getting a valid response right now. Please try again or rephrase your question."
+
     except requests.exceptions.Timeout:
         content = "The server took too long to respond. Please try again shortly."
+
     except requests.exceptions.HTTPError as e:
         content = f"Server returned an HTTP error: {str(e)}"
+
     except Exception as e:
         print("Unhandled error:", str(e))
         content = "Our apologies, a technical error occurred. Please try again later."
