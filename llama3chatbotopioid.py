@@ -164,7 +164,7 @@ You can understand and respond to follow-up questions by using the context from 
 
     except Exception as e:
         print("Unhandled error:", str(e))
-        content = "Our apologies, a technical error occurred. Please try again later."
+        content = "Our apologies, a technical error occurred. Please reach out to our system admin at akotor0621@students.bowiestate.edu."
 
     conversation_history.append({"role": "assistant", "content": content})
 
