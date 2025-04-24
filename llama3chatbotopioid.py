@@ -68,6 +68,29 @@ def is_question_relevant(question):
 
     return False
 
+def load_combined_context():
+    combined_text = ""
+
+    # Load text from PDF
+    try:
+        with pdfplumber.open("data/your_pdf_file.pdf") as pdf:
+            for page in pdf.pages:
+                combined_text += page.extract_text() + "\n"
+    except Exception as e:
+        print(f"Failed to load PDF: {str(e)}")
+
+    # Load text from Excel
+    try:
+        df = pd.read_excel("data/your_excel_file.xlsx")
+        combined_text += "\n".join(df.astype(str).apply(lambda row: " ".join(row), axis=1))
+    except Exception as e:
+        print(f"Failed to load Excel: {str(e)}")
+
+    return combined_text.strip()
+
+# Load context from PDF and Excel at startup
+combined_text = load_combined_context()
+
 def get_llama3_response(question, user_lang="en"):
     user_lang = normalize_language_code(user_lang)
     translator = Translator()
@@ -88,7 +111,6 @@ def get_llama3_response(question, user_lang="en"):
             print(f"Translation fallback failed: {str(e)}")
             return "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment."
 
-    # No longer combining messages manually to prevent malformed input
     conversation_history.append({"role": "user", "content": translated_question})
 
     system_prompt = """You are an educational Opioid Awareness Chatbot created for Bowie State University.
