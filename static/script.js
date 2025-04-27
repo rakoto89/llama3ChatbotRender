@@ -272,10 +272,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     languagePreferencesBtn.addEventListener("click", function () {
         if (languageMenu.style.display === "block") {
-            languageMenu.style.display = "none";
+            languageMenu.style.display = "none"; // Hide the menu if it's visible
         } else {
-            createLanguageMenu();
-            languageMenu.style.display = "block";
+            createLanguageMenu();  // Create and append the language options
+            languageMenu.style.display = "block";  // Show the language options
         }
     });
 
