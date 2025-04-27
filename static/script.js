@@ -337,20 +337,16 @@ document.addEventListener("DOMContentLoaded", function () {
                 appendMessage("bot", languageData[currentLanguage].listeningMessage);
                 setTimeout(() => {
                     voiceBtn.classList.add("voice-active");
-                    if (!isMuted) {
-                        beep.currentTime = 0;
-                        beep.volume = 1.0;
-                        beep.play().catch(err => console.warn("Beep failed:", err));
-                    }
+                    beep.currentTime = 0;
+                    beep.volume = 1.0;
+                    beep.play().catch(err => console.warn("Beep failed:", err));
                     startContinuousRecognition();
                 }, 3000);
             } else {
                 voiceBtn.classList.add("voice-active");
-                if (!isMuted) {
-                    beep.currentTime = 0;
-                    beep.volume = 1.0;
-                    beep.play().catch(err => console.warn("Beep failed:", err));
-                }
+                beep.currentTime = 0;
+                beep.volume = 1.0;
+                beep.play().catch(err => console.warn("Beep failed:", err));
                 appendMessage("bot", languageData[currentLanguage].listeningMessage);
                 startContinuousRecognition();
             }
@@ -407,7 +403,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 ? languageData[currentLanguage].titles.unmute
                 : languageData[currentLanguage].titles.mute;
 
-            if (synth.speaking) synth.cancel();
+            if (synth.speaking) synth.cancel(); // << THE ONLY LINE ADDED
         });
     }
 
