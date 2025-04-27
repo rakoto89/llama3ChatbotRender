@@ -7,8 +7,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const playPauseBtn = document.getElementById("play-pause-btn");
     const playPauseIcon = document.getElementById("play-pause-icon");
     const beep = document.getElementById("beep");
-    const languagePreferencesBtn = document.getElementById("language-preferences-btn");
-    const languageMenu = document.getElementById("language-menu");
 
     let recognition;
     let usingVoice = false;
@@ -106,7 +104,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 pause: "暂停"
             }
         },
-        yo: {
+        yo: {  // Yoruba
             placeholder: "Tẹ ibeere rẹ...",
             chatbotTitle: "Ẹrọ Ayelujara Igbagbọ Opioid",
             botMessage: "Kaabo si Ẹrọ Ayelujara Igbagbọ Opioid! Nibi iwọ yoo kọ gbogbo nipa awọn opioids!",
@@ -127,7 +125,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 pause: "Duro"
             }
         },
-        tw: {
+        tw: { // Twi (Akan)
             placeholder: "Kyerɛ wo nsɛm...",
             chatbotTitle: "Opioid Nkyerɛkyerɛ Bot",
             botMessage: "Akwaaba ba Opioid Nkyerɛkyerɛ Bot! Ha wobɛtete biribiara fa opioids ho!",
@@ -148,7 +146,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 pause: "Gyina"
             }
         },
-        hi: {
+        hi: { // Hindi
             placeholder: "अपना प्रश्न दर्ज करें...",
             chatbotTitle: "ओपिओइड जागरूकता चैटबॉट",
             botMessage: "ओपिओइड जागरूकता चैटबॉट में आपका स्वागत है! यहां आप ओपिओइड्स के बारे में सब कुछ जानेंगे!",
@@ -169,7 +167,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 pause: "रोकें"
             }
         },
-        ar: {
+        ar: { // Arabic
             placeholder: "أدخل سؤالك...",
             chatbotTitle: "روبوت التوعية بالمواد الأفيونية",
             botMessage: "مرحبًا بك في روبوت التوعية بالمواد الأفيونية! هنا ستتعلم كل شيء عن المواد الأفيونية!",
@@ -190,7 +188,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 pause: "إيقاف مؤقت"
             }
         },
-        ha: {
+        ha: { // Hausa
             placeholder: "Shigar da tambayarka...",
             chatbotTitle: "Chatbot na Wayar da Kai game da Opioid",
             botMessage: "Barka da zuwa Chatbot na Wayar da Kai game da Opioid! A nan za ka koyi duk game da opioids!",
@@ -213,26 +211,17 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    function updateUI() {
-        userInput.placeholder = languageData[currentLanguage].placeholder;
-        document.getElementById("chatbot-title").innerText = languageData[currentLanguage].chatbotTitle;
-        sendBtn.title = languageData[currentLanguage].titles.send;
-        voiceBtn.title = languageData[currentLanguage].titles.voice;
-        stopBtn.title = languageData[currentLanguage].titles.stop;
-        playPauseBtn.title = languageData[currentLanguage].titles.pause;
-        languagePreferencesBtn.title = languageData[currentLanguage].titles.language;
-    }
-
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
         msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
         msgDiv.innerHTML = message;
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
+
         if (sender === "bot") speakText(message);
     }
 
-    function speakText(text) {
+    function speakText(text, callback) {
         if (!text.trim() || isMuted) return;
         synth.cancel();
         lastSpokenText = text;
@@ -251,36 +240,214 @@ document.addEventListener("DOMContentLoaded", function () {
         playPauseBtn.title = languageData[currentLanguage].titles.pause;
     }
 
-    function createLanguageMenu() {
-        languageMenu.innerHTML = "";
-        for (const langCode in languageData) {
-            const langOption = document.createElement("div");
-            langOption.classList.add("language-option");
-            langOption.innerText = langCode.toUpperCase();
-            langOption.dataset.lang = langCode;
-            langOption.addEventListener("click", () => {
-                localStorage.setItem("selectedLanguage", langCode);
-                currentLanguage = langCode;
-                updateUI();
-                const welcomeText = languageData[currentLanguage].botMessage;
-                appendMessage("bot", welcomeText); // Add welcome message without clearing old messages
-                languageMenu.style.display = "none";
-            });
-            languageMenu.appendChild(langOption);
-        }
+    function sendMessage(text) {
+        if (!text.trim()) return;
+        appendMessage("user", text);
+        userInput.value = "";
+        appendMessage("bot", languageData[currentLanguage].thinkingMessage);
+
+        fetch("/ask", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question: text, language: currentLanguage })
+        })
+        .then(res => res.json())
+        .then(data => {
+            document.querySelector(".bot-message:last-child").remove();
+            const response = data.answer || "Error: Could not get a response.";
+            appendMessage("bot", response);
+        })
+        .catch(() => {
+            document.querySelector(".bot-message:last-child").remove();
+            appendMessage("bot", "Error: Could not get a response.");
+        });
     }
 
-    languagePreferencesBtn.addEventListener("click", function () {
-        if (languageMenu.style.display === "block") {
-            languageMenu.style.display = "none"; // Hide the menu if it's visible
-        } else {
-            createLanguageMenu();  // Create and append the language options
-            languageMenu.style.display = "block";  // Show the language options
+    function startContinuousRecognition() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            appendMessage("bot", "Voice recognition not supported.");
+            return;
+        }
+
+        recognition = new SpeechRecognition();
+        recognition.lang = currentLanguage;
+        recognition.continuous = true;
+        recognition.interimResults = true;
+
+        recognition.onstart = () => { finalTranscript = ""; };
+
+        recognition.onresult = (event) => {
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript + " ";
+                }
+            }
+        };
+
+        recognition.onerror = (event) => {
+            console.error("Recognition error:", event.error);
+        };
+
+        recognition.onend = () => {
+            if (usingVoice && !recognition.aborted) recognition.start();
+        };
+
+        recognition.start();
+    }
+
+    sendBtn.addEventListener("click", () => {
+        usingVoice = false;
+        sendMessage(userInput.value);
+    });
+
+    userInput.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+            usingVoice = false;
+            sendMessage(userInput.value);
         }
     });
 
-    // === Initial setup ===
-    updateUI();
+    voiceBtn.addEventListener("click", () => {
+        if (usingVoice) {
+            usingVoice = false;
+            voiceBtn.classList.remove("voice-active");
+            if (synth.speaking || isBotSpeaking) synth.cancel();
+            if (recognition) recognition.abort();
+
+            const botMessages = document.querySelectorAll(".bot-message");
+            botMessages.forEach(msg => {
+                if (
+                    msg.textContent === languageData[currentLanguage].listeningMessage ||
+                    msg.textContent === languageData[currentLanguage].thinkingMessage
+                ) {
+                    msg.remove();
+                }
+            });
+
+            if (finalTranscript.trim()) userInput.value = finalTranscript.trim();
+            finalTranscript = "";
+        } else {
+            if (synth.speaking || isBotSpeaking) synth.cancel();
+            usingVoice = true;
+            finalTranscript = "";
+
+            if (currentLanguage === 'zh') {
+                appendMessage("bot", languageData[currentLanguage].listeningMessage);
+                setTimeout(() => {
+                    voiceBtn.classList.add("voice-active");
+                    if (!isMuted) {
+                        beep.currentTime = 0;
+                        beep.volume = 1.0;
+                        beep.play().catch(err => console.warn("Beep failed:", err));
+                    }
+                    startContinuousRecognition();
+                }, 3000);
+            } else {
+                voiceBtn.classList.add("voice-active");
+                if (!isMuted) {
+                    beep.currentTime = 0;
+                    beep.volume = 1.0;
+                    beep.play().catch(err => console.warn("Beep failed:", err));
+                }
+                appendMessage("bot", languageData[currentLanguage].listeningMessage);
+                startContinuousRecognition();
+            }
+        }
+    });
+
+    const langBtn = document.getElementById("lang-btn");
+    const langOptions = document.getElementById("language-options");
+
+    if (langBtn && langOptions) {
+        langBtn.addEventListener("click", () => {
+            langOptions.style.display = langOptions.style.display === "block" ? "none" : "block";
+        });
+
+        document.querySelectorAll("#language-options button").forEach(button => {
+            button.addEventListener("click", () => {
+                const selectedLang = button.getAttribute("data-lang");
+                localStorage.setItem("selectedLanguage", selectedLang);
+                location.reload();
+            });
+        });
+    }
+
+    document.querySelector(".chat-header").textContent = languageData[currentLanguage].chatbotTitle;
+    userInput.placeholder = languageData[currentLanguage].placeholder;
+    document.querySelector(".bot-message").textContent = languageData[currentLanguage].botMessage;
+
+    document.querySelector('[title="Home"]').title = languageData[currentLanguage].titles.home;
+    document.querySelector('[title="Language Preferences"]').title = languageData[currentLanguage].titles.language;
+    document.querySelector('[title="Feedback"]').title = languageData[currentLanguage].titles.feedback;
+    document.querySelector('[title="Resources"]').title = languageData[currentLanguage].titles.resources;
+    document.querySelector('[title="Exit"]').title = languageData[currentLanguage].titles.exit;
+
+    sendBtn.title = languageData[currentLanguage].titles.send;
+    voiceBtn.title = languageData[currentLanguage].titles.voice;
+    stopBtn.title = languageData[currentLanguage].titles.stop;
+    playPauseBtn.title = languageData[currentLanguage].titles.pause;
+
+    const volumeToggle = document.getElementById("volume-toggle");
+    const volumeIcon = document.getElementById("volume-icon");
+
+    if (volumeToggle && volumeIcon) {
+        volumeToggle.title = isMuted
+            ? languageData[currentLanguage].titles.unmute
+            : languageData[currentLanguage].titles.mute;
+
+        volumeIcon.src = isMuted ? "/static/images/mute.png" : "/static/images/volume.png";
+
+        volumeToggle.addEventListener("click", () => {
+            isMuted = !isMuted;
+            localStorage.setItem("isMuted", isMuted.toString());
+            volumeIcon.src = isMuted ? "/static/images/mute.png" : "/static/images/volume.png";
+            volumeToggle.title = isMuted
+                ? languageData[currentLanguage].titles.unmute
+                : languageData[currentLanguage].titles.mute;
+
+            if (synth.speaking) synth.cancel();
+        });
+    }
+
+    if (stopBtn) {
+        stopBtn.addEventListener("click", () => {
+            if (synth.speaking || isBotSpeaking) synth.cancel();
+            if (recognition && usingVoice) recognition.abort();
+            userInput.value = "";
+            finalTranscript = "";
+            voiceBtn.classList.remove("voice-active");
+
+            const botMessages = document.querySelectorAll(".bot-message");
+            botMessages.forEach(msg => {
+                if (
+                    msg.textContent === languageData[currentLanguage].listeningMessage ||
+                    msg.textContent === languageData[currentLanguage].thinkingMessage
+                ) {
+                    msg.remove();
+                }
+            });
+        });
+    }
+
+    playPauseBtn.addEventListener("click", () => {
+        if (synth.speaking && !synth.paused) {
+            synth.pause();
+            isPaused = true;
+            playPauseIcon.src = "/static/images/play.png";
+            playPauseBtn.title = languageData[currentLanguage].titles.play;
+        } else if (synth.paused) {
+            synth.resume();
+            isPaused = false;
+            playPauseIcon.src = "/static/images/pause.png";
+            playPauseBtn.title = languageData[currentLanguage].titles.pause;
+        } else if (!synth.speaking && lastSpokenText) {
+            speakText(lastSpokenText);
+        }
+    });
+
+    // === Speak welcome message on every page load ===
     const welcomeText = languageData[currentLanguage].botMessage;
-    appendMessage("bot", welcomeText);
+    speakText(welcomeText);
 });
