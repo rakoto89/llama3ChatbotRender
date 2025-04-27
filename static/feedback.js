@@ -66,86 +66,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 resources: "资源",
                 exit: "退出"
             }
-        };
-        yo: {
-            title: "Ṣe Ayẹwo Iriri Rẹ",
-            description: "A fẹ́ kí a gbọ́ ìbáṣepọ̀ rẹ! Jọwọ ṣe ayẹwo iriri rẹ kí o sì fi ìtànná ọpọlọ sọ.",
-            feedbackPlaceholder: "Jọwọ kọ ìbáṣepọ̀ rẹ síbí...",
-            submitAlt: "Firanṣẹ Ẹ̀dá",
-            success: "O ṣeun fún ìbáṣepọ̀ rẹ!",
-            exit: "Jade",
-            ratingLabels: ["Buburu", "Kò dáa", "Dédé", "Dáa", "Dáadáa gan"],
-            titles: {
-                home: "Ilé",
-                language: "Èdè",
-                feedback: "Ìbáṣepọ̀",
-                resources: "Àwọn oríṣìíríṣìí",
-                exit: "Jade"
-            }
-        };
-        tw: {
-            title: "Kɔ So Hwɛ W'adwuma No",
-            description: "Yɛhwehwɛ w'anoasɛm! Mesrɛ bɔ dwumadie no ho mmɔden na kyɛ yɛn w'adwene.",
-            feedbackPlaceholder: "Twerɛ w'adwene wɔ ha...",
-            submitAlt: "Soma Adwene",
-            success: "Yɛda wo ase sɛ wode w'adwene maa yɛn!",
-            exit: "Pue",
-            ratingLabels: ["Bɔne", "Mmerɛ", "Ɛfata", "Pa", "Pa ara"],
-            titles: {
-                home: "Fie",
-                language: "Kasafua",
-                feedback: "Nsɛm",
-                resources: "Nkonim",
-                exit: "Pue"
-            }
-        };
-        hi: {
-            title: "अपने अनुभव का मूल्यांकन करें",
-            description: "हम आपकी प्रतिक्रिया को महत्व देते हैं! कृपया अपना अनुभव साझा करें।",
-            feedbackPlaceholder: "यहाँ अपनी प्रतिक्रिया लिखें...",
-            submitAlt: "प्रतिक्रिया भेजें",
-            success: "आपकी प्रतिक्रिया के लिए धन्यवाद!",
-            exit: "बाहर जाएं",
-            ratingLabels: ["बेहद खराब", "खराब", "सामान्य", "अच्छा", "बहुत अच्छा"],
-            titles: {
-                home: "मुखपृष्ठ",
-                language: "भाषा",
-                feedback: "प्रतिक्रिया",
-                resources: "संसाधन",
-                exit: "बाहर जाएं"
-            }
-        };
-        ar: {
-            title: "قيّم تجربتك",
-            description: "نحن نقدر ملاحظاتك! يرجى تقييم تجربتك وتقديم آرائك.",
-            feedbackPlaceholder: "اكتب ملاحظاتك هنا...",
-            submitAlt: "إرسال الملاحظات",
-            success: "شكرًا لملاحظاتك!",
-            exit: "خروج",
-            ratingLabels: ["سيء جدًا", "سيء", "عادي", "جيد", "جيد جدًا"],
-            titles: {
-                home: "الرئيسية",
-                language: "اللغة",
-                feedback: "ملاحظات",
-                resources: "الموارد",
-                exit: "خروج"
-            }
-        };
-        ha: {
-            title: "Kimanta Kwarewarka",
-            description: "Muna daraja ra'ayinka! Don Allah kimanta ƙwarewarka kuma ba da shawara.",
-            feedbackPlaceholder: "Rubuta ra'ayinka a nan...",
-            submitAlt: "Aika Ra'ayi",
-            success: "Mun gode da ra'ayinka!",
-            exit: "Fita",
-            ratingLabels: ["Mummuna", "Mara kyau", "Matsakaici", "Mai kyau", "Mafi kyau"],
-            titles: {
-                home: "Gida",
-                language: "Harshe",
-                feedback: "Ra'ayi",
-                resources: "Kayan aiki",
-                exit: "Fita"
-            }
         }
     };
 
@@ -156,12 +76,6 @@ document.addEventListener("DOMContentLoaded", function () {
             es: "Enviar_Comentarios.png",
             fr: "Soumettre.png",
             zh: "提交反馈.png"
-            yo: "Fi esi ranse.png"
-            tw: "twi_feedback.png"
-            hi: "hindi_feedback.png"
-            ar: "arabic_feedback.png"
-            ha: "Aika da martani.png"
-            
         };
         if (img && imgMap[lang]) {
             img.src = `/static/images/${imgMap[lang]}`;
