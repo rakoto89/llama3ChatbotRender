@@ -103,7 +103,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 play: "播放",
                 pause: "暂停"
             }
-        };
+        },
         yo: {  // Yoruba
             placeholder: "Tẹ ibeere rẹ...",
             chatbotTitle: "Ẹrọ Ayelujara Igbagbọ Opioid",
@@ -145,7 +145,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 play: "Bɔ",
                 pause: "Gyina"
             }
-        };
+        },
         hi: { // Hindi
             placeholder: "अपना प्रश्न दर्ज करें...",
             chatbotTitle: "ओपिओइड जागरूकता चैटबॉट",
