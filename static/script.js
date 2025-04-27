@@ -280,8 +280,14 @@ document.addEventListener("DOMContentLoaded", function () {
         recognition.onresult = (event) => {
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 const transcript = event.results[i][0].transcript;
+                console.log("Recognized Text:", transcript);
+        
                 if (event.results[i].isFinal) {
                     finalTranscript += transcript + " ";
+                    userInput.value = finalTranscript.trim();  // Update input field with recognized text
+
+                    // Automatically submit the message after recognition
+                    sendMessage(finalTranscript.trim());
                 }
             }
         };
