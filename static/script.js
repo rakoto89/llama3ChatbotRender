@@ -7,6 +7,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const playPauseBtn = document.getElementById("play-pause-btn");
     const playPauseIcon = document.getElementById("play-pause-icon");
     const beep = document.getElementById("beep");
+    const languagePreferencesBtn = document.getElementById("language-preferences-btn");
+    const languageMenu = document.getElementById("language-menu");
 
     let recognition;
     let usingVoice = false;
@@ -104,7 +106,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 pause: "暂停"
             }
         },
-        yo: { 
+        yo: {
             placeholder: "Tẹ ibeere rẹ...",
             chatbotTitle: "Ẹrọ Ayelujara Igbagbọ Opioid",
             botMessage: "Kaabo si Ẹrọ Ayelujara Igbagbọ Opioid! Nibi iwọ yoo kọ gbogbo nipa awọn opioids!",
@@ -211,6 +213,16 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
+    function updateUI() {
+        userInput.placeholder = languageData[currentLanguage].placeholder;
+        document.getElementById("chatbot-title").innerText = languageData[currentLanguage].chatbotTitle;
+        sendBtn.title = languageData[currentLanguage].titles.send;
+        voiceBtn.title = languageData[currentLanguage].titles.voice;
+        stopBtn.title = languageData[currentLanguage].titles.stop;
+        playPauseBtn.title = languageData[currentLanguage].titles.pause;
+        languagePreferencesBtn.title = languageData[currentLanguage].titles.language;
+    }
+
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
         msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
@@ -220,7 +232,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (sender === "bot") speakText(message);
     }
 
-    function speakText(text, callback) {
+    function speakText(text) {
         if (!text.trim() || isMuted) return;
         synth.cancel();
         lastSpokenText = text;
@@ -239,9 +251,36 @@ document.addEventListener("DOMContentLoaded", function () {
         playPauseBtn.title = languageData[currentLanguage].titles.pause;
     }
 
+    function createLanguageMenu() {
+        languageMenu.innerHTML = "";
+        for (const langCode in languageData) {
+            const langOption = document.createElement("div");
+            langOption.classList.add("language-option");
+            langOption.innerText = langCode.toUpperCase();
+            langOption.dataset.lang = langCode;
+            langOption.addEventListener("click", () => {
+                localStorage.setItem("selectedLanguage", langCode);
+                currentLanguage = langCode;
+                updateUI();
+                const welcomeText = languageData[currentLanguage].botMessage;
+                appendMessage("bot", welcomeText); // Add welcome message without clearing old messages
+                languageMenu.style.display = "none";
+            });
+            languageMenu.appendChild(langOption);
+        }
+    }
+
+    languagePreferencesBtn.addEventListener("click", function () {
+        if (languageMenu.style.display === "block") {
+            languageMenu.style.display = "none";
+        } else {
+            createLanguageMenu();
+            languageMenu.style.display = "block";
+        }
     });
 
-    // === Speak welcome message on every page load ===
+    // === Initial setup ===
+    updateUI();
     const welcomeText = languageData[currentLanguage].botMessage;
-    speakText(welcomeText);
+    appendMessage("bot", welcomeText);
 });
