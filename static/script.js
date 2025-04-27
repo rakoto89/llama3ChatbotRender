@@ -103,6 +103,111 @@ document.addEventListener("DOMContentLoaded", function () {
                 play: "播放",
                 pause: "暂停"
             }
+        };
+        yo: {  // Yoruba
+            placeholder: "Tẹ ibeere rẹ...",
+            chatbotTitle: "Ẹrọ Ayelujara Igbagbọ Opioid",
+            botMessage: "Kaabo si Ẹrọ Ayelujara Igbagbọ Opioid! Nibi iwọ yoo kọ gbogbo nipa awọn opioids!",
+            listeningMessage: "Nṣiṣẹ gbigbọ...",
+            thinkingMessage: "N ronu...",
+            titles: {
+                home: "Ile",
+                language: "Aṣayan Ede",
+                feedback: "Atunse",
+                resources: "Awọn orisun",
+                exit: "Jade",
+                send: "Firanṣẹ ibeere rẹ",
+                voice: "Beere pẹlu ohùn rẹ",
+                stop: "Duro",
+                mute: "Dakẹ",
+                unmute: "Tún ṣii",
+                play: "Mu ṣiṣẹ",
+                pause: "Duro"
+            }
+        },
+        tw: { // Twi (Akan)
+            placeholder: "Kyerɛ wo nsɛm...",
+            chatbotTitle: "Opioid Nkyerɛkyerɛ Bot",
+            botMessage: "Akwaaba ba Opioid Nkyerɛkyerɛ Bot! Ha wobɛtete biribiara fa opioids ho!",
+            listeningMessage: "Rebɔ aso...",
+            thinkingMessage: "Rebɔ adwene...",
+            titles: {
+                home: "Fie",
+                language: "Kasa a Wopɛ",
+                feedback: "Nsɛm a Wopɛka",
+                resources: "Nkwa Kɔkɔɔ",
+                exit: "Pue",
+                send: "Fa wo nsɛm to hɔ",
+                voice: "Bisa de w'ano kasa",
+                stop: "Gyae",
+                mute: "Dum abɔdin",
+                unmute: "San so abɔdin",
+                play: "Bɔ",
+                pause: "Gyina"
+            }
+        };
+        hi: { // Hindi
+            placeholder: "अपना प्रश्न दर्ज करें...",
+            chatbotTitle: "ओपिओइड जागरूकता चैटबॉट",
+            botMessage: "ओपिओइड जागरूकता चैटबॉट में आपका स्वागत है! यहां आप ओपिओइड्स के बारे में सब कुछ जानेंगे!",
+            listeningMessage: "सुन रहे हैं...",
+            thinkingMessage: "सोच रहे हैं...",
+            titles: {
+                home: "होम",
+                language: "भाषा वरीयताएँ",
+                feedback: "प्रतिक्रिया",
+                resources: "संसाधन",
+                exit: "बाहर जाएं",
+                send: "अपना संदेश भेजें",
+                voice: "अपनी आवाज से पूछें",
+                stop: "बोलना बंद करें",
+                mute: "मौन करें",
+                unmute: "ध्वनि पुनः चालू करें",
+                play: "चालू करें",
+                pause: "रोकें"
+            }
+        },
+        ar: { // Arabic
+            placeholder: "أدخل سؤالك...",
+            chatbotTitle: "روبوت التوعية بالمواد الأفيونية",
+            botMessage: "مرحبًا بك في روبوت التوعية بالمواد الأفيونية! هنا ستتعلم كل شيء عن المواد الأفيونية!",
+            listeningMessage: "جارٍ الاستماع...",
+            thinkingMessage: "جارٍ التفكير...",
+            titles: {
+                home: "الرئيسية",
+                language: "تفضيلات اللغة",
+                feedback: "ملاحظات",
+                resources: "موارد",
+                exit: "خروج",
+                send: "أرسل رسالتك",
+                voice: "اطرح سؤالك باستخدام صوتك",
+                stop: "توقف عن التحدث",
+                mute: "كتم الصوت",
+                unmute: "إلغاء كتم الصوت",
+                play: "تشغيل",
+                pause: "إيقاف مؤقت"
+            }
+        },
+        ha: { // Hausa
+            placeholder: "Shigar da tambayarka...",
+            chatbotTitle: "Chatbot na Wayar da Kai game da Opioid",
+            botMessage: "Barka da zuwa Chatbot na Wayar da Kai game da Opioid! A nan za ka koyi duk game da opioids!",
+            listeningMessage: "Ana sauraro...",
+            thinkingMessage: "Ana tunani...",
+            titles: {
+                home: "Gida",
+                language: "Zaɓin Harshe",
+                feedback: "Ra'ayi",
+                resources: "Kayan Aiki",
+                exit: "Fita",
+                send: "Aika saƙonka",
+                voice: "Tambaya da murya",
+                stop: "Dakata da magana",
+                mute: "Kashe sauti",
+                unmute: "Sake kunna sauti",
+                play: "kunna",
+                pause: "Tsaya ɗan lokaci"
+            }
         }
     };
 
