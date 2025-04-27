@@ -156,6 +156,12 @@ document.addEventListener("DOMContentLoaded", function () {
             es: "Enviar_Comentarios.png",
             fr: "Soumettre.png",
             zh: "提交反馈.png"
+            yo: "Fi esi ranse.png"
+            tw: "twi_feedback.png"
+            hi: "hindi_feedback.png"
+            ar: "arabic_feedback.png"
+            ha: "Aika da martani.png"
+            
         };
         if (img && imgMap[lang]) {
             img.src = `/static/images/${imgMap[lang]}`;
