@@ -271,16 +271,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         recognition = new SpeechRecognition();
-        recognition.lang = 
-            currentLanguage === 'yo' ? 'yo-NG' :
-            currentLanguage === 'tw' ? 'ak-GH' :
-            currentLanguage === 'hi' ? 'hi-IN' :
-            currentLanguage === 'ar' ? 'ar-SA' :
-            currentLanguage === 'ha' ? 'ha-NE' :
-            currentLanguage === 'es' ? 'es-ES' :
-            currentLanguage === 'fr' ? 'fr-FR' :
-            currentLanguage === 'zh' ? 'zh-CN' :
-            'en-US'; // fallback default
+        recognition.lang = currentLanguage;
         recognition.continuous = true;
         recognition.interimResults = true;
 
@@ -289,14 +280,8 @@ document.addEventListener("DOMContentLoaded", function () {
         recognition.onresult = (event) => {
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 const transcript = event.results[i][0].transcript;
-                console.log("Recognized Text:", transcript);
-        
                 if (event.results[i].isFinal) {
                     finalTranscript += transcript + " ";
-                    userInput.value = finalTranscript.trim();  // Update input field with recognized text
-
-                    // Automatically submit the message after recognition
-                    sendMessage(finalTranscript.trim());
                 }
             }
         };
@@ -352,16 +337,20 @@ document.addEventListener("DOMContentLoaded", function () {
                 appendMessage("bot", languageData[currentLanguage].listeningMessage);
                 setTimeout(() => {
                     voiceBtn.classList.add("voice-active");
-                    beep.currentTime = 0;
-                    beep.volume = 1.0;
-                    beep.play().catch(err => console.warn("Beep failed:", err));
+                    if (!isMuted) {
+                        beep.currentTime = 0;
+                        beep.volume = 1.0;
+                        beep.play().catch(err => console.warn("Beep failed:", err));
+                    }
                     startContinuousRecognition();
                 }, 3000);
             } else {
                 voiceBtn.classList.add("voice-active");
-                beep.currentTime = 0;
-                beep.volume = 1.0;
-                beep.play().catch(err => console.warn("Beep failed:", err));
+                if (!isMuted) {
+                    beep.currentTime = 0;
+                    beep.volume = 1.0;
+                    beep.play().catch(err => console.warn("Beep failed:", err));
+                }
                 appendMessage("bot", languageData[currentLanguage].listeningMessage);
                 startContinuousRecognition();
             }
@@ -418,7 +407,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 ? languageData[currentLanguage].titles.unmute
                 : languageData[currentLanguage].titles.mute;
 
-            if (synth.speaking) synth.cancel(); // << THE ONLY LINE ADDED
+            if (synth.speaking) synth.cancel();
         });
     }
 
