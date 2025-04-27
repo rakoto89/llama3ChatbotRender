@@ -271,7 +271,16 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         recognition = new SpeechRecognition();
-        recognition.lang = currentLanguage;
+        recognition.lang = 
+            currentLanguage === 'yo' ? 'yo-NG' :
+            currentLanguage === 'tw' ? 'ak-GH' :
+            currentLanguage === 'hi' ? 'hi-IN' :
+            currentLanguage === 'ar' ? 'ar-SA' :
+            currentLanguage === 'ha' ? 'ha-NE' :
+            currentLanguage === 'es' ? 'es-ES' :
+            currentLanguage === 'fr' ? 'fr-FR' :
+            currentLanguage === 'zh' ? 'zh-CN' :
+            'en-US'; // fallback default
         recognition.continuous = true;
         recognition.interimResults = true;
 
