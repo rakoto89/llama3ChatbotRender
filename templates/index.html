@@ -14,7 +14,7 @@
         <div class="icon" onclick="location.href='/'" title="Home">
             <img src="{{ url_for('static', filename='images/Home.png') }}" alt="Home Icon" class="sidebar-icon">
         </div>
-        <div class="icon" id="language-preferences-btn" title="Language Preferences">
+        <div class="icon" id="lang-btn" title="Language Preferences">
             <img src="{{ url_for('static', filename='images/Language_Preferences.png') }}" alt="Language Preferences" class="sidebar-icon">
         </div>
         <div class="icon" onclick="location.href='https://www.bowiestate.edu/campus-life/health-and-wellness/'" title="Resources">
@@ -58,8 +58,8 @@
         </div>
     </div>
 
-    <!-- Language options (hidden initially, toggled by JS) -->
-    <div id="language-menu" class="language-options" style="display: none;">
+    <!-- Language options -->
+    <div id="language-options" class="language-options" style="display: none;">
         <button data-lang="en">English</button>
         <button data-lang="es">Español</button>
         <button data-lang="fr">Français</button>
@@ -67,8 +67,8 @@
         <button data-lang="yo">Yorùbá</button>
         <button data-lang="tw">Twi (Akan)</button>
         <button data-lang="hi">हिन्दी</button>
-        <button data-lang="ar">العربية</button> <!-- Corrected Arabic label -->
-        <button data-lang="ha">Hausa</button>     <!-- Capitalized "Hausa" for consistency -->
+        <button data-lang="ar">العربية</button>
+        <button data-lang="ha">Hausa</button>
     </div>
 
     <!-- Beep sound -->
