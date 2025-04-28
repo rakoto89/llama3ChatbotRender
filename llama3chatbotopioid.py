@@ -36,7 +36,7 @@ irrelevant_topics = [
 ]
 
 relevant_topics = [
-    "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin",
+    "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin", "chronic pain", "pain"
     "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium",
     "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance",
     "support", "support for opioid addiction", "drug use", "email", "campus", "phone number",
