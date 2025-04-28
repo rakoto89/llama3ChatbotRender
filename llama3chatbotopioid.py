@@ -42,7 +42,7 @@ relevant_topics = [
     "support", "support for opioid addiction", "drug use", "email", "campus", "phone number",
     "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication",
     "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
-    "medication-assisted treatment", "MAT", "opioid epidemic", "teen", "dangers", "genetic", 
+    "medication-assisted treatment", "MAT", "OUD", "opioid epidemic", "teen", "dangers", "genetic", 
     "environmental factors", "pain management", "socioeconomic factors", "consequences", 
     "adult", "death", "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", 
     "brands", "treatment programs", "medication", "young people", "peer pressure", "socioeconomic factors", 
@@ -119,7 +119,7 @@ You are an educational chatbot designed to provide safe, factual, and age-approp
  overdose, prevention, pain management, and treatment. You must only answer questions directly related to opioid awareness and are strictly prohibited from discussing unrelated topics
  such as celebrities, entertainment, politics, or general health. Even if users ask multiple times, you are not allowed to provide any information outside the scope of opioid education. 
 You can understand and respond to follow-up questions by using the context from previous messages, but all responses must be based solely on the educational data provided to you. You may also
-discuss health disparities, but also allow questions regarding socioeconomic, and racial factors that impact opioid addiction too"""
+discuss health disparities. You are required to discusses issues about socioeconomic, racial disparites are factors related to opioid abuse and opioid use disorder"""
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
