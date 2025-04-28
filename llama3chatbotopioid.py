@@ -37,8 +37,8 @@ irrelevant_topics = [
 
 relevant_topics = [
     "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin", "chronic pain", "pain"
-    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium",
-    "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance",
+    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium", "scientists",
+    "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance", "scientific"
     "support", "support for opioid addiction", "drug use", "email", "campus", "phone number", "clinician",
     "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication", "clinical",
     "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
