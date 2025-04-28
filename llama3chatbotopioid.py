@@ -45,7 +45,8 @@ relevant_topics = [
     "medication-assisted treatment", "MAT", "opioid epidemic", "teen", "dangers", "genetic", 
     "environmental factors", "pain management", "socioeconomic factors", "consequences", 
     "adult", "death", "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", 
-    "brands", "treatment programs", "medication", "young people", "peer pressure"
+    "brands", "treatment programs", "medication", "young people", "peer pressure", "socioeconomic factors", 
+    "socio-economic factors", "income inequality", "healthcare disparities"
 ]
 
 def normalize_language_code(lang):
