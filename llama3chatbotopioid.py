@@ -42,10 +42,10 @@ relevant_topics = [
     "support", "support for opioid addiction", "drug use", "email", "campus", "phone number",
     "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication",
     "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
-    "medication-assisted treatment", "MAT", "OUD", "opioid epidemic", "teen", "dangers", "genetic", 
-    "environmental factors", "pain management", "socioeconomic factors", "consequences", 
-    "adult", "death", "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", "pharmacology", "pharmacological"
-    "brands", "treatment programs", "medication", "young people", "peer pressure", "socioeconomic factors", 
+    "medication-assisted treatment", "MAT", "OUD", "opioid epidemic", "teen", "dangers", "genetic", "ethical", "ethics",
+    "environmental factors", "pain management", "socioeconomic factors", "consequences", "prevention", "doctor", "physician",
+    "adult", "death", "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", "pharmacology", "pharmacological",
+    "brands", "treatment programs", "medication", "young people", "peer pressure", "socioeconomic factors", "DO", "MD", 
     "socio-economic factors", "income inequality", "healthcare disparities", "pychological", "psychology", "screen"
 ]
 
