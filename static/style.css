@@ -44,7 +44,6 @@ body {
     border-radius: 50%;
 }
 
-
 .sidebar-icon:hover {
     transform: scale(1.1);
     cursor: pointer;
@@ -206,11 +205,26 @@ body {
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
 }
 
+/* Styling the flag images */
 .language-options button {
     padding: 10px;
     margin: 5px;
     font-size: 16px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.language-options button .flag-icon {
+    width: 20px; /* Adjust the size of the flag icon */
+    height: 15px; /* Adjust the size of the flag icon */
+    margin-right: 10px; /* Space between the flag and the language name */
+}
+
+/* Optional hover effect for buttons */
+.language-options button:hover {
+    background-color: #f0f0f0;
 }
 
 /* Mute/Unmute button for voice mode */
@@ -236,4 +250,3 @@ body {
 #mute-btn:hover img {
     transform: scale(1.2);
 }
-
