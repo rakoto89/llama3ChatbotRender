@@ -111,41 +111,44 @@
 
     <!-- Language options dropdown -->
     <div id="language-options" class="language-options" style="display: none; position: fixed; top: 100px; left: 80px; background: #fff; border: 1px solid #ccc; padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 999;">
-    <button data-lang="en">
-        <img src="/static/images/us.png" alt="English" class="flag-icon"> English
-    </button>
-    <button data-lang="es">
-        <img src="/static/images/es.png" alt="Español" class="flag-icon"> Español
-    </button>
-    <button data-lang="fr">
-        <img src="/static/images/fr.png" alt="Français" class="flag-icon"> Français
-    </button>
-    <button data-lang="zh">
-        <img src="/static/images/cn.png" alt="中文" class="flag-icon"> 中文
-    </button>
-</div>
+      <button data-lang="en">
+          <img src="/static/images/us.png" alt="English" class="flag-icon"> English
+      </button>
+      <button data-lang="es">
+          <img src="/static/images/es.png" alt="Español" class="flag-icon"> Español
+      </button>
+      <button data-lang="fr">
+          <img src="/static/images/fr.png" alt="Français" class="flag-icon"> Français
+      </button>
+      <button data-lang="zh">
+          <img src="/static/images/cn.png" alt="中文" class="flag-icon"> 中文
+      </button>
+    </div>
 
-    <!-- Volume/Mute toggle -->
+    <!-- Fixed Volume/Mute sync logic -->
     <script>
       document.addEventListener("DOMContentLoaded", function () {
           const volumeToggle = document.getElementById("volume-toggle");
           const volumeIcon = document.getElementById("volume-icon");
-          let isMuted = false;
+          let isMuted = localStorage.getItem("isMuted") === "true";
+
+          function updateVolumeUI() {
+              volumeIcon.src = isMuted ? "/static/images/mute.png" : "/static/images/volume.png";
+              volumeToggle.title = isMuted ? "Unmute" : "Mute";
+          }
 
           volumeToggle.addEventListener("click", () => {
               isMuted = !isMuted;
-              if (isMuted) {
-                  volumeIcon.src = "/static/images/mute.png";
-                  volumeToggle.title = "Unmute";
+              localStorage.setItem("isMuted", isMuted.toString());
+              updateVolumeUI();
+              if (window.speechSynthesis.speaking) {
                   window.speechSynthesis.cancel();
-              } else {
-                  volumeIcon.src = "/static/images/volume.png";
-                  volumeToggle.title = "Mute";
               }
           });
+
+          updateVolumeUI();
       });
 
-      // GIF click-to-restart logic
       function restartGif(imgElement) {
           const src = imgElement.src;
           imgElement.src = '';
@@ -155,4 +158,3 @@
     </script>
 </body>
 </html>
-
