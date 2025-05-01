@@ -43,6 +43,7 @@ body {
     margin-bottom: 40px;
 }
 
+/* Feedback container */
 .feedback-container {
     margin-left: 70px;
     width: calc(100% - 70px);
@@ -53,6 +54,7 @@ body {
     padding: 0 20px;
 }
 
+/* Feedback card */
 .feedback-card {
     background-color: white;
     padding: 25px;
@@ -63,6 +65,7 @@ body {
     text-align: center;
 }
 
+/* Emoji rating layout */
 .emoji-rating {
     display: flex;
     justify-content: space-between;
@@ -70,6 +73,7 @@ body {
     margin-bottom: 20px;
 }
 
+/* Rating row layout */
 .rating-row {
     display: flex;
     flex-direction: column;
@@ -104,6 +108,7 @@ body {
     color: #333;
 }
 
+/* Selected rating row style */
 .rating-row.selected {
     background-color: #e0f0ff;
 }
@@ -112,6 +117,7 @@ body {
     display: none;
 }
 
+/* Feedback text area */
 textarea {
     width: 100%;
     max-width: 350px;
@@ -125,11 +131,13 @@ textarea {
     margin-right: auto;
 }
 
+/* Hide unnecessary buttons */
 .btn-return,
 .btn-skip {
     display: none !important;
 }
 
+/* Send feedback button */
 #send-feedback {
     background: none;
     border: none;
@@ -137,13 +145,45 @@ textarea {
     margin-top: 20px;
 }
 
+/* Send feedback image */
 #send-feedback img {
     width: 160px;
     height: auto;
     cursor: pointer;
 }
 
+/* Success message */
 #success-message {
     text-align: center;
 }
 
+/* New flags layout for feedback (horizontal and bigger) */
+.language-options {
+    display: flex; /* Make the container a flexbox */
+    justify-content: center; /* Center the content horizontally */
+    gap: 10px; /* Add space between buttons */
+    margin-top: 20px; /* Space above the flags */
+}
+
+/* Styling the flag images */
+.language-options button {
+    padding: 10px;
+    margin: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Make flag icons larger */
+.language-options button .flag-icon {
+    width: 30px; /* Increase flag icon size */
+    height: 20px; /* Increase flag icon size */
+    margin-right: 10px; /* Space between the flag and the language name */
+}
+
+/* Optional hover effect for buttons */
+.language-options button:hover {
+    background-color: #f0f0f0;
+}
