@@ -178,9 +178,9 @@ textarea {
 
 /* Make flag icons larger */
 .language-options button .flag-icon {
-    width: 30px; /* Increase flag icon size */
-    height: 20px; /* Increase flag icon size */
-    margin-right: 10px; /* Space between the flag and the language name */
+    width: 50px; /* Increase flag icon size */
+    height: 40px; /* Increase flag icon size */
+    margin-right: 20px; /* Space between the flag and the language name */
 }
 
 /* Optional hover effect for buttons */
