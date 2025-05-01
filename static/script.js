@@ -106,16 +106,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    function appendMessage(sender, message) {
-        const msgDiv = document.createElement("div");
-        msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
-        msgDiv.innerHTML = message;
-        chatBox.appendChild(msgDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
-
-        if (sender === "bot") speakText(message);
-    }
-
     function speakText(text, callback) {
         if (!text.trim() || isMuted) return;
         synth.cancel();
@@ -133,6 +123,16 @@ document.addEventListener("DOMContentLoaded", function () {
         synth.speak(currentUtterance);
         playPauseIcon.src = "/static/images/pause.png";
         playPauseBtn.title = languageData[currentLanguage].titles.pause;
+    }
+
+    function appendMessage(sender, message) {
+        const msgDiv = document.createElement("div");
+        msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
+        msgDiv.innerHTML = message;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        if (sender === "bot") speakText(message);
     }
 
     function sendMessage(text) {
@@ -342,7 +342,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // === Speak welcome message on every page load ===
+    // Speak welcome message on load
     const welcomeText = languageData[currentLanguage].botMessage;
     speakText(welcomeText);
 });
