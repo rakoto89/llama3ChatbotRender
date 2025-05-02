@@ -117,8 +117,8 @@ document.addEventListener("DOMContentLoaded", function () {
             isBotSpeaking = false;
             currentUtterance = null;
             isPaused = false;
-            playPauseIcon.src = "/static/images/pause.png";
-            playPauseBtn.title = languageData[currentLanguage].titles.pause;
+            playPauseIcon.src = "/static/images/play.png";
+            playPauseBtn.title = languageData[currentLanguage].titles.play;
         };
         synth.speak(currentUtterance);
         playPauseIcon.src = "/static/images/pause.png";
@@ -323,6 +323,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     msg.remove();
                 }
             });
+
+            isPaused = false;
+            isBotSpeaking = false;
+            playPauseIcon.src = "/static/images/play.png";
+            playPauseBtn.title = languageData[currentLanguage].titles.play;
         });
     }
 
@@ -342,7 +347,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Speak welcome message on load
     const welcomeText = languageData[currentLanguage].botMessage;
     speakText(welcomeText);
 });
+    
+                                          
