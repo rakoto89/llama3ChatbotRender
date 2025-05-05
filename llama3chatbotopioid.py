@@ -36,11 +36,11 @@ irrelevant_topics = [
 ]
 
 relevant_topics = [
-    "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin", "chronic pain", "pain",
+    "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin", "chronic pain", "pain", "culture", "cultural"
     "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium", "scientists", "control group"
-    "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance", "scientific",
+    "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance", "scientific", "stigma"
     "support", "support for opioid addiction", "drug use", "email", "campus", "phone number", "clinician", "evidence",
-    "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication", "clinical",
+    "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication", "clinical", "community"
     "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
     "medication-assisted treatment", "MAT", "OUD", "opioid epidemic", "teen", "dangers", "genetic", "ethical", "ethics",
     "environmental factors", "pain management", "socioeconomic factors", "consequences", "prevention", "doctor", "physician",
