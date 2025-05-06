@@ -37,18 +37,18 @@ irrelevant_topics = [
 
 relevant_topics = [
     "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin", "chronic pain", "pain",
-    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium", "scientists", "control group"
+    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium", "scientists", "control group",
     "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance", "scientific",
     "support", "support for opioid addiction", "drug use", "email", "campus", "phone number", "clinician", "evidence",
     "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication", "clinical",
-    "risk-factors", "risk factors", "disparity", "racism", "bias", "addict", "marginalized","challenges", "long-term factors",
+    "risk factors", "disparity", "racism", "bias", "addict", "marginalized","challenges", "long-term factors",
 "short-term factors", "consequences", "disease", "cancer", "treatment-seeking", "stigma", "stigmas", "opioid users", "communities",
     "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
     "medication-assisted treatment", "MAT", "OUD", "opioid epidemic", "teen", "dangers", "genetic", "ethical", "ethics",
-    "environmental factors", "pain management", "socioeconomic factors", "consequences", "prevention", "doctor", "physician",
+    "environmental factors", "pain management", "consequences", "prevention", "doctor", "physician",
     "adult", "death", "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", "pharmacology", "pharmacological",
     "brands", "treatment programs", "medication", "young people", "peer pressure", "socioeconomic factors", "DO", "MD", 
-    "socio-economic factors", "income inequality", "healthcare disparities", "pychological", "psychology", "screen"
+    "income inequality", "healthcare disparities", "psychological", "psychology", "screen"
 ]
 
 def normalize_language_code(lang):
