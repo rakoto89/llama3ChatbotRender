@@ -68,12 +68,15 @@ def is_question_relevant(question):
     print("Matched irrelevant topics:", matched_irrelevant)
     print("Matched relevant topics:", matched_relevant)
 
+    # If it contains any irrelevant topic and no relevant ones, reject it
     if matched_irrelevant and not matched_relevant:
         return False
 
+    # If it has any relevant topic, accept it
     if matched_relevant:
         return True
 
+    # If it's neutral (no matches), check context for relevance
     recent_user_msgs = [msg["content"] for msg in reversed(conversation_history) if msg["role"] == "user"]
     for msg in recent_user_msgs[:5]:
         if any(topic in msg.lower() for topic in relevant_topics):
