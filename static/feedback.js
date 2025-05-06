@@ -267,7 +267,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     origin: { y: 0.6 }
                 });
 
-                successAudio.play();
+                // FIXED: Only play sound if not muted
+                if (!isMuted) {
+                    successAudio.play();
+                }
             } else {
                 alert("There was an error submitting your feedback.");
             }
@@ -287,3 +290,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
+
+                       
+    
