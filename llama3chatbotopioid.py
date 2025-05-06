@@ -59,7 +59,7 @@ def is_question_relevant(question):
     if any(irrelevant in question_lower for irrelevant in irrelevant_topics):
         return False
 
-    if any(topic in question_lower for topic in relevant_topics):
+    if any(topic in question_lower.replace("-", " ") for topic in relevant_topics):
         return True
 
     recent_user_msgs = [msg["content"] for msg in reversed(conversation_history) if msg["role"] == "user"]
