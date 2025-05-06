@@ -41,6 +41,8 @@ relevant_topics = [
     "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance", "scientific",
     "support", "support for opioid addiction", "drug use", "email", "campus", "phone number", "clinician", "evidence",
     "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication", "clinical",
+    "risk-factors", "risk factors", "disparity", "racism", "bias", "addict", "marginalized","challenges", "long-term factors",
+"short-term factors", "consequences", "disease", cancer", "treatment-seeking", "stigma", "stigmas", "opioid users", "communities",
     "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
     "medication-assisted treatment", "MAT", "OUD", "opioid epidemic", "teen", "dangers", "genetic", "ethical", "ethics",
     "environmental factors", "pain management", "socioeconomic factors", "consequences", "prevention", "doctor", "physician",
@@ -114,13 +116,16 @@ def get_llama3_response(question, user_lang="en"):
 
     conversation_history.append({"role": "user", "content": translated_question})
 
-    system_prompt = """You are an educational Opioid Awareness Chatbot created for Bowie State University.
-You are an educational chatbot designed to provide safe, factual, and age-appropriate information specifically about opioids, including topics such as opioid use and misuse, addiction,
- overdose, prevention, pain management, and treatment. You must only answer questions directly related to opioid awareness and are strictly prohibited from discussing unrelated topics
- such as celebrities, entertainment, politics, or general health. Even if users ask multiple times, you are not allowed to provide any information outside the scope of opioid education. 
-You can understand and respond to follow-up questions by using the context from previous messages, but all responses must be based solely on the educational data provided to you. You may also
-discuss health disparities. You are required to discusses issues about socioeconomic, racial disparites are factors related to opioid abuse and opioid use disorder. You are also required to
-discuss the ethical, pyschological implications, challenges and consequences that come with opioid addiction"""
+    system_prompt = """You are an educational chatbot specifically designed to provide accurate, factual, and 
+age-appropriate information about opioids, including opioid use and misuse, addiction, overdose, prevention, 
+pain management, treatment, risk factors, and related topics. Your responses should only address inquiries directly
+ related to opioid education and opioid awareness. You are strictly prohibited from discussing unrelated subjects such 
+as celebrities, entertainment, politics, or general health. Even if users ask multiple times or in different ways, you must 
+restrict your responses to opioid-related topics and never diverge from this scope. You should use context from previous conversations 
+to answer follow-up questions, but your responses must remain rooted solely in the educational data regarding opioids. Additionally, you 
+are required to discuss the social determinants of opioid abuse, including socioeconomic and racial disparities, as well as the psychological,
+ ethical, and societal implications of opioid addiction and opioid use disorder. Your answers must reflect the complexities and consequences of opioid
+ addiction, including its risk factors, challenges, and long-term impacts."""
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
