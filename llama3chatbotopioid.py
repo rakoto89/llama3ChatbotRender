@@ -38,7 +38,7 @@ irrelevant_topics = [
 relevant_topics = [
     "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin", "chronic pain", "pain", "culture", "cultural"
     "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium", "scientists", "control group"
-    "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance", "scientific", "stigma"
+    "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance", "scientific", "stigma",
     "support", "support for opioid addiction", "drug use", "email", "campus", "phone number", "clinician", "evidence",
     "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication", "clinical", "community"
     "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
@@ -56,17 +56,21 @@ def normalize_language_code(lang):
 def is_question_relevant(question):
     question_lower = question.lower()
 
+    # Reject question if it clearly includes irrelevant topics
     if any(irrelevant in question_lower for irrelevant in irrelevant_topics):
         return False
 
+    # Approve if the question contains any relevant opioid-related keyword
     if any(topic in question_lower for topic in relevant_topics):
         return True
 
+    # Also approve if recent messages were opioid-related and user is following up
     recent_user_msgs = [msg["content"] for msg in reversed(conversation_history) if msg["role"] == "user"]
     for msg in recent_user_msgs[:5]:
         if any(topic in msg.lower() for topic in relevant_topics):
             return True
 
+    # If nothing matches, reject the question
     return False
 
 def load_combined_context():
