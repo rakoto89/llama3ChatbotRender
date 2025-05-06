@@ -28,18 +28,25 @@ db_config = {
 conversation_history = []
 conversation_context = {}
 
+irrelevant_topics = [
+    "singer", "actor", "actress", "movie", "pop culture", "music", "sports",
+    "nature", "celebrity", "tv show", "fashion", "entertainment", "politics",
+    "history", "geography", "animal", "weather", "food", "recipe", "finance",
+    "technology", "gaming"
+]
+
 relevant_topics = [
-    "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin", "chronic pain", "pain", "stigma", "communities",
-    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium", "scientists", "control group", "marginalized",
-    "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance", "scientific", "culture", "barriers", "stereotypes",
-    "support", "support for opioid addiction", "drug use", "email", "campus", "phone number", "clinician", "evidence", "treatment access",
-    "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication", "clinical", "disparities", 
-    "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription", "death", "opioid deaths", "risk factors",
-    "medication-assisted treatment", "MAT", "OUD", "opioid epidemic", "teen", "dangers", "genetic", "ethical", "ethics", "addict", "racism", "discrimination",
+    "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin", "chronic pain", "pain",
+    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium", "scientists", "control group"
+    "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance", "scientific",
+    "support", "support for opioid addiction", "drug use", "email", "campus", "phone number", "clinician", "evidence",
+    "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication", "clinical",
+    "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
+    "medication-assisted treatment", "MAT", "OUD", "opioid epidemic", "teen", "dangers", "genetic", "ethical", "ethics",
     "environmental factors", "pain management", "socioeconomic factors", "consequences", "prevention", "doctor", "physician",
     "adult", "death", "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", "pharmacology", "pharmacological",
     "brands", "treatment programs", "medication", "young people", "peer pressure", "socioeconomic factors", "DO", "MD", 
-    "socio-economic factors", "income inequality", "healthcare disparities", "psychological", "psychology", "screen"
+    "socio-economic factors", "income inequality", "healthcare disparities", "pychological", "psychology", "screen"
 ]
 
 def normalize_language_code(lang):
@@ -52,7 +59,7 @@ def is_question_relevant(question):
     if any(irrelevant in question_lower for irrelevant in irrelevant_topics):
         return False
 
-    if any(topic in question_lower.replace("-", " ") for topic in relevant_topics):
+    if any(topic in question_lower for topic in relevant_topics):
         return True
 
     recent_user_msgs = [msg["content"] for msg in reversed(conversation_history) if msg["role"] == "user"]
@@ -109,12 +116,11 @@ def get_llama3_response(question, user_lang="en"):
 
     system_prompt = """You are an educational Opioid Awareness Chatbot created for Bowie State University.
 You are an educational chatbot designed to provide safe, factual, and age-appropriate information specifically about opioids, including topics such as opioid use and misuse, addiction,
-overdose, prevention, pain management, and treatment. You must only answer questions directly related to opioid awareness and are strictly prohibited from discussing unrelated topics
-such as celebrities, entertainment, politics, or general health. Even if users ask multiple times, you are not allowed to provide any information outside the scope of opioid education.
+ overdose, prevention, pain management, and treatment. You must only answer questions directly related to opioid awareness and are strictly prohibited from discussing unrelated topics
+ such as celebrities, entertainment, politics, or general health. Even if users ask multiple times, you are not allowed to provide any information outside the scope of opioid education. 
 You can understand and respond to follow-up questions by using the context from previous messages, but all responses must be based solely on the educational data provided to you. You may also
-discuss health disparities. You are required to discuss issues such as socioeconomic and racial disparities as factors related to opioid abuse and opioid use disorder. You are also required to
-discuss the ethical, psychological implications, challenges, and consequences that come with opioid addiction. You are also required to answer questions addressing cultural stigma, lack of access, health disparities,
-or treatment-seeking behavior in marginalized communities as they relate to opioid addiction and awareness. Also, if the question has any of the keywords in it, you have to answer the question long as it also is related to opioids, addiction, overdose, or treatment."""
+discuss health disparities. You are required to discusses issues about socioeconomic, racial disparites are factors related to opioid abuse and opioid use disorder. You are also required to
+discuss the ethical, pyschological implications, challenges and consequences that come with opioid addiction"""
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
