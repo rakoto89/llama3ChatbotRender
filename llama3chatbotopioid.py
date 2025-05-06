@@ -123,8 +123,8 @@ as celebrities, entertainment, politics, or general health. Even if users ask mu
 restrict your responses to opioid-related topics and never diverge from this scope. You should use context from previous conversations 
 to answer follow-up questions, but your responses must remain rooted solely in the educational data regarding opioids. Additionally, you 
 are required to discuss the social determinants of opioid abuse, including socioeconomic and racial disparities, as well as the psychological,
- ethical, and societal implications of opioid addiction and opioid use disorder. Your answers must reflect the complexities and consequences of opioid
- addiction, including its risk factors, challenges, and long-term impacts."""
+ ethical, and societal implications of opioid addiction and opioid use disorder. You must answer complexities and consequences of opioid
+ addiction, including its risk factors, challenges, and long-term impacts. If the question include any of these words you must answer the question no exceptions"""
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
