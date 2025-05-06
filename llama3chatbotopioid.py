@@ -36,11 +36,11 @@ irrelevant_topics = [
 ]
 
 relevant_topics = [
-    "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin", "chronic pain", "pain", "culture", "cultural"
-    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium", "scientists", "control group"
-    "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance", "scientific", "stigma",
-    "support", "support for opioid addiction", "drug use", "email", "campus", "phone number", "clinician", "evidence",
-    "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication", "clinical", "community"
+    "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin", "chronic pain", "pain", "stigma", "communities",
+    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium", "scientists", "control group", "marganilized"
+    "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance", "scientific", "culture", "barriers", "stereotypes",
+    "support", "support for opioid addiction", "drug use", "email", "campus", "phone number", "clinician", "evidence", "treatment access",
+    "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication", "clinical", "disparities",
     "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
     "medication-assisted treatment", "MAT", "OUD", "opioid epidemic", "teen", "dangers", "genetic", "ethical", "ethics",
     "environmental factors", "pain management", "socioeconomic factors", "consequences", "prevention", "doctor", "physician",
@@ -56,21 +56,17 @@ def normalize_language_code(lang):
 def is_question_relevant(question):
     question_lower = question.lower()
 
-    # Reject question if it clearly includes irrelevant topics
     if any(irrelevant in question_lower for irrelevant in irrelevant_topics):
         return False
 
-    # Approve if the question contains any relevant opioid-related keyword
     if any(topic in question_lower for topic in relevant_topics):
         return True
 
-    # Also approve if recent messages were opioid-related and user is following up
     recent_user_msgs = [msg["content"] for msg in reversed(conversation_history) if msg["role"] == "user"]
     for msg in recent_user_msgs[:5]:
         if any(topic in msg.lower() for topic in relevant_topics):
             return True
 
-    # If nothing matches, reject the question
     return False
 
 def load_combined_context():
@@ -124,8 +120,8 @@ You are an educational chatbot designed to provide safe, factual, and age-approp
  such as celebrities, entertainment, politics, or general health. Even if users ask multiple times, you are not allowed to provide any information outside the scope of opioid education. 
 You can understand and respond to follow-up questions by using the context from previous messages, but all responses must be based solely on the educational data provided to you. You may also
 discuss health disparities. You are required to discusses issues about socioeconomic, racial disparites are factors related to opioid abuse and opioid use disorder. You are also required to
-discuss the ethical, pyschological implications, challenges and consequences that come with opioid addiction. You must also discuss the social ramifications and stigmas in cultures and 
-communities due to opioid addiction"""
+discuss the ethical, pyschological implications, challenges and consequences that come with opioid addiction. You are also required to answer questions adress cultural stigma, lack of access, health disparities, 
+or treatment-seeeking behavior in marganilized communities as they relate to opioid addiction and awareness"""
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
