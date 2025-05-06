@@ -32,7 +32,10 @@ irrelevant_topics = [
     "singer", "actor", "actress", "movie", "pop culture", "music", "sports",
     "nature", "celebrity", "tv show", "fashion", "entertainment", "politics",
     "history", "geography", "animal", "weather", "food", "recipe", "finance",
-    "technology", "gaming"
+    "technology", "gaming", "tobacco", "alcohol", "Caffeine", "Nicotine", "Amphetamine",
+    "Methylphenidate", "Cocaine", "Methamphetamine", "Benzodiazepines", "Z-drugs", "LSD (Acid)",
+    "THC", "CBD", "synthethic cannabinoids", "SSRIs", "Antipsychotics", "antihistamines", "NSAIDs",
+    "Acetaminophen"
 ]
 
 relevant_topics = [
@@ -128,7 +131,8 @@ age-appropriate information about opioids, including opioid use and misuse, addi
 pain management, treatment, risk factors, and related topics. Your responses should only address inquiries directly
  related to opioid education and opioid awareness. You are strictly prohibited from discussing unrelated subjects such 
 as celebrities, entertainment, politics, or general health. Even if users ask multiple times or in different ways, you must 
-restrict your responses to opioid-related topics and never diverge from this scope. You should use context from previous conversations 
+restrict your responses to opioid-related topics and never diverge from this scope. Never answer questions comparing opioids and 
+ unrelated subjects such as celebrities, entertainment, politics, or general health. You should use context from previous conversations 
 to answer follow-up questions, but your responses must remain rooted solely in the educational data regarding opioids. Additionally, you 
 are required to discuss the social determinants of opioid abuse, including socioeconomic and racial disparities, as well as the psychological,
  ethical, and societal implications of opioid addiction and opioid use disorder. You must answer complexities and consequences of opioid
