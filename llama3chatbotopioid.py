@@ -1,4 +1,5 @@
 import os
+import re
 import requests
 import pdfplumber
 import psycopg2
@@ -41,14 +42,14 @@ relevant_topics = [
     "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance", "scientific",
     "support", "support for opioid addiction", "drug use", "email", "campus", "phone number", "clinician", "evidence",
     "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication", "clinical",
-    "risk factors", "disparity", "racism", "bias", "addict", "marginalized","challenges", "long-term factors",
-"short-term factors", "consequences", "disease", "cancer", "treatment-seeking", "stigma", "stigmas", "opioid users", "communities",
+    "risk-factors", "risk factors", "disparity", "racism", "bias", "addict", "marginalized", "challenges", "long-term factors",
+    "short-term factors", "consequences", "disease", "cancer", "treatment-seeking", "stigma", "stigmas", "opioid users", "communities",
     "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
     "medication-assisted treatment", "MAT", "OUD", "opioid epidemic", "teen", "dangers", "genetic", "ethical", "ethics",
-    "environmental factors", "pain management", "consequences", "prevention", "doctor", "physician",
+    "environmental factors", "pain management", "socioeconomic factors", "prevention", "doctor", "physician",
     "adult", "death", "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", "pharmacology", "pharmacological",
-    "brands", "treatment programs", "medication", "young people", "peer pressure", "socioeconomic factors", "DO", "MD", 
-    "income inequality", "healthcare disparities", "psychological", "psychology", "screen"
+    "brands", "treatment programs", "medication", "young people", "peer pressure", "socio-economic factors",
+    "income inequality", "healthcare disparities", "pychological", "psychology", "screen"
 ]
 
 def normalize_language_code(lang):
@@ -61,20 +62,21 @@ def is_question_relevant(question):
     if any(irrelevant in question_lower for irrelevant in irrelevant_topics):
         return False
 
-    if any(topic in question_lower for topic in relevant_topics):
-        return True
+    for topic in relevant_topics:
+        if re.search(r'\b' + re.escape(topic.lower()) + r'\b', question_lower):
+            return True
 
     recent_user_msgs = [msg["content"] for msg in reversed(conversation_history) if msg["role"] == "user"]
     for msg in recent_user_msgs[:5]:
-        if any(topic in msg.lower() for topic in relevant_topics):
-            return True
+        for topic in relevant_topics:
+            if re.search(r'\b' + re.escape(topic.lower()) + r'\b', msg.lower()):
+                return True
 
     return False
 
 def load_combined_context():
     combined_text = ""
 
-    # Load text from PDF
     try:
         with pdfplumber.open("data/your_pdf_file.pdf") as pdf:
             for page in pdf.pages:
@@ -82,7 +84,6 @@ def load_combined_context():
     except Exception as e:
         print(f"Failed to load PDF: {str(e)}")
 
-    # Load text from Excel
     try:
         df = pd.read_excel("data/your_excel_file.xlsx")
         combined_text += "\n".join(df.astype(str).apply(lambda row: " ".join(row), axis=1))
@@ -91,7 +92,6 @@ def load_combined_context():
 
     return combined_text.strip()
 
-# Load context from PDF and Excel at startup
 combined_text = load_combined_context()
 
 def get_llama3_response(question, user_lang="en"):
@@ -234,7 +234,3 @@ def check_env():
         "REN_API_KEY_SET": bool(REN_API_KEY),
         "DATABASE_URL_SET": bool(DATABASE_URL)
     })
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
