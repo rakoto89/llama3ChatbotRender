@@ -68,21 +68,17 @@ def is_question_relevant(question):
     print("Matched irrelevant topics:", matched_irrelevant)
     print("Matched relevant topics:", matched_relevant)
 
-    # Rule 1: Block if the current question has ANY irrelevant terms
-    if matched_irrelevant:
+    if matched_irrelevant and not matched_relevant:
         return False
 
-    # Rule 2: Allow if the current question has relevant terms
     if matched_relevant:
         return True
 
-    # Rule 3: If neutral, allow only if recent messages were relevant (follow-up logic)
     recent_user_msgs = [msg["content"] for msg in reversed(conversation_history) if msg["role"] == "user"]
     for msg in recent_user_msgs[:5]:
         if any(topic in msg.lower() for topic in relevant_topics):
             return True
 
-    # Rule 4: Otherwise, block
     return False
 
 def load_combined_context():
@@ -139,10 +135,12 @@ def get_llama3_response(question, user_lang="en"):
     synthethic cannabinoids, SSRIs, Antipsychotics, antihistamines, NSAIDs, Acetaminophen, general health. Even if users ask multiple times or 
     in different ways, you must restrict your responses to opioid-related topics and never diverge from this scope. Never answer questions comparing 
     opioids and unrelated subjects such as celebrities, entertainment, politics, or general health. You should use context from previous conversations
-    to answer follow-up questions, but your responses must remain rooted solely in the educational data regarding opioids. Additionally, you are required
+    to answer follow-up questions, but your responses must remain rooted solely in the educational data regarding opioids. For example, if you ask something like
+    "what are politicians doing to stop opioid addiction?" Don't allow follow-up question like "why is it hard to be a politician". Additionally, you are required
     to discuss the social determinants of opioid abuse, including socioeconomic and racial disparities, as well as the psychological, ethical, and societal 
     implications of opioid addiction and opioid use disorder. You must answer complexities and consequences of opioid addiction, including its risk factors, 
     challenges, and long-term impacts. If the question include any of these words you must answer the question no exceptions."""
+
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
