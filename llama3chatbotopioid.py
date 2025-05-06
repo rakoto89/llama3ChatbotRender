@@ -56,12 +56,19 @@ def normalize_language_code(lang):
     return zh_map.get(lang.lower(), lang)
 
 def is_question_relevant(question):
-    question_lower = question.lower()
+    question_lower = question.lower().strip()
 
-    if any(irrelevant in question_lower for irrelevant in irrelevant_topics):
+    matched_irrelevant = [topic for topic in irrelevant_topics if topic in question_lower]
+    matched_relevant = [topic for topic in relevant_topics if topic in question_lower]
+
+    print("Question:", question_lower)
+    print("Matched irrelevant topics:", matched_irrelevant)
+    print("Matched relevant topics:", matched_relevant)
+
+    if matched_irrelevant and not matched_relevant:
         return False
 
-    if any(topic in question_lower for topic in relevant_topics):
+    if matched_relevant:
         return True
 
     recent_user_msgs = [msg["content"] for msg in reversed(conversation_history) if msg["role"] == "user"]
@@ -70,6 +77,7 @@ def is_question_relevant(question):
             return True
 
     return False
+
 def load_combined_context():
     combined_text = ""
 
