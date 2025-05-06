@@ -28,13 +28,6 @@ db_config = {
 conversation_history = []
 conversation_context = {}
 
-irrelevant_topics = [
-    "singer", "actor", "actress", "movie", "pop culture", "music", "sports",
-    "nature", "celebrity", "tv show", "fashion", "entertainment", "politics",
-    "history", "geography", "animal", "weather", "food", "recipe", "finance",
-    "technology", "gaming"
-]
-
 relevant_topics = [
     "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin", "chronic pain", "pain", "stigma", "communities",
     "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium", "scientists", "control group", "marginalized",
