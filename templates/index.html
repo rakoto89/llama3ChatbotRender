@@ -38,7 +38,7 @@
     <div class="chat-container">
         <div class="chat-header">Opioid Awareness Chatbot</div>
         <div class="chat-box" id="chat-box">
-            <div class="bot-message">Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!</div>
+            <div class="bot-message chatbot-response">Welcome to the Opioid Awareness Chatbot! Here you will learn all about opioids!</div>
         </div>
         <div class="input-container">
             <input type="text" id="user-input" placeholder="Enter your question...">
@@ -59,20 +59,20 @@
     </div>
 
     <!-- Language options -->
-<div id="language-options" class="language-options" style="display: none;">
-    <button data-lang="en">
-        <img src="/static/images/us.png" alt="English" class="flag-icon"> English
-    </button>
-    <button data-lang="es">
-        <img src="/static/images/es.png" alt="Español" class="flag-icon"> Español
-    </button>
-    <button data-lang="fr">
-        <img src="/static/images/fr.png" alt="Français" class="flag-icon"> Français
-    </button>
-    <button data-lang="zh">
-        <img src="/static/images/cn.png" alt="中文" class="flag-icon"> 中文
-    </button>
-</div>
+    <div id="language-options" class="language-options" style="display: none;">
+        <button data-lang="en">
+            <img src="/static/images/us.png" alt="English" class="flag-icon"> English
+        </button>
+        <button data-lang="es">
+            <img src="/static/images/es.png" alt="Español" class="flag-icon"> Español
+        </button>
+        <button data-lang="fr">
+            <img src="/static/images/fr.png" alt="Français" class="flag-icon"> Français
+        </button>
+        <button data-lang="zh">
+            <img src="/static/images/cn.png" alt="中文" class="flag-icon"> 中文
+        </button>
+    </div>
 
     <!-- Beep sound -->
     <audio id="beep" src="{{ url_for('static', filename='beep2.mp3') }}" preload="auto"></audio>
@@ -81,3 +81,4 @@
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
+         
