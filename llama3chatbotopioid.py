@@ -83,37 +83,36 @@ def is_question_relevant(question):
 
 def load_combined_context():
     combined_text = ""
+    actual_references = []
+
     try:
         with pdfplumber.open("data/your_pdf_file.pdf") as pdf:
             for i, page in enumerate(pdf.pages, 1):
                 text = page.extract_text()
                 if text:
                     combined_text += f"\n\n[Source: your_pdf_file.pdf, Page {i}]\n{text}\n"
+                    actual_references.extend(re.findall(r'https?://\S+', text))
     except Exception as e:
         print(f"Failed to load PDF: {str(e)}")
+
     try:
         df = pd.read_excel("data/your_excel_file.xlsx")
         for index, row in df.iterrows():
             row_text = " ".join(str(cell) for cell in row)
             combined_text += f"\n\n[Source: your_excel_file.xlsx, Row {index+1}]\n{row_text}\n"
+            actual_references.extend(re.findall(r'https?://\S+', row_text))
     except Exception as e:
         print(f"Failed to load Excel: {str(e)}")
-    return combined_text.strip()
 
-combined_text = load_combined_context()
+    return combined_text.strip(), list(set(actual_references))
+
+combined_text, known_references = load_combined_context()
 
 def validate_links_in_response(text):
-    def check_link(url):
-        try:
-            res = requests.head(url, timeout=5, allow_redirects=True)
-            return res.status_code == 200
-        except:
-            return False
-
     links = re.findall(r'https?://\S+', text)
     for link in links:
-        if not check_link(link):
-            text = text.replace(link, "[Broken Link Removed]")
+        if link not in known_references:
+            text = text.replace(link, "[Hallucinated or Unverified Link Removed]")
     return text
 
 def get_llama3_response(question, user_lang="en"):
@@ -148,12 +147,12 @@ def get_llama3_response(question, user_lang="en"):
     Benzodiazepines, Z-drugs, LSD (Acid), THC, CBD, synthethic cannabinoids, SSRIs, Antipsychotics, antihistamines, NSAIDs, Acetaminophen, general health. 
     Even if users ask multiple times or in different ways, you must restrict your responses to opioid-related topics and never diverge from this scope. 
     Never answer questions comparing opioids and unrelated subjects such as celebrities, entertainment, politics, or general health. You should use context
-    from previous conversations to answer follow-up questions, but your responses must remain rooted solely in the educational data regarding opioids. For example,
-    if you ask something like "what are politicians doing to stop opioid addiction?" Don't allow follow-up question like "why is it hard to be a politician". 
-    Additionally, you are required to discuss the social determinants of opioid abuse, including socioeconomic and racial disparities, as well as the psychological,
-    ethical, and societal implications of opioid addiction and opioid use disorder. You must answer complexities and consequences of opioid addiction, including its
-    risk factors, challenges, and long-term impacts. If the question include any of these words you must answer the question no exceptions. Always cite sources at the end of your answers.
-    Do not stop citations early. Complete the entire reference including titles and URLs. If a citation is long, wrap it across lines using line breaks or bullet points""" 
+    from previous conversations to answer follow-up questions, but your responses must remain rooted solely in the educational data regarding opioids. 
+    Only use references (URLs or titles) that are present in the context. Do NOT make up or invent sources or links. If no valid reference is available 
+    in the context, say 'No citation available.' Additionally, you are required to discuss the social determinants of opioid abuse, including socioeconomic 
+    and racial disparities, as well as the psychological, ethical, and societal implications of opioid addiction and opioid use disorder. You must answer 
+    complexities and consequences of opioid addiction, including its risk factors, challenges, and long-term impacts. Always cite sources at the end of your answers.
+    Do not stop citations early. Complete the entire reference including titles and URLs. If a citation is long, wrap it across lines using line breaks or bullet points."""
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
@@ -179,7 +178,7 @@ def get_llama3_response(question, user_lang="en"):
         if "choices" in data and data["choices"]:
             message = data["choices"][0].get("message", {})
             content = message.get("content", "").strip()
-            content = validate_links_in_response(content)  # <- new line here
+            content = validate_links_in_response(content)
             if not content:
                 content = "I'm here to help, but the response was unexpectedly empty. Please try again."
         else:
