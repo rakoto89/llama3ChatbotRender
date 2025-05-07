@@ -85,12 +85,13 @@ def load_combined_context():
     combined_text = ""
     actual_references = []
 
-    pdf_folder = "data"  # or wherever your 10 PDFs are stored
-    pdf_files = [f for f in os.listdir(pdf_folder) if f.endswith(".pdf")]
+    data_folder = "data"  # Update this if your files are in a different folder
 
+    # Load all PDFs
+    pdf_files = [f for f in os.listdir(data_folder) if f.lower().endswith(".pdf")]
     for filename in pdf_files:
         try:
-            filepath = os.path.join(pdf_folder, filename)
+            filepath = os.path.join(data_folder, filename)
             with pdfplumber.open(filepath) as pdf:
                 for i, page in enumerate(pdf.pages, 1):
                     text = page.extract_text()
@@ -100,18 +101,20 @@ def load_combined_context():
         except Exception as e:
             print(f"Failed to load {filename}: {str(e)}")
 
-    # (Optional) Also include Excel if you're using it
-    try:
-        df = pd.read_excel("data/your_excel_file.xlsx")
-        for index, row in df.iterrows():
-            row_text = " ".join(str(cell) for cell in row)
-            combined_text += f"\n\n[Source: your_excel_file.xlsx, Row {index+1}]\n{row_text}\n"
-            actual_references.extend(re.findall(r'https?://\S+', row_text))
-    except Exception as e:
-        print(f"Failed to load Excel: {str(e)}")
+    # Load all Excel files
+    excel_files = [f for f in os.listdir(data_folder) if f.lower().endswith(".xlsx")]
+    for filename in excel_files:
+        try:
+            filepath = os.path.join(data_folder, filename)
+            df = pd.read_excel(filepath)
+            for index, row in df.iterrows():
+                row_text = " ".join(str(cell) for cell in row)
+                combined_text += f"\n\n[Source: {filename}, Row {index+1}]\n{row_text}\n"
+                actual_references.extend(re.findall(r'https?://\S+', row_text))
+        except Exception as e:
+            print(f"Failed to load {filename}: {str(e)}")
 
-    return combined_text.strip(), list(set(actual_references))  # Remove duplicate URLs
-
+    return combined_text.strip(), list(set(actual_references))
 combined_text, known_references = load_combined_context()
 
 def validate_links_in_response(text):
