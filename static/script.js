@@ -128,7 +128,11 @@ document.addEventListener("DOMContentLoaded", function () {
     function appendMessage(sender, message) {
         const msgDiv = document.createElement("div");
         msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
+        
         msgDiv.innerHTML = message;
+            .replace(/\n/g, "<br>") // for line breaks
+            .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color: #81cfff;">$1</a>'); // for clickable links
+        
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
 
