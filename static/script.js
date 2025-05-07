@@ -125,19 +125,21 @@ document.addEventListener("DOMContentLoaded", function () {
         playPauseBtn.title = languageData[currentLanguage].titles.pause;
     }
 
-    function appendMessage(sender, message) {
-        const msgDiv = document.createElement("div");
-        msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
-        
-        msgDiv.innerHTML = message;
-            .replace(/\n/g, "<br>") // for line breaks
-            .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color: #81cfff;">$1</a>'); // for clickable links
-        
-        chatBox.appendChild(msgDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
+function appendMessage(sender, message) {
+    const msgDiv = document.createElement("div");
+    msgDiv.classList.add(sender === "bot" ? "bot-message" : "user-message");
 
-        if (sender === "bot") speakText(message);
-    }
+    // Process and preserve line breaks and show raw URLs as links
+    const safeMessage = message
+        .replace(/\n/g, "<br>")
+        .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" style="color: #81cfff;">$1</a>');
+
+    msgDiv.innerHTML = safeMessage;
+    chatBox.appendChild(msgDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    if (sender === "bot") speakText(message);
+}
 
     function sendMessage(text) {
         if (!text.trim()) return;
