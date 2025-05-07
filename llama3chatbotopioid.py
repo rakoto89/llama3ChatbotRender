@@ -99,7 +99,7 @@ def load_combined_context():
         print(f"Failed to load Excel: {str(e)}")
     return combined_text.strip()
 
-combined_text = load_combined_context()
+combined_text, reference_section = load_combined_context()
 
 def get_llama3_response(question, user_lang="en"):
     user_lang = normalize_language_code(user_lang)
