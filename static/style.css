@@ -89,7 +89,7 @@ body {
     flex-direction: column;
 }
 
-/* Chat bubbles (merged and fixed for long content) */
+/* Chat bubbles */
 .bot-message,
 .user-message {
     max-width: 75%;
@@ -98,13 +98,11 @@ body {
     border-radius: 18px;
     line-height: 1.4;
     display: block;
-
-    
     white-space: pre-wrap;
     word-wrap: break-word;
     overflow-wrap: break-word;
     overflow: visible;
-    max-width: none;
+    max-height: none;
     height: auto;
 }
 
@@ -253,4 +251,17 @@ body {
 
 #mute-btn:hover img {
     transform: scale(1.2);
-}    
+}
+
+/* Ensure full wrapping for references and inline blocks */
+.chat-box .bot-message {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.bot-message pre,
+.bot-message p {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
