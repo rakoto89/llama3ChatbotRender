@@ -89,7 +89,7 @@ body {
     flex-direction: column;
 }
 
-/* Chat bubbles */
+/* Chat bubbles (merged and fixed for long content) */
 .bot-message,
 .user-message {
     max-width: 75%;
@@ -97,11 +97,14 @@ body {
     padding: 12px 15px;
     border-radius: 18px;
     line-height: 1.4;
-    word-wrap: break-word;
-    white-space: pre-wrap;
     display: flex;
     align-items: flex-start;
     gap: 10px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    overflow: visible;
+    max-width: 100%;
 }
 
 .bot-message {
@@ -249,18 +252,4 @@ body {
 
 #mute-btn:hover img {
     transform: scale(1.2);
-}
-
-/* ---------------------------------------------- */
-/* NEW: Ensure full citation and long URL display */
-/* ---------------------------------------------- */
-
-.bot-message,
-.user-message {
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    overflow: visible;
-    max-width: 100%;
-}
-    
+}    
