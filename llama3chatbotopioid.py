@@ -45,7 +45,7 @@ relevant_topics = [
     "support", "support for opioid addiction", "drug use", "email", "campus", "phone number", "clinician", "evidence",
     "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication", "clinical",
     "risk factors", "disparity", "racism", "bias", "addict", "marginalized","challenges", "long-term factors",
-"short-term factors", "consequences", "disease", "cancer", "treatment-seeking", "stigma", "stigmas", "opioid users", "communities",
+    "short-term factors", "consequences", "disease", "cancer", "treatment-seeking", "stigma", "stigmas", "opioid users", "communities",
     "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
     "medication-assisted treatment", "MAT", "OUD", "opioid epidemic", "teen", "dangers", "genetic", "ethical", "ethics",
     "environmental factors", "pain management", "consequences", "prevention", "doctor", "physician",
@@ -60,7 +60,6 @@ def normalize_language_code(lang):
 
 def is_question_relevant(question):
     question_lower = question.lower().strip()
-
     matched_irrelevant = [topic for topic in irrelevant_topics if topic in question_lower]
     matched_relevant = [topic for topic in relevant_topics if topic in question_lower]
 
@@ -83,31 +82,28 @@ def is_question_relevant(question):
 
 def load_combined_context():
     combined_text = ""
-
-    # Load text from PDF
     try:
         with pdfplumber.open("data/your_pdf_file.pdf") as pdf:
-            for page in pdf.pages:
-                combined_text += page.extract_text() + "\n"
+            for i, page in enumerate(pdf.pages, 1):
+                text = page.extract_text()
+                if text:
+                    combined_text += f"\n\n[Source: your_pdf_file.pdf, Page {i}]\n{text}\n"
     except Exception as e:
         print(f"Failed to load PDF: {str(e)}")
-
-    # Load text from Excel
     try:
         df = pd.read_excel("data/your_excel_file.xlsx")
-        combined_text += "\n".join(df.astype(str).apply(lambda row: " ".join(row), axis=1))
+        for index, row in df.iterrows():
+            row_text = " ".join(str(cell) for cell in row)
+            combined_text += f"\n\n[Source: your_excel_file.xlsx, Row {index+1}]\n{row_text}\n"
     except Exception as e:
         print(f"Failed to load Excel: {str(e)}")
-
     return combined_text.strip()
 
-# Load context from PDF and Excel at startup
 combined_text = load_combined_context()
 
 def get_llama3_response(question, user_lang="en"):
     user_lang = normalize_language_code(user_lang)
     translator = Translator()
-
     try:
         translated_question = translator.translate(question, dest="en").text
     except Exception as e:
@@ -126,22 +122,14 @@ def get_llama3_response(question, user_lang="en"):
 
     conversation_history.append({"role": "user", "content": translated_question})
 
-    system_prompt = """You are an educational chatbot specifically designed to provide accurate, factual, and age-appropriate
-    information about opioids, including opioid use and misuse, addiction, overdose, prevention, pain management, treatment, risk factors, 
-    and related topics. Your responses should only address inquiries directly related to opioid education and opioid awareness. Questions
-    regarding opioid addiction, recovery, support, treatment, and withdrawal related to BSU (Bowie State University, campus) are allowed to
-    be answered. When I ask You are strictly prohibited from discussing unrelated subjects such as celebrities, entertainment, politics, singer, 
-    actor, actress, movie, pop culture, music, sports, nature, celebrity, tv show, fashion, entertainment, politics, history, geography, animal, 
-    weather, food, recipe, finance, technology, gaming, tobacco, alcohol, Caffeine, Nicotine, Amphetamine, Methylphenidate, Cocaine, Methamphetamine,
-    Benzodiazepines, Z-drugs, LSD (Acid), THC, CBD, synthethic cannabinoids, SSRIs, Antipsychotics, antihistamines, NSAIDs, Acetaminophen, general health. 
-    Even if users ask multiple times or in different ways, you must restrict your responses to opioid-related topics and never diverge from this scope. 
-    Never answer questions comparing opioids and unrelated subjects such as celebrities, entertainment, politics, or general health. You should use context
-    from previous conversations to answer follow-up questions, but your responses must remain rooted solely in the educational data regarding opioids. For example,
-    if you ask something like "what are politicians doing to stop opioid addiction?" Don't allow follow-up question like "why is it hard to be a politician". 
-    Additionally, you are required to discuss the social determinants of opioid abuse, including socioeconomic and racial disparities, as well as the psychological,
-    ethical, and societal implications of opioid addiction and opioid use disorder. You must answer complexities and consequences of opioid addiction, including its
-    risk factors, challenges, and long-term impacts. If the question include any of these words you must answer the question no exceptions."""
+    system_prompt = """
+You are an educational chatbot for opioid awareness. Every answer you provide must include a citation from the sources in the provided context.
+If the answer uses data from a PDF or Excel file, include the source name and page/row number in square brackets like [Source: your_pdf_file.pdf, Page 2].
+If the answer is not based on any content in the context, respond: 'I could not find a source for this information.'
 
+Always cite sources at the end of your answers. Do not fabricate citations.
+Stay focused only on opioid-related questions as outlined in previous instructions.
+"""
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
@@ -159,39 +147,27 @@ def get_llama3_response(question, user_lang="en"):
     }
 
     try:
-        res = requests.post(
-            LLAMA3_ENDPOINT,
-            headers=headers,
-            json=payload,
-            timeout=60
-        )
+        res = requests.post(LLAMA3_ENDPOINT, headers=headers, json=payload, timeout=60)
         res.raise_for_status()
-
         print("Status Code:", res.status_code)
         print("Raw Response:", res.text)
-
         data = res.json()
-
         if "choices" in data and data["choices"]:
             message = data["choices"][0].get("message", {})
             content = message.get("content", "").strip()
             if not content:
-                content = "I’m here to help, but the response was unexpectedly empty. Please try again."
+                content = "Iâ€™m here to help, but the response was unexpectedly empty. Please try again."
         else:
             content = "I'm having trouble getting a valid response right now. Please try again or rephrase your question."
-
     except requests.exceptions.Timeout:
         content = "The server took too long to respond. Please try again shortly."
-
     except requests.exceptions.HTTPError as e:
         content = f"Server returned an HTTP error: {str(e)}"
-
     except Exception as e:
         print("Unhandled error:", str(e))
         content = "Our apologies, a technical error occurred. Please reach out to our system admin at akotor0621@students.bowiestate.edu."
 
     conversation_history.append({"role": "assistant", "content": content})
-
     try:
         return translator.translate(content, dest=user_lang).text
     except Exception as e:
