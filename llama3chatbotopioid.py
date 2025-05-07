@@ -84,10 +84,8 @@ def is_question_relevant(question):
 def load_combined_context():
     combined_text = ""
     actual_references = []
+    data_folder = "pdf"  # updated folder name
 
-    data_folder = "data"  # Update this if your files are in a different folder
-
-    # Load all PDFs
     pdf_files = [f for f in os.listdir(data_folder) if f.lower().endswith(".pdf")]
     for filename in pdf_files:
         try:
@@ -101,7 +99,6 @@ def load_combined_context():
         except Exception as e:
             print(f"Failed to load {filename}: {str(e)}")
 
-    # Load all Excel files
     excel_files = [f for f in os.listdir(data_folder) if f.lower().endswith(".xlsx")]
     for filename in excel_files:
         try:
@@ -115,13 +112,22 @@ def load_combined_context():
             print(f"Failed to load {filename}: {str(e)}")
 
     return combined_text.strip(), list(set(actual_references))
+
 combined_text, known_references = load_combined_context()
 
 def validate_links_in_response(text):
+    def check_link(url):
+        try:
+            res = requests.head(url, timeout=5, allow_redirects=True)
+            return res.status_code == 200
+        except:
+            return False
+
     links = re.findall(r'https?://\S+', text)
     for link in links:
-        if link not in known_references:
-            text = text.replace(link, "[Hallucinated or Unverified Link Removed]")
+        if not check_link(link):
+            print(f"Removed broken or hallucinated link: {link}")
+            text = text.replace(link, "[Broken or Invalid Link Removed]")
     return text
 
 def get_llama3_response(question, user_lang="en"):
@@ -147,21 +153,9 @@ def get_llama3_response(question, user_lang="en"):
 
     system_prompt = """You are an educational chatbot specifically designed to provide accurate, factual, and age-appropriate
     information about opioids, including opioid use and misuse, addiction, overdose, prevention, pain management, treatment, risk factors, 
-    and related topics. Your are required to answer questions to why kids, teens, adults do opioids since this is educational its important to undertstand why
-    people use opioids as well as abusing them. Your responses should only address inquiries directly related to opioid education and opioid awareness. Questions
-    regarding opioid addiction, recovery, support, treatment, and withdrawal related to BSU (Bowie State University, campus) are allowed to
-    be answered. When I ask You are strictly prohibited from discussing unrelated subject such as celebrities, entertainment, politics, singer, 
-    actor, actress, movie, pop culture, music, sports, nature, celebrity, tv show, fashion, entertainment, politics, history, geography, animal, 
-    weather, food, recipe, finance, technology, gaming, tobacco, alcohol, Caffeine, Nicotine, Amphetamine, Methylphenidate, Cocaine, Methamphetamine,
-    Benzodiazepines, Z-drugs, LSD (Acid), THC, CBD, synthethic cannabinoids, SSRIs, Antipsychotics, antihistamines, NSAIDs, Acetaminophen, general health. 
-    Even if users ask multiple times or in different ways, you must restrict your responses to opioid-related topics and never diverge from this scope. 
-    Never answer questions comparing opioids and unrelated subjects such as celebrities, entertainment, politics, or general health. You should use context
-    from previous conversations to answer follow-up questions, but your responses must remain rooted solely in the educational data regarding opioids. 
-    Only use references (URLs or titles) that are present in the context. Do NOT make up or invent sources or links. If no valid reference is available 
-    in the context, say 'No citation available.' Additionally, you are required to discuss the social determinants of opioid abuse, including socioeconomic 
-    and racial disparities, as well as the psychological, ethical, and societal implications of opioid addiction and opioid use disorder. You must answer 
-    complexities and consequences of opioid addiction, including its risk factors, challenges, and long-term impacts. Always cite sources at the end of your answers.
-    Do not stop citations early. Complete the entire reference including titles and URLs. If a citation is long, wrap it across lines using line breaks or bullet points."""
+    and related topics. Your responses must stay strictly within opioid-related content. You may cite external references if they are real and 
+    relevant to opioids. Prefer official sources like .gov, .edu, or .org when possible. Always cite sources at the end of your answers and never
+    hallucinate or invent URLs. If no valid source exists, write 'No citation available.'"""
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
