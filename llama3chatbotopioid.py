@@ -85,16 +85,22 @@ def load_combined_context():
     combined_text = ""
     actual_references = []
 
-    try:
-        with pdfplumber.open("data/your_pdf_file.pdf") as pdf:
-            for i, page in enumerate(pdf.pages, 1):
-                text = page.extract_text()
-                if text:
-                    combined_text += f"\n\n[Source: your_pdf_file.pdf, Page {i}]\n{text}\n"
-                    actual_references.extend(re.findall(r'https?://\S+', text))
-    except Exception as e:
-        print(f"Failed to load PDF: {str(e)}")
+    pdf_folder = "data"  # or wherever your 10 PDFs are stored
+    pdf_files = [f for f in os.listdir(pdf_folder) if f.endswith(".pdf")]
 
+    for filename in pdf_files:
+        try:
+            filepath = os.path.join(pdf_folder, filename)
+            with pdfplumber.open(filepath) as pdf:
+                for i, page in enumerate(pdf.pages, 1):
+                    text = page.extract_text()
+                    if text:
+                        combined_text += f"\n\n[Source: {filename}, Page {i}]\n{text}\n"
+                        actual_references.extend(re.findall(r'https?://\S+', text))
+        except Exception as e:
+            print(f"Failed to load {filename}: {str(e)}")
+
+    # (Optional) Also include Excel if you're using it
     try:
         df = pd.read_excel("data/your_excel_file.xlsx")
         for index, row in df.iterrows():
@@ -104,7 +110,7 @@ def load_combined_context():
     except Exception as e:
         print(f"Failed to load Excel: {str(e)}")
 
-    return combined_text.strip(), list(set(actual_references))
+    return combined_text.strip(), list(set(actual_references))  # Remove duplicate URLs
 
 combined_text, known_references = load_combined_context()
 
