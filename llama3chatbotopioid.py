@@ -84,7 +84,7 @@ def is_question_relevant(question):
 def load_combined_context():
     combined_text = ""
     actual_references = []
-    data_folder = "pdf"  # updated folder name
+    data_folder = "pdfs"  # updated folder name
 
     pdf_files = [f for f in os.listdir(data_folder) if f.lower().endswith(".pdf")]
     for filename in pdf_files:
