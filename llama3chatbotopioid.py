@@ -9,6 +9,10 @@ from googletrans import Translator
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
 
+@app.route("/")
+def home():
+    return "Chatbot is running!"
+
 LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://api.together.xyz/v1/chat/completions").strip()
 REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
 FEEDBACK_SECRET_KEY = os.environ.get("FEEDBACK_SECRET_KEY", "test-key")
