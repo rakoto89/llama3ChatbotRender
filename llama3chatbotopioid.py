@@ -5,6 +5,10 @@ import pandas as pd
 from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
 from googletrans import Translator
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
@@ -13,6 +17,7 @@ CORS(app)
 def home():
     return "Chatbot is running!"
 
+# Load environment variables
 LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://api.together.xyz/v1/chat/completions").strip()
 REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
 FEEDBACK_SECRET_KEY = os.environ.get("FEEDBACK_SECRET_KEY", "test-key")
@@ -55,10 +60,6 @@ def is_question_relevant(question):
     matched_irrelevant = [topic for topic in irrelevant_topics if topic in question_lower]
     matched_relevant = [topic for topic in relevant_topics if topic in question_lower]
 
-    print("Question:", question_lower)
-    print("Matched irrelevant topics:", matched_irrelevant)
-    print("Matched relevant topics:", matched_relevant)
-
     if matched_irrelevant and not matched_relevant:
         return False
 
@@ -73,22 +74,30 @@ def is_question_relevant(question):
     return False
 
 def extract_text_from_pdf(pdf_path):
-    text = ""
-    with pdfplumber.open(pdf_path) as pdf:
-        for page in pdf.pages:
-            if page.extract_text():
-                text += page.extract_text() + "\n"
-    return text.strip()
+    try:
+        text = ""
+        with pdfplumber.open(pdf_path) as pdf:
+            for page in pdf.pages:
+                if page.extract_text():
+                    text += page.extract_text() + "\n"
+        return text.strip()
+    except Exception as e:
+        print(f"Error reading PDF {pdf_path}: {str(e)}")
+        return ""
 
 def extract_tables_from_pdf(pdf_path):
-    table_text = ""
-    with pdfplumber.open(pdf_path) as pdf:
-        for page in pdf.pages:
-            tables = page.extract_tables()
-            for table in tables:
-                for row in table:
-                    table_text += " | ".join(cell or "" for cell in row) + "\n"
-    return table_text.strip()
+    try:
+        table_text = ""
+        with pdfplumber.open(pdf_path) as pdf:
+            for page in pdf.pages:
+                tables = page.extract_tables()
+                for table in tables:
+                    for row in table:
+                        table_text += " | ".join(cell or "" for cell in row) + "\n"
+        return table_text.strip()
+    except Exception as e:
+        print(f"Error extracting tables from {pdf_path}: {str(e)}")
+        return ""
 
 def read_pdfs_in_folder(folder):
     output = ""
@@ -118,6 +127,7 @@ def read_excel_as_text(excel_path):
             output += df.to_string(index=False) + "\n"
         return output.strip()
     except Exception as e:
+        print(f"Error reading Excel: {str(e)}")
         return f"Error reading Excel: {str(e)}"
 
 # === Load PDFs and Excel ===
@@ -189,8 +199,6 @@ def get_llama3_response(question, user_lang="en"):
     try:
         res = requests.post(LLAMA3_ENDPOINT, headers=headers, json=payload, timeout=60)
         res.raise_for_status()
-        print("Status Code:", res.status_code)
-        print("Raw Response:", res.text)
         data = res.json()
         if "choices" in data and data["choices"]:
             message = data["choices"][0].get("message", {})
@@ -216,13 +224,16 @@ def get_llama3_response(question, user_lang="en"):
 
 @app.route("/ask", methods=["POST"])
 def ask():
-    data = request.get_json()
-    question = data.get("question", "")
-    lang = normalize_language_code(data.get("language", "en"))
-    if not question:
-        return jsonify({"error": "No question provided"}), 400
-    answer = get_llama3_response(question, lang)
-    return jsonify({"answer": answer})
+    try:
+        data = request.get_json()
+        question = data.get("question", "")
+        lang = normalize_language_code(data.get("language", "en"))
+        if not question:
+            return jsonify({"error": "No question provided"}), 400
+        answer = get_llama3_response(question, lang)
+        return jsonify({"answer": answer})
+    except Exception as e:
+        return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
 
 @app.route("/translate", methods=["POST"])
 def translate():
