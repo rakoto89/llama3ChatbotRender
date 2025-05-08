@@ -80,26 +80,31 @@ def is_question_relevant(question):
 
     return False
 
-def load_combined_context():
-    combined_text = ""
-    try:
-        with pdfplumber.open("data/your_pdf_file.pdf") as pdf:
-            for i, page in enumerate(pdf.pages, 1):
-                text = page.extract_text()
-                if text:
-                    combined_text += f"\n\n[Source: your_pdf_file.pdf, Page {i}]\n{text}\n"
-    except Exception as e:
-        print(f"Failed to load PDF: {str(e)}")
-    try:
-        df = pd.read_excel("data/your_excel_file.xlsx")
-        for index, row in df.iterrows():
-            row_text = " ".join(str(cell) for cell in row)
-            combined_text += f"\n\n[Source: your_excel_file.xlsx, Row {index+1}]\n{row_text}\n"
-    except Exception as e:
-        print(f"Failed to load Excel: {str(e)}")
-    return combined_text.strip()
-
-combined_text = load_combined_context()
+def extract_text_from_pdf(pdf_paths):
+    text = ""
+    # for pdf_path in pdf_paths:
+    with pdfplumber.open(pdf_paths) as pdf:
+        for page in pdf.pages:
+            extracted_text = page.extract_text()
+            if extracted_text:
+                text += extracted_text + "\n"
+    return text.strip()
+import PyPDF2
+pdf_text=''
+def read_pdfs_in_folder(folder_path):
+    # Navigate through the folder
+    concatenated_text = ''
+    for filename in os.listdir(folder_path):
+        print(filename)
+        if filename.endswith('.pdf'):
+            pdf_path = os.path.join(folder_path, filename)
+            print(pdf_path)
+            pdf_text=extract_text_from_pdf(pdf_path)
+            #print(pdf_text)
+            concatenated_text += pdf_text + '\n\n'
+    return concatenated_text
+pdf_text=read_pdfs_in_folder('pdfs')
+print(pdf_text)
 
 def get_llama3_response(question, user_lang="en"):
     user_lang = normalize_language_code(user_lang)
@@ -137,8 +142,7 @@ def get_llama3_response(question, user_lang="en"):
     if you ask something like "what are politicians doing to stop opioid addiction?" Don't allow follow-up question like "why is it hard to be a politician". 
     Additionally, you are required to discuss the social determinants of opioid abuse, including socioeconomic and racial disparities, as well as the psychological,
     ethical, and societal implications of opioid addiction and opioid use disorder. You must answer complexities and consequences of opioid addiction, including its
-    risk factors, challenges, and long-term impacts. If the question include any of these words you must answer the question no exceptions. Always cite sources at the end of your answers.
-    Do not stop citations early. Complete the entire reference including titles and URLs. If a citation is long, wrap it across lines using line breaks or bullet points."""
+    risk factors, challenges, and long-term impacts. If the question include any of these words you must answer the question no exceptions. Always cite sources at the end of your answers. Do not stop citations early. Complete the entire reference including titles and URLs. If a citation is long, wrap it across lines using line breaks or bullet points. You are required to use real citations that work."""
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
