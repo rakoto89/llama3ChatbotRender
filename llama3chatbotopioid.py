@@ -154,38 +154,6 @@ all_table_text = extract_all_tables_first(pdf_folder)
 
 combined_text = f"{excel_text}\n\n{pdf_texts}\n\n{all_table_text}"[:12000]
 
-# === Keywords for Relevance Filter ===
-relevant_topics = [
-    "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin",
-    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium",
-    "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance",
-    "support", "support for opioid addiction", "drug use", "email", "campus", "phone number",
-    "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication",
-    "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
-    "medication-assisted treatment", "MAT", "opioid epidemic", "teen", "dangers", "genetic", 
-    "environmental factors", "pain management", "socioeconomic factors", "consequences", 
-    "adult", "death", "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", 
-    "brands", "treatment programs", "medication", "young people", "peer pressure"
-]
-
-def is_question_relevant(question):
-    return any(topic in question.lower() for topic in relevant_topics)
-
-def search_excel(question):
-    if excel_df is not None:
-        question_lower = question.lower()
-        matches = []
-        for col in excel_df.columns:
-            if col.lower() in question_lower:
-                matches.append(col)
-        if matches:
-            result = ""
-            for match in matches:
-                result += f"\n--- Column: {match} ---\n"
-                result += excel_df[match].dropna().astype(str).to_string(index=False)[:12000]
-            return result.strip()
-    return None
-
 def get_llama3_response(question, user_lang="en"):
     user_lang = normalize_language_code(user_lang)
     translator = Translator()
