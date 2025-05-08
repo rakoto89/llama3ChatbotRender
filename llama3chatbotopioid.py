@@ -7,7 +7,6 @@ import pandas as pd
 from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
 from googletrans import Translator
-import re
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
@@ -81,54 +80,111 @@ def is_question_relevant(question):
 
     return False
 
-def load_combined_context():
-    combined_text = ""
-    actual_references = []
-    data_folder = "pdfs"  # updated folder name
+def extract_text_from_pdf(pdf_path):
+    text = ""
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            if page.extract_text():
+                text += page.extract_text() + "\n"
+    return text.strip()
 
-    pdf_files = [f for f in os.listdir(data_folder) if f.lower().endswith(".pdf")]
-    for filename in pdf_files:
-        try:
-            filepath = os.path.join(data_folder, filename)
-            with pdfplumber.open(filepath) as pdf:
-                for i, page in enumerate(pdf.pages, 1):
-                    text = page.extract_text()
-                    if text:
-                        combined_text += f"\n\n[Source: {filename}, Page {i}]\n{text}\n"
-                        actual_references.extend(re.findall(r'https?://\S+', text))
-        except Exception as e:
-            print(f"Failed to load {filename}: {str(e)}")
+def extract_tables_from_pdf(pdf_path):
+    table_text = ""
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            tables = page.extract_tables()
+            for table in tables:
+                for row in table:
+                    table_text += " | ".join(cell or "" for cell in row) + "\n"
+    return table_text.strip()
 
-    excel_files = [f for f in os.listdir(data_folder) if f.lower().endswith(".xlsx")]
-    for filename in excel_files:
-        try:
-            filepath = os.path.join(data_folder, filename)
-            df = pd.read_excel(filepath)
-            for index, row in df.iterrows():
-                row_text = " ".join(str(cell) for cell in row)
-                combined_text += f"\n\n[Source: {filename}, Row {index+1}]\n{row_text}\n"
-                actual_references.extend(re.findall(r'https?://\S+', row_text))
-        except Exception as e:
-            print(f"Failed to load {filename}: {str(e)}")
+def read_pdfs_in_folder(folder):
+    output = ""
+    for filename in os.listdir(folder):
+        if filename.endswith(".pdf"):
+            path = os.path.join(folder, filename)
+            output += extract_text_from_pdf(path) + "\n\n"
+            output += extract_tables_from_pdf(path) + "\n\n"
+    return output
 
-    return combined_text.strip(), list(set(actual_references))
+def extract_all_tables_first(folder):
+    tables_output = ""
+    for filename in os.listdir(folder):
+        if filename.endswith(".pdf"):
+            path = os.path.join(folder, filename)
+            tables = extract_tables_from_pdf(path)
+            if tables:
+                tables_output += f"=== Tables from {filename} ===\n{tables}\n\n"
+    return tables_output
 
-combined_text, known_references = load_combined_context()
+def read_excel_as_text(excel_path):
+    try:
+        excel_data = pd.read_excel(excel_path, header=1, sheet_name=None)
+        output = f"=== Excel File: {os.path.basename(excel_path)} ===\n"
+        for sheet, df in excel_data.items():
+            output += f"\n--- Sheet: {sheet} ---\n"
+            output += df.to_string(index=False) + "\n"
+        return output.strip()
+    except Exception as e:
+        return f"Error reading Excel: {str(e)}"
 
-def validate_links_in_response(text):
-    def check_link(url):
-        try:
-            res = requests.head(url, timeout=5, allow_redirects=True)
-            return res.status_code == 200
-        except:
-            return False
+# === Load PDFs and Excel ===
+pdf_folder = "pdfs"
+excel_files = [
+    "KFF_Opioid_Overdose_Deaths_2022.xlsx",
+    "KFF_Opioid_Overdose_Deaths_by_Age_Group_2022.xlsx",
+    "KFF_Opioid_Overdose_Deaths_by_Race_and_Ethnicity_2022.xlsx"
+]
 
-    links = re.findall(r'https?://\S+', text)
-    for link in links:
-        if not check_link(link):
-            print(f"Removed broken or hallucinated link: {link}")
-            text = text.replace(link, "[Broken or Invalid Link Removed]")
-    return text
+excel_text = ""
+excel_df = None
+
+for filename in excel_files:
+    path = os.path.join(pdf_folder, filename)
+    if os.path.exists(path):
+        excel_text += read_excel_as_text(path) + "\n\n"
+        df = pd.read_excel(path, header=1)
+        if excel_df is None:
+            excel_df = df
+        else:
+            excel_df = pd.concat([excel_df, df], ignore_index=True)
+
+pdf_texts = read_pdfs_in_folder(pdf_folder)
+all_table_text = extract_all_tables_first(pdf_folder)
+
+combined_text = f"{excel_text}\n\n{pdf_texts}\n\n{all_table_text}"[:12000]
+
+# === Keywords for Relevance Filter ===
+relevant_topics = [
+    "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin",
+    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium",
+    "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance",
+    "support", "support for opioid addiction", "drug use", "email", "campus", "phone number",
+    "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication",
+    "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
+    "medication-assisted treatment", "MAT", "opioid epidemic", "teen", "dangers", "genetic", 
+    "environmental factors", "pain management", "socioeconomic factors", "consequences", 
+    "adult", "death", "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", 
+    "brands", "treatment programs", "medication", "young people", "peer pressure"
+]
+
+def is_question_relevant(question):
+    return any(topic in question.lower() for topic in relevant_topics)
+
+def search_excel(question):
+    if excel_df is not None:
+        question_lower = question.lower()
+        matches = []
+        for col in excel_df.columns:
+            if col.lower() in question_lower:
+                matches.append(col)
+        if matches:
+            result = ""
+            for match in matches:
+                result += f"\n--- Column: {match} ---\n"
+                result += excel_df[match].dropna().astype(str).to_string(index=False)[:12000]
+            return result.strip()
+    return None
 
 def get_llama3_response(question, user_lang="en"):
     user_lang = normalize_language_code(user_lang)
@@ -153,9 +209,21 @@ def get_llama3_response(question, user_lang="en"):
 
     system_prompt = """You are an educational chatbot specifically designed to provide accurate, factual, and age-appropriate
     information about opioids, including opioid use and misuse, addiction, overdose, prevention, pain management, treatment, risk factors, 
-    and related topics. Your responses must stay strictly within opioid-related content. You may cite external references if they are real and 
-    relevant to opioids. Prefer official sources like .gov, .edu, or .org when possible. Always cite sources at the end of your answers and never
-    hallucinate or invent URLs. If no valid source exists, write 'No citation available.'"""
+    and related topics. Your are required to answer questions to why kids, teens, adults do opioids since this is educational its important to undertstand why
+    people use opioids as well as abusing them. Your responses should only address inquiries directly related to opioid education and opioid awareness. Questions
+    regarding opioid addiction, recovery, support, treatment, and withdrawal related to BSU (Bowie State University, campus) are allowed to
+    be answered. When I ask You are strictly prohibited from discussing unrelated subject such as celebrities, entertainment, politics, singer, 
+    actor, actress, movie, pop culture, music, sports, nature, celebrity, tv show, fashion, entertainment, politics, history, geography, animal, 
+    weather, food, recipe, finance, technology, gaming, tobacco, alcohol, Caffeine, Nicotine, Amphetamine, Methylphenidate, Cocaine, Methamphetamine,
+    Benzodiazepines, Z-drugs, LSD (Acid), THC, CBD, synthethic cannabinoids, SSRIs, Antipsychotics, antihistamines, NSAIDs, Acetaminophen, general health. 
+    Even if users ask multiple times or in different ways, you must restrict your responses to opioid-related topics and never diverge from this scope. 
+    Never answer questions comparing opioids and unrelated subjects such as celebrities, entertainment, politics, or general health. You should use context
+    from previous conversations to answer follow-up questions, but your responses must remain rooted solely in the educational data regarding opioids. For example,
+    if you ask something like "what are politicians doing to stop opioid addiction?" Don't allow follow-up question like "why is it hard to be a politician". 
+    Additionally, you are required to discuss the social determinants of opioid abuse, including socioeconomic and racial disparities, as well as the psychological,
+    ethical, and societal implications of opioid addiction and opioid use disorder. You must answer complexities and consequences of opioid addiction, including its
+    risk factors, challenges, and long-term impacts. If the question include any of these words you must answer the question no exceptions. Always cite sources at the end of your answers.
+    Do not stop citations early. Complete the entire reference including titles and URLs. If a citation is long, wrap it across lines using line breaks or bullet points."""
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
@@ -181,9 +249,8 @@ def get_llama3_response(question, user_lang="en"):
         if "choices" in data and data["choices"]:
             message = data["choices"][0].get("message", {})
             content = message.get("content", "").strip()
-            content = validate_links_in_response(content)
             if not content:
-                content = "I'm here to help, but the response was unexpectedly empty. Please try again."
+                content = "Iâ€™m here to help, but the response was unexpectedly empty. Please try again."
         else:
             content = "I'm having trouble getting a valid response right now. Please try again or rephrase your question."
     except requests.exceptions.Timeout:
@@ -255,5 +322,5 @@ def check_env():
     })
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
