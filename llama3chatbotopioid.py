@@ -1,26 +1,29 @@
 import os
 import requests
 import pdfplumber
+import psycopg2
+import urllib.parse as urlparse
 import pandas as pd
 from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
 from googletrans import Translator
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
 
-@app.route("/")
-def home():
-    return "Chatbot is running!"
-
-# Load environment variables
 LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://api.together.xyz/v1/chat/completions").strip()
 REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
 FEEDBACK_SECRET_KEY = os.environ.get("FEEDBACK_SECRET_KEY", "test-key")
+
+DATABASE_URL = os.environ.get("DATABASE_URL", "")
+url = urlparse.urlparse(DATABASE_URL)
+db_config = {
+    "dbname": url.path[1:],
+    "user": url.username,
+    "password": url.password,
+    "host": url.hostname,
+    "port": url.port
+}
 
 conversation_history = []
 conversation_context = {}
@@ -60,6 +63,10 @@ def is_question_relevant(question):
     matched_irrelevant = [topic for topic in irrelevant_topics if topic in question_lower]
     matched_relevant = [topic for topic in relevant_topics if topic in question_lower]
 
+    print("Question:", question_lower)
+    print("Matched irrelevant topics:", matched_irrelevant)
+    print("Matched relevant topics:", matched_relevant)
+
     if matched_irrelevant and not matched_relevant:
         return False
 
@@ -73,88 +80,26 @@ def is_question_relevant(question):
 
     return False
 
-def extract_text_from_pdf(pdf_path):
+def load_combined_context():
+    combined_text = ""
     try:
-        text = ""
-        with pdfplumber.open(pdf_path) as pdf:
-            for page in pdf.pages:
-                if page.extract_text():
-                    text += page.extract_text() + "\n"
-        return text.strip()
+        with pdfplumber.open("data/your_pdf_file.pdf") as pdf:
+            for i, page in enumerate(pdf.pages, 1):
+                text = page.extract_text()
+                if text:
+                    combined_text += f"\n\n[Source: your_pdf_file.pdf, Page {i}]\n{text}\n"
     except Exception as e:
-        print(f"Error reading PDF {pdf_path}: {str(e)}")
-        return ""
-
-def extract_tables_from_pdf(pdf_path):
+        print(f"Failed to load PDF: {str(e)}")
     try:
-        table_text = ""
-        with pdfplumber.open(pdf_path) as pdf:
-            for page in pdf.pages:
-                tables = page.extract_tables()
-                for table in tables:
-                    for row in table:
-                        table_text += " | ".join(cell or "" for cell in row) + "\n"
-        return table_text.strip()
+        df = pd.read_excel("data/your_excel_file.xlsx")
+        for index, row in df.iterrows():
+            row_text = " ".join(str(cell) for cell in row)
+            combined_text += f"\n\n[Source: your_excel_file.xlsx, Row {index+1}]\n{row_text}\n"
     except Exception as e:
-        print(f"Error extracting tables from {pdf_path}: {str(e)}")
-        return ""
+        print(f"Failed to load Excel: {str(e)}")
+    return combined_text.strip()
 
-def read_pdfs_in_folder(folder):
-    output = ""
-    for filename in os.listdir(folder):
-        if filename.endswith(".pdf"):
-            path = os.path.join(folder, filename)
-            output += extract_text_from_pdf(path) + "\n\n"
-            output += extract_tables_from_pdf(path) + "\n\n"
-    return output
-
-def extract_all_tables_first(folder):
-    tables_output = ""
-    for filename in os.listdir(folder):
-        if filename.endswith(".pdf"):
-            path = os.path.join(folder, filename)
-            tables = extract_tables_from_pdf(path)
-            if tables:
-                tables_output += f"=== Tables from {filename} ===\n{tables}\n\n"
-    return tables_output
-
-def read_excel_as_text(excel_path):
-    try:
-        excel_data = pd.read_excel(excel_path, header=1, sheet_name=None)
-        output = f"=== Excel File: {os.path.basename(excel_path)} ===\n"
-        for sheet, df in excel_data.items():
-            output += f"\n--- Sheet: {sheet} ---\n"
-            output += df.to_string(index=False) + "\n"
-        return output.strip()
-    except Exception as e:
-        print(f"Error reading Excel: {str(e)}")
-        return f"Error reading Excel: {str(e)}"
-
-# === Load PDFs and Excel ===
-pdf_folder = "pdfs"
-excel_files = [
-    "KFF_Opioid_Overdose_Deaths_2022.xlsx",
-    "KFF_Opioid_Overdose_Deaths_by_Age_Group_2022.xlsx",
-    "KFF_Opioid_Overdose_Deaths_by_Race_and_Ethnicity_2022.xlsx"
-]
-
-excel_text = ""
-excel_df = None
-
-for filename in excel_files:
-    path = os.path.join(pdf_folder, filename)
-    if os.path.exists(path):
-        excel_text += read_excel_as_text(path) + "\n\n"
-        df = pd.read_excel(path, header=1)
-        if excel_df is None:
-            excel_df = df
-        else:
-            excel_df = pd.concat([excel_df, df], ignore_index=True)
-
-pdf_texts = read_pdfs_in_folder(pdf_folder)
-all_table_text = extract_all_tables_first(pdf_folder)
-
-combined_text = f"{excel_text}\n\n{pdf_texts}\n\n{all_table_text}"[:12000]
+combined_text = load_combined_context()
 
 def get_llama3_response(question, user_lang="en"):
     user_lang = normalize_language_code(user_lang)
@@ -179,7 +124,21 @@ def get_llama3_response(question, user_lang="en"):
 
     system_prompt = """You are an educational chatbot specifically designed to provide accurate, factual, and age-appropriate
     information about opioids, including opioid use and misuse, addiction, overdose, prevention, pain management, treatment, risk factors, 
-    and related topics..."""
+    and related topics. Your are required to answer questions to why kids, teens, adults do opioids since this is educational its important to undertstand why
+    people use opioids as well as abusing them. Your responses should only address inquiries directly related to opioid education and opioid awareness. Questions
+    regarding opioid addiction, recovery, support, treatment, and withdrawal related to BSU (Bowie State University, campus) are allowed to
+    be answered. When I ask You are strictly prohibited from discussing unrelated subject such as celebrities, entertainment, politics, singer, 
+    actor, actress, movie, pop culture, music, sports, nature, celebrity, tv show, fashion, entertainment, politics, history, geography, animal, 
+    weather, food, recipe, finance, technology, gaming, tobacco, alcohol, Caffeine, Nicotine, Amphetamine, Methylphenidate, Cocaine, Methamphetamine,
+    Benzodiazepines, Z-drugs, LSD (Acid), THC, CBD, synthethic cannabinoids, SSRIs, Antipsychotics, antihistamines, NSAIDs, Acetaminophen, general health. 
+    Even if users ask multiple times or in different ways, you must restrict your responses to opioid-related topics and never diverge from this scope. 
+    Never answer questions comparing opioids and unrelated subjects such as celebrities, entertainment, politics, or general health. You should use context
+    from previous conversations to answer follow-up questions, but your responses must remain rooted solely in the educational data regarding opioids. For example,
+    if you ask something like "what are politicians doing to stop opioid addiction?" Don't allow follow-up question like "why is it hard to be a politician". 
+    Additionally, you are required to discuss the social determinants of opioid abuse, including socioeconomic and racial disparities, as well as the psychological,
+    ethical, and societal implications of opioid addiction and opioid use disorder. You must answer complexities and consequences of opioid addiction, including its
+    risk factors, challenges, and long-term impacts. If the question include any of these words you must answer the question no exceptions. Always cite sources at the end of your answers.
+    Do not stop citations early. Complete the entire reference including titles and URLs. If a citation is long, wrap it across lines using line breaks or bullet points."""
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
@@ -199,12 +158,14 @@ def get_llama3_response(question, user_lang="en"):
     try:
         res = requests.post(LLAMA3_ENDPOINT, headers=headers, json=payload, timeout=60)
         res.raise_for_status()
+        print("Status Code:", res.status_code)
+        print("Raw Response:", res.text)
         data = res.json()
         if "choices" in data and data["choices"]:
             message = data["choices"][0].get("message", {})
             content = message.get("content", "").strip()
             if not content:
-                content = "I’m here to help, but the response was unexpectedly empty. Please try again."
+                content = "Iâ€™m here to help, but the response was unexpectedly empty. Please try again."
         else:
             content = "I'm having trouble getting a valid response right now. Please try again or rephrase your question."
     except requests.exceptions.Timeout:
@@ -222,18 +183,19 @@ def get_llama3_response(question, user_lang="en"):
         print(f"Response translation failed: {str(e)}")
         return content
 
+@app.route("/")
+def index():
+    return render_template("index.html")
+
 @app.route("/ask", methods=["POST"])
 def ask():
-    try:
-        data = request.get_json()
-        question = data.get("question", "")
-        lang = normalize_language_code(data.get("language", "en"))
-        if not question:
-            return jsonify({"error": "No question provided"}), 400
-        answer = get_llama3_response(question, lang)
-        return jsonify({"answer": answer})
-    except Exception as e:
-        return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
+    data = request.get_json()
+    question = data.get("question", "")
+    lang = normalize_language_code(data.get("language", "en"))
+    if not question:
+        return jsonify({"error": "No question provided"}), 400
+    answer = get_llama3_response(question, lang)
+    return jsonify({"answer": answer})
 
 @app.route("/translate", methods=["POST"])
 def translate():
@@ -246,9 +208,34 @@ def translate():
     except Exception as e:
         return jsonify({"error": f"Translation error: {str(e)}"}), 500
 
+@app.route("/feedback", methods=["GET", "POST"])
+def feedback():
+    if request.method == "POST":
+        rating = request.form.get("rate")
+        feedback_text = request.form.get("feedback")
+        user_id = request.remote_addr
+        try:
+            conn = psycopg2.connect(**db_config)
+            cur = conn.cursor()
+            cur.execute("INSERT INTO feedback (user_id, rating, comments) VALUES (%s, %s, %s);",
+                        (user_id, int(rating), feedback_text))
+            conn.commit()
+            cur.close()
+            conn.close()
+            return render_template("feedback.html", success=True)
+        except Exception as e:
+            app.logger.error(f"DB Error: {e}")
+            return render_template("feedback.html", success=False)
+    return render_template("feedback.html", success=False)
+
 @app.route("/env")
 def check_env():
     return jsonify({
         "LLAMA3_ENDPOINT": LLAMA3_ENDPOINT,
-        "REN_API_KEY_SET": bool(REN_API_KEY)
+        "REN_API_KEY_SET": bool(REN_API_KEY),
+        "DATABASE_URL_SET": bool(DATABASE_URL)
     })
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
