@@ -237,6 +237,3 @@ def check_env():
         "LLAMA3_ENDPOINT": LLAMA3_ENDPOINT,
         "REN_API_KEY_SET": bool(REN_API_KEY)
     })
-
-if __name__ == "__main__":
-    app.run(debug=True)
