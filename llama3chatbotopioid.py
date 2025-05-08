@@ -82,7 +82,7 @@ def is_question_relevant(question):
 
 def load_combined_context():
     combined_text = ""
-        try:
+    try:
         pdf_folder = "pdfs"
         for filename in os.listdir(pdf_folder):
             if filename.lower().endswith(".pdf"):
@@ -102,6 +102,7 @@ def load_combined_context():
             combined_text += f"\n\n[Source: your_excel_file.xlsx, Row {index+1}]\n{row_text}\n"
     except Exception as e:
         print(f"Failed to load Excel: {str(e)}")
+
     return combined_text.strip()
 
 combined_text = load_combined_context()
