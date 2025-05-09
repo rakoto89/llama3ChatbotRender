@@ -103,8 +103,18 @@ def read_pdfs_in_folder(folder_path):
             #print(pdf_text)
             concatenated_text += pdf_text + '\n\n'
     return concatenated_text
-pdf_text=read_pdfs_in_folder('pdfs')
-print(pdf_text)
+pdf_text = ""
+
+@app.before_first_request
+def load_pdfs_once():
+    global pdf_text
+    try:
+        print("Loading PDFs...")
+        pdf_text = read_pdfs_in_folder('pdfs')
+        print("PDFs loaded.")
+    except Exception as e:
+        print(f"Failed to load PDFs: {e}")
+        pdf_text = ""
 
 def get_llama3_response(question, user_lang="en"):
     user_lang = normalize_language_code(user_lang)
