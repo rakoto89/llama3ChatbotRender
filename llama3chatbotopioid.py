@@ -81,15 +81,27 @@ def is_question_relevant(question):
     return False
 
 # Paths to the PDF documents
-PDF_PATH_1 = os.path.join(os.path.dirname(__file__), "pdfs", "SAMHSA.pdf")
-PDF_PATH_2 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC_About_Prescription_Opioids.pdf")
-PDF_PATH_3 = os.path.join(os.path.dirname(__file__), "pdfs", "DEA_Opium.pdf")
-PDF_PATH_4 = os.path.join(os.path.dirname(__file__), "pdfs", "LSUHSC_Opiates.pdf")
+PDF_PATH_1 = os.path.join(os.path.dirname(__file__), "pdfs", "2023 National Survey on Drug Use and Health Race ethnicity.pdf")
+PDF_PATH_2 = os.path.join(os.path.dirname(__file__), "pdfs", "2023 National Survey on Drug Use and Health.pdf")
+PDF_PATH_3 = os.path.join(os.path.dirname(__file__), "pdfs", "BSU_Opioid_Addiction_Resources.pdf")
+PDF_PATH_4 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC_About_Prescription_Opioids.pdf")
 PDF_PATH_5 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC_Preventing_Opioid_Overdose.pdf")
 PDF_PATH_5 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC_Preventing_Opioid_Use_Disorder.pdf")
 PDF_PATH_6 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC_Understanding_the_Opioid_Overdose_Epidemic.pdf")
-PDF_PATH_7 = os.path.join(os.path.dirname(__file__), "pdfs", "BSU_Opioid_Addiction_Resources.pdf")
-
+PDF_PATH_7 = os.path.join(os.path.dirname(__file__), "pdfs", "DEA_Opium.pdf")
+PDF_PATH_8 = os.path.join(os.path.dirname(__file__), "pdfs", "Disparities _Treatment_Opioids.pdf")
+PDF_PATH_9 = os.path.join(os.path.dirname(__file__), "pdfs", "Disparities_Opioid_Use_Disorder.pdf")
+PDF_PATH_10 = os.path.join(os.path.dirname(__file__), "pdfs", "Drug_Overdose_Deaths_in_the_United_States.pdf")
+PDF_PATH_11 = os.path.join(os.path.dirname(__file__), "pdfs", "Ethics_Opioid Crisis.pdf")
+PDF_PATH_12 = os.path.join(os.path.dirname(__file__), "pdfs", "Ethics_Opioid Crisis_2.pdf")
+PDF_PATH_13 = os.path.join(os.path.dirname(__file__), "pdfs", "Increases_in_Drug_and_Opioid_Overdose Deaths_UnitedStates_2000–2014.pdf")
+PDF_PATH_14 = os.path.join(os.path.dirname(__file__), "pdfs", "LSUHSC_Opiates.pdf")
+PDF_PATH_15 = os.path.join(os.path.dirname(__file__), "pdfs", "MAT.pdf")
+PDF_PATH_16 = os.path.join(os.path.dirname(__file__), "pdfs", "MAT_2.pdf")
+PDF_PATH_17 = os.path.join(os.path.dirname(__file__), "pdfs", "NACCHO_OPIOIDS.pdf")
+PDF_PATH_18 = os.path.join(os.path.dirname(__file__), "pdfs", "SAMHSA.pdf")
+PDF_PATH_19 = os.path.join(os.path.dirname(__file__), "pdfs", "Substance_Abuse_Rehab_Facilities_Near_Bowie_State_University.pdf")
+PDF_PATH_20 = os.path.join(os.path.dirname(__file__), "pdfs", "Teenagers_and_the_Opioid_Epidemic.pdf")
 
 def extract_text_from_pdf(pdf_paths):
     text = ""
@@ -102,7 +114,9 @@ def extract_text_from_pdf(pdf_paths):
     return text.strip()
 
 
-pdf_paths = [PDF_PATH_1, PDF_PATH_2, PDF_PATH_3, PDF_PATH_4, PDF_PATH_5, PDF_PATH_6, PDF_PATH_7]
+pdf_paths = [PDF_PATH_1, PDF_PATH_2, PDF_PATH_3, PDF_PATH_4, PDF_PATH_5, PDF_PATH_6, PDF_PATH_7, PDF_PATH_8, PDF_PATH_9, PDF_PATH_10, PDF_PATH_11, PDF_PATH_12, PDF_PATH_13, PDF_PATH_14, PDF_PATH_15, PDF_PATH_16,
+PDF_PATH_17, PDF_PATH_18, PDF_PATH_19, PDF_PATH_20]
+
 pdf_text = extract_text_from_pdf(pdf_paths)
 
 
