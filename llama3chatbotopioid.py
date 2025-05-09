@@ -82,21 +82,33 @@ def is_question_relevant(question):
 
 def load_combined_context():
     combined_text = ""
+    data_dir = "pdfs"
+
+    # Load all PDFs
     try:
-        with pdfplumber.open("data/your_pdf_file.pdf") as pdf:
-            for i, page in enumerate(pdf.pages, 1):
-                text = page.extract_text()
-                if text:
-                    combined_text += f"\n\n[Source: your_pdf_file.pdf, Page {i}]\n{text}\n"
+        for filename in os.listdir(data_dir):
+            if filename.endswith(".pdf"):
+                pdf_path = os.path.join(data_dir, filename)
+                with pdfplumber.open(pdf_path) as pdf:
+                    for i, page in enumerate(pdf.pages, 1):
+                        text = page.extract_text()
+                        if text:
+                            combined_text += f"\n\n[Source: {filename}, Page {i}]\n{text.strip()}\n"
     except Exception as e:
-        print(f"Failed to load PDF: {str(e)}")
+        print(f"Failed to load PDFs: {str(e)}")
+
+    # Load all Excel files
     try:
-        df = pd.read_excel("data/your_excel_file.xlsx")
-        for index, row in df.iterrows():
-            row_text = " ".join(str(cell) for cell in row)
-            combined_text += f"\n\n[Source: your_excel_file.xlsx, Row {index+1}]\n{row_text}\n"
+        for filename in os.listdir(data_dir):
+            if filename.endswith(".xlsx") or filename.endswith(".xls"):
+                excel_path = os.path.join(data_dir, filename)
+                df = pd.read_excel(excel_path)
+                for index, row in df.iterrows():
+                    row_text = " ".join(str(cell) for cell in row)
+                    combined_text += f"\n\n[Source: {filename}, Row {index+1}]\n{row_text.strip()}\n"
     except Exception as e:
-        print(f"Failed to load Excel: {str(e)}")
+        print(f"Failed to load Excel files: {str(e)}")
+
     return combined_text.strip()
 
 combined_text = load_combined_context()
