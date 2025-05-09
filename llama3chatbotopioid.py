@@ -1,19 +1,11 @@
 import os
-
 import requests
-
 import pdfplumber
-
 import psycopg2
-
 import urllib.parse as urlparse
-
 import pandas as pd
-
 from flask import Flask, request, render_template, jsonify
-
 from flask_cors import CORS
-
 from googletrans import Translator
 
 app = Flask(__name__, static_url_path='/static')
@@ -35,7 +27,6 @@ db_config = {
 
 conversation_history = []
 conversation_context = {}
-combined_text = None  # Lazy load context
 
 irrelevant_topics = [
     "singer", "actor", "actress", "movie", "pop culture", "music", "sports",
@@ -53,13 +44,13 @@ relevant_topics = [
     "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance", "scientific",
     "support", "support for opioid addiction", "drug use", "email", "campus", "phone number", "clinician", "evidence",
     "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication", "clinical",
-    "risk factors", "disparity", "racism", "bias", "addict", "marginalized", "challenges", "long-term factors",
+    "risk factors", "disparity", "racism", "bias", "addict", "marginalized","challenges", "long-term factors",
     "short-term factors", "consequences", "disease", "cancer", "treatment-seeking", "stigma", "stigmas", "opioid users", "communities",
     "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
     "medication-assisted treatment", "MAT", "OUD", "opioid epidemic", "teen", "dangers", "genetic", "ethical", "ethics",
     "environmental factors", "pain management", "consequences", "prevention", "doctor", "physician",
     "adult", "death", "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", "pharmacology", "pharmacological",
-    "brands", "treatment programs", "medication", "young people", "peer pressure", "socioeconomic factors", "DO", "MD",
+    "brands", "treatment programs", "medication", "young people", "peer pressure", "socioeconomic factors", "DO", "MD", 
     "income inequality", "healthcare disparities", "psychological", "psychology", "screen"
 ]
 
@@ -91,29 +82,26 @@ def is_question_relevant(question):
 
 def load_combined_context():
     combined_text = ""
-    data_dir = "pdfs"
-
     try:
-        for filename in os.listdir(data_dir):
-            if filename.endswith(".pdf"):
-                pdf_path = os.path.join(data_dir, filename)
-                with pdfplumber.open(pdf_path) as pdf:
-                    if len(pdf.pages) > 0:
-                        text = pdf.pages[0].extract_text()
-                        if text:
-                            combined_text += f"\n\n[Source: {filename}, Page 1]\n{text.strip()}\n"
+        with pdfplumber.open("data/your_pdf_file.pdf") as pdf:
+            for i, page in enumerate(pdf.pages, 1):
+                text = page.extract_text()
+                if text:
+                    combined_text += f"\n\n[Source: your_pdf_file.pdf, Page {i}]\n{text}\n"
     except Exception as e:
-        print(f"Failed to load PDFs: {str(e)}")
-
+        print(f"Failed to load PDF: {str(e)}")
+    try:
+        df = pd.read_excel("data/your_excel_file.xlsx")
+        for index, row in df.iterrows():
+            row_text = " ".join(str(cell) for cell in row)
+            combined_text += f"\n\n[Source: your_excel_file.xlsx, Row {index+1}]\n{row_text}\n"
+    except Exception as e:
+        print(f"Failed to load Excel: {str(e)}")
     return combined_text.strip()
 
-def get_llama3_response(question, user_lang="en"):
-    global combined_text
-    if combined_text is None:
-        print("Loading context...")
-        combined_text = load_combined_context()
-        print("Context loaded.")
+combined_text = load_combined_context()
 
+def get_llama3_response(question, user_lang="en"):
     user_lang = normalize_language_code(user_lang)
     translator = Translator()
     try:
@@ -163,20 +151,21 @@ def get_llama3_response(question, user_lang="en"):
     }
 
     payload = {
-        "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+        "model": "meta-llama/Llama-3-8b-chat-hf",
         "messages": messages
     }
 
     try:
-        print("Sending request to Llama3...")
         res = requests.post(LLAMA3_ENDPOINT, headers=headers, json=payload, timeout=60)
         res.raise_for_status()
+        print("Status Code:", res.status_code)
+        print("Raw Response:", res.text)
         data = res.json()
         if "choices" in data and data["choices"]:
             message = data["choices"][0].get("message", {})
             content = message.get("content", "").strip()
             if not content:
-                content = "I'm here to help, but the response was unexpectedly empty. Please try again."
+                content = "Iâ€™m here to help, but the response was unexpectedly empty. Please try again."
         else:
             content = "I'm having trouble getting a valid response right now. Please try again or rephrase your question."
     except requests.exceptions.Timeout:
@@ -185,7 +174,7 @@ def get_llama3_response(question, user_lang="en"):
         content = f"Server returned an HTTP error: {str(e)}"
     except Exception as e:
         print("Unhandled error:", str(e))
-        content = "A technical error occurred. Please reach out to our system admin at akotor0621@students.bowiestate.edu."
+        content = "Our apologies, a technical error occurred. Please reach out to our system admin at akotor0621@students.bowiestate.edu."
 
     conversation_history.append({"role": "assistant", "content": content})
     try:
