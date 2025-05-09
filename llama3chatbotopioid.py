@@ -163,7 +163,7 @@ def get_llama3_response(question, user_lang="en"):
     }
 
     payload = {
-        "model": "meta-llama/Llama-3-8b-chat-hf",
+        "model": "meta-llama/Meta-Llama-3-8B-Instruct",
         "messages": messages
     }
 
