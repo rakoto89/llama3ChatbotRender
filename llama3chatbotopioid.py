@@ -80,41 +80,26 @@ def is_question_relevant(question):
 
     return False
 
-def extract_text_from_pdf(pdf_paths):
-    text = ""
-    # for pdf_path in pdf_paths:
-    with pdfplumber.open(pdf_paths) as pdf:
-        for page in pdf.pages:
-            extracted_text = page.extract_text()
-            if extracted_text:
-                text += extracted_text + "\n"
-    return text.strip()
-import PyPDF2
-pdf_text=''
-def read_pdfs_in_folder(folder_path):
-    # Navigate through the folder
-    concatenated_text = ''
-    for filename in os.listdir(folder_path):
-        print(filename)
-        if filename.endswith('.pdf'):
-            pdf_path = os.path.join(folder_path, filename)
-            print(pdf_path)
-            pdf_text=extract_text_from_pdf(pdf_path)
-            #print(pdf_text)
-            concatenated_text += pdf_text + '\n\n'
-    return concatenated_text
-pdf_text = ""
-
-@app.before_first_request
-def load_pdfs_once():
-    global pdf_text
+def load_combined_context():
+    combined_text = ""
     try:
-        print("Loading PDFs...")
-        pdf_text = read_pdfs_in_folder('pdfs')
-        print("PDFs loaded.")
+        with pdfplumber.open("data/your_pdf_file.pdf") as pdf:
+            for i, page in enumerate(pdf.pages, 1):
+                text = page.extract_text()
+                if text:
+                    combined_text += f"\n\n[Source: your_pdf_file.pdf, Page {i}]\n{text}\n"
     except Exception as e:
-        print(f"Failed to load PDFs: {e}")
-        pdf_text = ""
+        print(f"Failed to load PDF: {str(e)}")
+    try:
+        df = pd.read_excel("data/your_excel_file.xlsx")
+        for index, row in df.iterrows():
+            row_text = " ".join(str(cell) for cell in row)
+            combined_text += f"\n\n[Source: your_excel_file.xlsx, Row {index+1}]\n{row_text}\n"
+    except Exception as e:
+        print(f"Failed to load Excel: {str(e)}")
+    return combined_text.strip()
+
+combined_text = load_combined_context()
 
 def get_llama3_response(question, user_lang="en"):
     user_lang = normalize_language_code(user_lang)
@@ -254,4 +239,3 @@ def check_env():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
