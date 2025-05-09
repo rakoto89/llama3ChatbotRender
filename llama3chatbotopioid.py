@@ -3,10 +3,10 @@ import requests
 import pdfplumber
 import psycopg2
 import urllib.parse as urlparse
-import pandas as pd
 from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
-from googletrans import Translator
+from 
+ import Translator
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
@@ -27,6 +27,7 @@ db_config = {
 
 conversation_history = []
 conversation_context = {}
+combined_text = None  # Lazy load context
 
 irrelevant_topics = [
     "singer", "actor", "actress", "movie", "pop culture", "music", "sports",
@@ -44,13 +45,13 @@ relevant_topics = [
     "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance", "scientific",
     "support", "support for opioid addiction", "drug use", "email", "campus", "phone number", "clinician", "evidence",
     "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication", "clinical",
-    "risk factors", "disparity", "racism", "bias", "addict", "marginalized","challenges", "long-term factors",
+    "risk factors", "disparity", "racism", "bias", "addict", "marginalized", "challenges", "long-term factors",
     "short-term factors", "consequences", "disease", "cancer", "treatment-seeking", "stigma", "stigmas", "opioid users", "communities",
     "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
     "medication-assisted treatment", "MAT", "OUD", "opioid epidemic", "teen", "dangers", "genetic", "ethical", "ethics",
     "environmental factors", "pain management", "consequences", "prevention", "doctor", "physician",
     "adult", "death", "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", "pharmacology", "pharmacological",
-    "brands", "treatment programs", "medication", "young people", "peer pressure", "socioeconomic factors", "DO", "MD", 
+    "brands", "treatment programs", "medication", "young people", "peer pressure", "socioeconomic factors", "DO", "MD",
     "income inequality", "healthcare disparities", "psychological", "psychology", "screen"
 ]
 
@@ -89,32 +90,21 @@ def load_combined_context():
             if filename.endswith(".pdf"):
                 pdf_path = os.path.join(data_dir, filename)
                 with pdfplumber.open(pdf_path) as pdf:
-                    for i, page in enumerate(pdf.pages, 1):
-                        text = page.extract_text()
+                    if len(pdf.pages) > 0:
+                        text = pdf.pages[0].extract_text()
                         if text:
-                            combined_text += f"\n\n[Source: {filename}, Page {i}]\n{text.strip()}\n"
+                            combined_text += f"\n\n[Source: {filename}, Page 1]\n{text.strip()}\n"
     except Exception as e:
         print(f"Failed to load PDFs: {str(e)}")
 
-    try:
-        for filename in os.listdir(data_dir):
-            if filename.endswith(".xlsx") or filename.endswith(".xls"):
-                excel_path = os.path.join(data_dir, filename)
-                df = pd.read_excel(excel_path)
-                for index, row in df.iterrows():
-                    row_text = " ".join(str(cell) for cell in row)
-                    combined_text += f"\n\n[Source: {filename}, Row {index+1}]\n{row_text.strip()}\n"
-    except Exception as e:
-        print(f"Failed to load Excel files: {str(e)}")
-
     return combined_text.strip()
-
-combined_text = None  # <-- DEFERRED LOADING
 
 def get_llama3_response(question, user_lang="en"):
     global combined_text
     if combined_text is None:
+        print("Loading context...")
         combined_text = load_combined_context()
+        print("Context loaded.")
 
     user_lang = normalize_language_code(user_lang)
     translator = Translator()
@@ -137,7 +127,9 @@ def get_llama3_response(question, user_lang="en"):
     conversation_history.append({"role": "user", "content": translated_question})
 
     system_prompt = """You are an educational chatbot specifically designed to provide accurate, factual, and age-appropriate
-    information about opioids... (truncated for brevity, keep your original full system prompt here)"""
+    information about opioids, including opioid use and misuse, addiction, overdose, prevention, pain management, treatment, risk factors, 
+    and related topics. Your responses must remain strictly focused on opioid-related education, especially for students and faculty of Bowie State University.
+    Always cite sources from provided PDF context. Never answer unrelated topics. Do not stop citations early."""
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
@@ -155,10 +147,9 @@ def get_llama3_response(question, user_lang="en"):
     }
 
     try:
+        print("Sending request to Llama3...")
         res = requests.post(LLAMA3_ENDPOINT, headers=headers, json=payload, timeout=60)
         res.raise_for_status()
-        print("Status Code:", res.status_code)
-        print("Raw Response:", res.text)
         data = res.json()
         if "choices" in data and data["choices"]:
             message = data["choices"][0].get("message", {})
@@ -238,4 +229,3 @@ def check_env():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
