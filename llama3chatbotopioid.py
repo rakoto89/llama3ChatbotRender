@@ -3,7 +3,6 @@ import requests
 import pdfplumber
 import psycopg2
 import urllib.parse as urlparse
-import pandas as pd
 from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
 from googletrans import Translator
@@ -82,21 +81,18 @@ def is_question_relevant(question):
 
 def load_combined_context():
     combined_text = ""
+    pdf_folder = "pdfs"
     try:
-        with pdfplumber.open("data/your_pdf_file.pdf") as pdf:
-            for i, page in enumerate(pdf.pages, 1):
-                text = page.extract_text()
-                if text:
-                    combined_text += f"\n\n[Source: your_pdf_file.pdf, Page {i}]\n{text}\n"
+        for filename in os.listdir(pdf_folder):
+            if filename.endswith(".pdf"):
+                file_path = os.path.join(pdf_folder, filename)
+                with pdfplumber.open(file_path) as pdf:
+                    for i, page in enumerate(pdf.pages, 1):
+                        text = page.extract_text()
+                        if text:
+                            combined_text += f"\n\n[Source: {filename}, Page {i}]\n{text}\n"
     except Exception as e:
-        print(f"Failed to load PDF: {str(e)}")
-    try:
-        df = pd.read_excel("data/your_excel_file.xlsx")
-        for index, row in df.iterrows():
-            row_text = " ".join(str(cell) for cell in row)
-            combined_text += f"\n\n[Source: your_excel_file.xlsx, Row {index+1}]\n{row_text}\n"
-    except Exception as e:
-        print(f"Failed to load Excel: {str(e)}")
+        print(f"Failed to load PDFs: {str(e)}")
     return combined_text.strip()
 
 combined_text = load_combined_context()
@@ -165,7 +161,7 @@ def get_llama3_response(question, user_lang="en"):
             message = data["choices"][0].get("message", {})
             content = message.get("content", "").strip()
             if not content:
-                content = "Iâ€™m here to help, but the response was unexpectedly empty. Please try again."
+                content = "I’m here to help, but the response was unexpectedly empty. Please try again."
         else:
             content = "I'm having trouble getting a valid response right now. Please try again or rephrase your question."
     except requests.exceptions.Timeout:
