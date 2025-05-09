@@ -80,26 +80,41 @@ def is_question_relevant(question):
 
     return False
 
+import os
+import pdfplumber
+import pandas as pd
+
 def load_combined_context():
     combined_text = ""
-    try:
-        with pdfplumber.open("data/your_pdf_file.pdf") as pdf:
-            for i, page in enumerate(pdf.pages, 1):
-                text = page.extract_text()
-                if text:
-                    combined_text += f"\n\n[Source: your_pdf_file.pdf, Page {i}]\n{text}\n"
-    except Exception as e:
-        print(f"Failed to load PDF: {str(e)}")
-    try:
-        df = pd.read_excel("data/your_excel_file.xlsx")
-        for index, row in df.iterrows():
-            row_text = " ".join(str(cell) for cell in row)
-            combined_text += f"\n\n[Source: your_excel_file.xlsx, Row {index+1}]\n{row_text}\n"
-    except Exception as e:
-        print(f"Failed to load Excel: {str(e)}")
+    pdf_folder = "pdfs"
+
+    # Process all PDF files
+    for filename in os.listdir(pdf_folder):
+        if filename.lower().endswith(".pdf"):
+            filepath = os.path.join(pdf_folder, filename)
+            try:
+                with pdfplumber.open(filepath) as pdf:
+                    for i, page in enumerate(pdf.pages, 1):
+                        text = page.extract_text()
+                        if text:
+                            combined_text += f"\n\n[Source: {filename}, Page {i}]\n{text}\n"
+            except Exception as e:
+                print(f"Failed to load PDF {filename}: {str(e)}")
+
+    # Process all Excel files
+    for filename in os.listdir(pdf_folder):
+        if filename.lower().endswith((".xlsx", ".xls")):
+            filepath = os.path.join(pdf_folder, filename)
+            try:
+                df = pd.read_excel(filepath)
+                for index, row in df.iterrows():
+                    row_text = " ".join(str(cell) for cell in row)
+                    combined_text += f"\n\n[Source: {filename}, Row {index+1}]\n{row_text}\n"
+            except Exception as e:
+                print(f"Failed to load Excel file {filename}: {str(e)}")
+
     return combined_text.strip()
 
-combined_text = load_combined_context()
 
 def get_llama3_response(question, user_lang="en"):
     user_lang = normalize_language_code(user_lang)
