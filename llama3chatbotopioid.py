@@ -1,12 +1,20 @@
 import os
+
 import requests
+
 import pdfplumber
+
 import psycopg2
+
 import urllib.parse as urlparse
+
+import pandas as pd
+
 from flask import Flask, request, render_template, jsonify
+
 from flask_cors import CORS
-from 
- import Translator
+
+from googletrans import Translator
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
