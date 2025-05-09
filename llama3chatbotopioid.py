@@ -3,6 +3,7 @@ import requests
 import pdfplumber
 import psycopg2
 import urllib.parse as urlparse
+import pandas as pd
 from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
 from googletrans import Translator
@@ -79,23 +80,32 @@ def is_question_relevant(question):
 
     return False
 
-def load_combined_context():
-    combined_text = ""
-    pdf_folder = "pdfs"
-    try:
-        for filename in os.listdir(pdf_folder):
-            if filename.endswith(".pdf"):
-                file_path = os.path.join(pdf_folder, filename)
-                with pdfplumber.open(file_path) as pdf:
-                    for i, page in enumerate(pdf.pages, 1):
-                        text = page.extract_text()
-                        if text:
-                            combined_text += f"\n\n[Source: {filename}, Page {i}]\n{text}\n"
-    except Exception as e:
-        print(f"Failed to load PDFs: {str(e)}")
-    return combined_text.strip()
+# Paths to the PDF documents
+PDF_PATH_1 = os.path.join(os.path.dirname(__file__), "pdfs", "SAMHSA.pdf")
+PDF_PATH_2 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC_About_Prescription_Opioids.pdf")
+PDF_PATH_3 = os.path.join(os.path.dirname(__file__), "pdfs", "DEA_Opium.pdf")
+PDF_PATH_4 = os.path.join(os.path.dirname(__file__), "pdfs", "LSUHSC_Opiates.pdf")
+PDF_PATH_5 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC_Preventing_Opioid_Overdose.pdf")
+PDF_PATH_5 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC_Preventing_Opioid_Use_Disorder.pdf")
+PDF_PATH_6 = os.path.join(os.path.dirname(__file__), "pdfs", "CDC_Understanding_the_Opioid_Overdose_Epidemic.pdf")
+PDF_PATH_7 = os.path.join(os.path.dirname(__file__), "pdfs", "BSU_Opioid_Addiction_Resources.pdf")
 
-combined_text = load_combined_context()
+
+def extract_text_from_pdf(pdf_paths):
+    text = ""
+    for pdf_path in pdf_paths:
+        with pdfplumber.open(pdf_path) as pdf:
+            for page in pdf.pages:
+                extracted_text = page.extract_text()
+                if extracted_text:
+                    text += extracted_text + "\n"
+    return text.strip()
+
+
+pdf_paths = [PDF_PATH_1, PDF_PATH_2, PDF_PATH_3, PDF_PATH_4, PDF_PATH_5, PDF_PATH_6, PDF_PATH_7]
+pdf_text = extract_text_from_pdf(pdf_paths)
+
+
 
 def get_llama3_response(question, user_lang="en"):
     user_lang = normalize_language_code(user_lang)
@@ -161,7 +171,7 @@ def get_llama3_response(question, user_lang="en"):
             message = data["choices"][0].get("message", {})
             content = message.get("content", "").strip()
             if not content:
-                content = "I’m here to help, but the response was unexpectedly empty. Please try again."
+                content = "Iâ€™m here to help, but the response was unexpectedly empty. Please try again."
         else:
             content = "I'm having trouble getting a valid response right now. Please try again or rephrase your question."
     except requests.exceptions.Timeout:
