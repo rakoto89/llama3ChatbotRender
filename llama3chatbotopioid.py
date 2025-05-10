@@ -1,4 +1,4 @@
-import os
+uimport os
 import requests
 import pdfplumber
 import psycopg2
@@ -29,11 +29,11 @@ conversation_history = []
 conversation_context = {}
 
 irrelevant_topics = [
-    "singer", "actor", "actress", "movie", "pop culture", "music", "sports",
-    "nature", "celebrity", "tv show", "fashion", "entertainment", "politics",
-    "history", "geography", "animal", "weather", "food", "recipe", "finance",
-    "technology", "gaming", "tobacco", "alcohol", "Caffeine", "Nicotine", "Amphetamine",
-    "Methylphenidate", "Cocaine", "Methamphetamine", "Benzodiazepines", "Z-drugs", "LSD (Acid)",
+    "singer", "actor", "actress", "movie", "pop culture", "music", "sports", "literature",
+    "nature", "celebrity", "tv show", "fashion", "entertainment", "politics", "school", "science"
+    "history", "geography", "animal", "weather", "food", "drink", "recipe", "finance", "education", "academia",
+    "technology", "gaming", "tobacco", "alcohol", "Caffeine", "Nicotine", "Amphetamine", "physical education",
+    "Methylphenidate", "Cocaine", "Methamphetamine", "Benzodiazepines", "Z-drugs", "LSD (Acid)", "art", 
     "THC", "CBD", "synthethic cannabinoids", "SSRIs", "Antipsychotics", "antihistamines", "NSAIDs",
     "Acetaminophen"
 ]
