@@ -29,8 +29,8 @@ conversation_history = []
 conversation_context = {}
 
 irrelevant_topics = [
-    "singer", "actor", "actress", "movie", "pop culture", "music", "sports", "literature",
-    "nature", "celebrity", "tv show", "fashion", "entertainment", "politics", "school", "science"
+    "singer", "actor", "actress", "movie", "pop culture", "music", "sports", "literature", "state", "country", "continent"
+    "nature", "celebrity", "tv show", "fashion", "entertainment", "politics", "school", "science", "cities",
     "history", "geography", "animal", "weather", "food", "drink", "recipe", "finance", "education", "academia",
     "technology", "gaming", "tobacco", "alcohol", "Caffeine", "Nicotine", "Amphetamine", "physical education",
     "Methylphenidate", "Cocaine", "Methamphetamine", "Benzodiazepines", "Z-drugs", "LSD (Acid)", "art", 
