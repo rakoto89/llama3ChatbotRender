@@ -29,7 +29,7 @@ conversation_history = []
 conversation_context = {}
 
 irrelevant_topics = [
-    "singer", "actor", "actress", "movie", "pop culture", "music", "sports", "literature", "state", "country", "continent"
+    "singer", "actor", "actress", "movie", "pop culture", "music", "sports", "literature", "state", "country", "continent",
     "nature", "celebrity", "tv show", "fashion", "entertainment", "politics", "school", "science", "cities",
     "history", "geography", "animal", "weather", "food", "drink", "recipe", "finance", "education", "academia",
     "technology", "gaming", "tobacco", "alcohol", "Caffeine", "Nicotine", "Amphetamine", "physical education",
@@ -72,12 +72,15 @@ def is_question_relevant(question):
     print("Matched irrelevant topics:", matched_irrelevant)
     print("Matched relevant topics:", matched_relevant)
 
+    # Block if the question includes ANY irrelevant topics unless it also includes relevant ones
     if matched_irrelevant and not matched_relevant:
         return False
 
+    # Allow if it includes clearly relevant terms
     if matched_relevant:
         return True
 
+    # Check conversation context only if no clear match
     recent_user_msgs = [msg["content"] for msg in reversed(conversation_history) if msg["role"] == "user"]
     for msg in recent_user_msgs[:5]:
         if any(topic in msg.lower() for topic in relevant_topics):
