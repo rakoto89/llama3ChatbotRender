@@ -7,6 +7,19 @@ import pandas as pd
 from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
 from googletrans import Translator
+import re
+
+# === [ADDED: URL Extraction and Filtering Functions] ===
+def extract_urls_from_context(context_text):
+    return set(re.findall(r'https?://[^\s<>\"]+', context_text))
+
+def filter_response_urls(response_text, valid_urls):
+    found_urls = re.findall(r'https?://[^\s<>\"]+', response_text)
+    for url in found_urls:
+        if url not in valid_urls:
+            response_text = response_text.replace(url, "[URL removed: not found in source]")
+    return response_text
+# === [END ADDITION] ===
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
@@ -58,40 +71,20 @@ def normalize_language_code(lang):
     zh_map = {'zh': 'zh-CN', 'zh-cn': 'zh-CN', 'zh-tw': 'zh-TW'}
     return zh_map.get(lang.lower(), lang)
 
-def normalize_language_code(lang):
-    zh_map = {'zh': 'zh-CN', 'zh-cn': 'zh-CN', 'zh-tw': 'zh-TW'}
-    return zh_map.get(lang.lower(), lang)
-
 def is_question_relevant(question):
     question_lower = question.lower().strip()
-
     matched_irrelevant = [topic for topic in irrelevant_topics if topic in question_lower]
     matched_relevant = [topic for topic in relevant_topics if topic in question_lower]
-
-    print("Question:", question_lower)
-    print("Matched irrelevant topics:", matched_irrelevant)
-    print("Matched relevant topics:", matched_relevant)
-
-    # Block if the question includes ANY irrelevant topics unless it also includes relevant ones
     if matched_irrelevant and not matched_relevant:
         return False
-
-    # Allow if it includes clearly relevant terms
     if matched_relevant:
         return True
-
-    # Check conversation context only if no clear match
     recent_user_msgs = [msg["content"] for msg in reversed(conversation_history) if msg["role"] == "user"]
     for msg in recent_user_msgs[:5]:
         if any(topic in msg.lower() for topic in relevant_topics):
             return True
-
     return False
 
-def load_combined_context():
-    combined_text = ""
-
-# === PDF and EXCEL TEXT EXTRACTION ===
 def extract_text_from_pdf(pdf_path):
     text = ""
     with pdfplumber.open(pdf_path) as pdf:
@@ -140,7 +133,6 @@ def read_excel_as_text(excel_path):
     except Exception as e:
         return f"Error reading Excel: {str(e)}"
 
-# === Load PDFs and Excel ===
 pdf_folder = "pdfs"
 excel_files = [
     "KFF_Opioid_Overdose_Deaths_2022.xlsx",
@@ -171,8 +163,7 @@ def get_llama3_response(question, user_lang="en"):
     translator = Translator()
     try:
         translated_question = translator.translate(question, dest="en").text
-    except Exception as e:
-        print(f"Translation failed: {str(e)}")
+    except:
         translated_question = question
 
     if not is_question_relevant(translated_question):
@@ -181,31 +172,30 @@ def get_llama3_response(question, user_lang="en"):
                 "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment.",
                 dest=user_lang
             ).text
-        except Exception as e:
-            print(f"Translation fallback failed: {str(e)}")
+        except:
             return "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment."
 
     conversation_history.append({"role": "user", "content": translated_question})
 
-    system_prompt = """You are an educational chatbot specifically designed to provide accurate, factual, and age-appropriate
-    information about opioids, including opioid use and misuse, addiction, overdose, prevention, pain management, treatment, risk factors, 
-    and related topics. Your are required to answer questions to why kids, teens, adults do opioids since this is educational its important to undertstand why
-    people use opioids as well as abusing them. Your responses should only address inquiries directly related to opioid education and opioid awareness. Questions
-    regarding opioid addiction, recovery, support, treatment, and withdrawal related to BSU (Bowie State University, campus) are allowed to
-    be answered. When I ask You are strictly prohibited from discussing unrelated subject such as celebrities, entertainment, politics, singer, 
-    actor, actress, movie, pop culture, music, sports, nature, celebrity, tv show, fashion, entertainment, politics, history, geography, animal, 
-    weather, food, recipe, finance, technology, gaming, tobacco, alcohol, Caffeine, Nicotine, Amphetamine, Methylphenidate, Cocaine, Methamphetamine,
-    Benzodiazepines, Z-drugs, LSD (Acid), THC, CBD, synthethic cannabinoids, SSRIs, Antipsychotics, antihistamines, NSAIDs, Acetaminophen, general health. 
-    Even if users ask multiple times or in different ways, you must restrict your responses to opioid-related topics and never diverge from this scope. 
-    Never answer questions comparing opioids and unrelated subjects such as celebrities, entertainment, politics, or general health. Under no circumstance are you allowed 
-    to answer those questions instead respond with "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment" if you get asked these topics. You should use context
-    from previous conversations to answer follow-up questions, but your responses must remain rooted solely in the educational data regarding opioids. For example,
-    if you ask something like "what are politicians doing to stop opioid addiction?" Don't allow follow-up question like "why is it hard to be a politician". 
-    Additionally, you are required to discuss the social determinants of opioid abuse, including socioeconomic and racial disparities, as well as the psychological,
-    ethical, and societal implications of opioid addiction and opioid use disorder. You must answer complexities and consequences of opioid addiction, including its
-    risk factors, challenges, and long-term impacts. If the question include any of these words you must answer the question no exceptions. Always cite sources at the end of your answers.
-    Only cite real from context. Do not invent sources. Do not hallucinate sources. Do not stop citations early. Complete the entire reference including titles and URLs, only provide the URL if its real.
-    If a citation is long, wrap it across lines using line breaks or bullet points."""
+system_prompt ="""You are an educational chatbot specifically designed to provide accurate, factual, and age-appropriate
+information about opioids, including opioid use and misuse, addiction, overdose, prevention, pain management, treatment, risk factors, 
+and related topics. Your are required to answer questions to why kids, teens, adults do opioids since this is educational its important to undertstand why
+people use opioids as well as abusing them. Your responses should only address inquiries directly related to opioid education and opioid awareness. Questions
+regarding opioid addiction, recovery, support, treatment, and withdrawal related to BSU (Bowie State University, campus) are allowed to
+be answered. When I ask You are strictly prohibited from discussing unrelated subject such as celebrities, entertainment, politics, singer, 
+actor, actress, movie, pop culture, music, sports, nature, celebrity, tv show, fashion, entertainment, politics, history, geography, animal, 
+weather, food, recipe, finance, technology, gaming, tobacco, alcohol, Caffeine, Nicotine, Amphetamine, Methylphenidate, Cocaine, Methamphetamine,
+Benzodiazepines, Z-drugs, LSD (Acid), THC, CBD, synthethic cannabinoids, SSRIs, Antipsychotics, antihistamines, NSAIDs, Acetaminophen, general health. 
+Even if users ask multiple times or in different ways, you must restrict your responses to opioid-related topics and never diverge from this scope. 
+Never answer questions comparing opioids and unrelated subjects such as celebrities, entertainment, politics, or general health. Under no circumstance are you allowed 
+to answer those questions instead respond with "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment" if you get asked these topics. You should use context
+from previous conversations to answer follow-up questions, but your responses must remain rooted solely in the educational data regarding opioids. For example,
+if you ask something like "what are politicians doing to stop opioid addiction?" Don't allow follow-up question like "why is it hard to be a politician". 
+Additionally, you are required to discuss the social determinants of opioid abuse, including socioeconomic and racial disparities, as well as the psychological,
+ethical, and societal implications of opioid addiction and opioid use disorder. You must answer complexities and consequences of opioid addiction, including its
+risk factors, challenges, and long-term impacts. If the question include any of these words you must answer the question no exceptions. Always cite sources at the end of your answers.
+Only cite real from context. Do not invent sources. Do not hallucinate sources. Do not stop citations early. Complete the entire reference including titles and URLs, only provide the URL if its real.
+If a citation is long, wrap it across lines using line breaks or bullet points.""""
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
@@ -225,29 +215,27 @@ def get_llama3_response(question, user_lang="en"):
     try:
         res = requests.post(LLAMA3_ENDPOINT, headers=headers, json=payload, timeout=60)
         res.raise_for_status()
-        print("Status Code:", res.status_code)
-        print("Raw Response:", res.text)
         data = res.json()
         if "choices" in data and data["choices"]:
             message = data["choices"][0].get("message", {})
             content = message.get("content", "").strip()
             if not content:
-                content = "Iâ€™m here to help, but the response was unexpectedly empty. Please try again."
+                content = "I'm here to help, but the response was unexpectedly empty. Please try again."
         else:
             content = "I'm having trouble getting a valid response right now. Please try again or rephrase your question."
-    except requests.exceptions.Timeout:
-        content = "The server took too long to respond. Please try again shortly."
-    except requests.exceptions.HTTPError as e:
-        content = f"Server returned an HTTP error: {str(e)}"
-    except Exception as e:
-        print("Unhandled error:", str(e))
-        content = "Our apologies, a technical error occurred. Please reach out to our system admin at akotor0621@students.bowiestate.edu."
+    except:
+        content = "Our apologies, a technical error occurred. Please reach out to our system admin."
 
     conversation_history.append({"role": "assistant", "content": content})
+
+    # === [ADDED: Filter hallucinated URLs] ===
+    valid_urls = extract_urls_from_context(combined_text)
+    content = filter_response_urls(content, valid_urls)
+    # === [END ADDITION] ===
+
     try:
         return translator.translate(content, dest=user_lang).text
-    except Exception as e:
-        print(f"Response translation failed: {str(e)}")
+    except:
         return content
 
 @app.route("/")
