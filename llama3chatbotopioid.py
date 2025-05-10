@@ -29,12 +29,12 @@ conversation_history = []
 conversation_context = {}
 
 irrelevant_topics = [
-    "singer", "actor", "actress", "movie", "pop culture", "music", "sports", "literature", "state", "country", "continent",
+    "singer", "actor", "actress", "movie", "pop culture", "music", "sports", "literature", "state", "country", "continent"
     "nature", "celebrity", "tv show", "fashion", "entertainment", "politics", "school", "science", "cities",
     "history", "geography", "animal", "weather", "food", "drink", "recipe", "finance", "education", "academia",
     "technology", "gaming", "tobacco", "alcohol", "Caffeine", "Nicotine", "Amphetamine", "physical education",
     "Methylphenidate", "Cocaine", "Methamphetamine", "Benzodiazepines", "Z-drugs", "LSD (Acid)", "art", 
-    "THC", "CBD", "synthethic cannabinoids", "SSRIs", "Antipsychotics", "antihistamines", "NSAIDs",
+    "THC", "CBD", "synthetic cannabinoids", "SSRIs", "Antipsychotics", "antihistamines", "NSAIDs",
     "Acetaminophen"
 ]
 
@@ -58,8 +58,13 @@ def normalize_language_code(lang):
     zh_map = {'zh': 'zh-CN', 'zh-cn': 'zh-CN', 'zh-tw': 'zh-TW'}
     return zh_map.get(lang.lower(), lang)
 
+def normalize_language_code(lang):
+    zh_map = {'zh': 'zh-CN', 'zh-cn': 'zh-CN', 'zh-tw': 'zh-TW'}
+    return zh_map.get(lang.lower(), lang)
+
 def is_question_relevant(question):
     question_lower = question.lower().strip()
+
     matched_irrelevant = [topic for topic in irrelevant_topics if topic in question_lower]
     matched_relevant = [topic for topic in relevant_topics if topic in question_lower]
 
@@ -67,10 +72,8 @@ def is_question_relevant(question):
     print("Matched irrelevant topics:", matched_irrelevant)
     print("Matched relevant topics:", matched_relevant)
 
-    if matched_irrelevant:
+    if matched_irrelevant and not matched_relevant:
         return False
-    return any(topic in question_lower for topic in relevant_topics)
-
 
     if matched_relevant:
         return True
@@ -81,6 +84,9 @@ def is_question_relevant(question):
             return True
 
     return False
+
+def load_combined_context():
+    combined_text = ""
 
 # === PDF and EXCEL TEXT EXTRACTION ===
 def extract_text_from_pdf(pdf_path):
