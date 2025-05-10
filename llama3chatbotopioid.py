@@ -195,7 +195,7 @@ Additionally, you are required to discuss the social determinants of opioid abus
 ethical, and societal implications of opioid addiction and opioid use disorder. You must answer complexities and consequences of opioid addiction, including its
 risk factors, challenges, and long-term impacts. If the question include any of these words you must answer the question no exceptions. Always cite sources at the end of your answers.
 Only cite real from context. Do not invent sources. Do not hallucinate sources. Do not stop citations early. Complete the entire reference including titles and URLs, only provide the URL if its real.
-If a citation is long, wrap it across lines using line breaks or bullet points.""""
+If a citation is long, wrap it across lines using line breaks or bullet points."""
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
