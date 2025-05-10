@@ -1,4 +1,4 @@
-uimport os
+import os
 import requests
 import pdfplumber
 import psycopg2
