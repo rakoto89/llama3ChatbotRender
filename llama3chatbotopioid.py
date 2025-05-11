@@ -16,7 +16,7 @@ def extract_urls_from_context(context_text):
 def filter_response_urls(response_text, valid_urls):
     found_urls = re.findall(r'https?://[^\s<>\"]+', response_text)
     for url in found_urls:
-        if url not in valid_urls:
+        if not any(valid_url in url or url in valid_url for valid_url in valid_urls):
             response_text = response_text.replace(url, "[URL removed: not found in source]")
     return response_text
 # === [END ADDITION] ===
