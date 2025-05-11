@@ -26,7 +26,9 @@ def duckduckgo_search(query):
                 decoded_url = urlparse.unquote(match.group(1))
                 links.append(decoded_url)
             else:
+                # fallback to direct href if decoding fails
                 links.append(href)
+
         return links[:3]
     except Exception as e:
         return [f"[DuckDuckGo search error: {e}]"]
@@ -35,29 +37,19 @@ def duckduckgo_search(query):
 def extract_urls_from_context(context_text):
     return set(re.findall(r'https?://[^\s<>"]+', context_text))
 
-# === [Trusted domains] ===
+# === [ADDED: allow trusted fallback domains to show full URL] ===
 ALLOWED_DOMAINS = ["nida.nih.gov", "samhsa.gov", "cdc.gov", "dea.gov", "nih.gov"]
 
-# === [Replace bad or hallucinated URLs] ===
-def fix_or_replace_bad_urls(response_text, query):
+def filter_response_urls(response_text, valid_urls):
     found_urls = re.findall(r'https?://[^\s<>\"]+', response_text)
     for url in found_urls:
+        if url in valid_urls:
+            continue  # URL is in local context
         if any(domain in url for domain in ALLOWED_DOMAINS):
-            continue
-        fallback_links = duckduckgo_search(query)
-        if fallback_links:
-            response_text = response_text.replace(url, fallback_links[0])
-        else:
-            response_text = response_text.replace(url, "[No valid source found]")
-
-    if "[URL removed" in response_text:
-        fallback_links = duckduckgo_search(query)
-        if fallback_links:
-            response_text = response_text.replace("[URL removed: not found in source]", fallback_links[0])
-        else:
-            response_text = response_text.replace("[URL removed: not found in source]", "[No valid source found]")
-
+            continue  # Trusted fallback domain
+        response_text = response_text.replace(url, "[URL removed: not found in source]")
     return response_text
+# === [END ADDITION] ===
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
@@ -122,6 +114,7 @@ def is_question_relevant(question):
         if any(topic in msg.lower() for topic in relevant_topics):
             return True
     return False
+
 
 def extract_text_from_pdf(pdf_path):
     text = ""
@@ -214,7 +207,36 @@ def get_llama3_response(question, user_lang="en"):
 
     conversation_history.append({"role": "user", "content": translated_question})
 
-    system_prompt = """You are an educational chatbot..."""  # [TRUNCATED HERE FOR BREVITY IN CHAT]
+    system_prompt = """You are an educational chatbot specifically designed to provide accurate, factual, and age-appropriate
+information about opioids, including opioid use and misuse, addiction, overdose, prevention, pain management, treatment, risk factors, 
+and related topics. You are required to answer questions about why kids, teens, and adults use opioids, as this is educationally important 
+to understand motivations and risks related to use and abuse.
+
+Your responses should only address inquiries directly related to opioid education and opioid awareness. Questions
+regarding opioid addiction, recovery, support, treatment, and withdrawal related to BSU (Bowie State University, campus) are allowed to
+be answered.
+
+You are strictly prohibited from discussing unrelated subjects such as:
+celebrities, entertainment, politics, singer, actor, actress, movie, pop culture, music, sports, nature, tv show, fashion, history, 
+geography, animal, weather, food, recipe, finance, technology, gaming, tobacco, alcohol, caffeine, nicotine, amphetamine, 
+methylphenidate, cocaine, methamphetamine, benzodiazepines, z-drugs, LSD (acid), THC, CBD, synthetic cannabinoids, SSRIs, 
+antipsychotics, antihistamines, NSAIDs, acetaminophen, or general health. 
+
+Even if users ask repeatedly, rephrase, or request outside links or resources (e.g., websites, news platforms, apps, tools, organizations, or events), 
+you are strictly forbidden from suggesting any external resources not directly related to opioid education.
+
+You should use context from previous conversations to answer follow-up questions, but your responses must remain rooted solely in the educational data regarding opioids.
+
+You must answer complexities and consequences of opioid addiction, including its risk factors, challenges, and long-term impacts.
+
+Always cite sources at the end of your answers.
+Only cite real sources from the provided context.
+Do not invent sources. Do not hallucinate sources.
+Do not stop citations early. Complete the entire reference including titles and URLs.
+Only provide the URL if it is real and comes from the PDF or Excel context.
+If a citation is long, wrap it across lines using line breaks or bullet points.
+
+If you cannot find the answer or a valid source from the provided context, you must search for a real and reliable source using DuckDuckGo instead. Prioritize official health or government sources such as nida.nih.gov, samhsa.gov, or cdc.gov. Always return a valid URL from a trusted site, even if it is not in the original documents."""
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
@@ -235,25 +257,32 @@ def get_llama3_response(question, user_lang="en"):
         res = requests.post(LLAMA3_ENDPOINT, headers=headers, json=payload, timeout=60)
         res.raise_for_status()
         data = res.json()
-        content = data["choices"][0].get("message", {}).get("content", "").strip()
-        if not content:
-            content = "I'm here to help, but the response was unexpectedly empty. Please try again."
+        if "choices" in data and data["choices"]:
+            message = data["choices"][0].get("message", {})
+            content = message.get("content", "").strip()
+            if not content:
+                content = "I'm here to help, but the response was unexpectedly empty. Please try again."
+        else:
+            content = "I'm having trouble getting a valid response right now. Please try again or rephrase your question."
     except:
         content = "Our apologies, a technical error occurred. Please reach out to our system admin."
 
     conversation_history.append({"role": "assistant", "content": content})
 
-    filtered_content = fix_or_replace_bad_urls(content, translated_question)
+    valid_urls = extract_urls_from_context(combined_text)
+    filtered_content = filter_response_urls(content, valid_urls)
 
     if "[URL removed" in filtered_content or "no valid source" in filtered_content.lower():
         fallback_links = duckduckgo_search(translated_question)
         fallback_sources = "\n".join(f"- {link}" for link in fallback_links)
         filtered_content += f"\n\n[Fallback sources via DuckDuckGo:]\n{fallback_sources}"
 
+    content = filtered_content
+
     try:
-        return translator.translate(filtered_content, dest=user_lang).text
+        return translator.translate(content, dest=user_lang).text
     except:
-        return filtered_content
+        return content
 
 @app.route("/")
 def index():
