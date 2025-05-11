@@ -11,7 +11,7 @@ import re
 from bs4 import BeautifulSoup  # [ADDED for DuckDuckGo fallback]
 
 # === [DuckDuckGo fallback search] ===
-def duckduckgo_search(query):
+def duckduckgo_search(query, max_results=3):
     try:
         url = f"https://duckduckgo.com/html/?q={urlparse.quote_plus(query)}"
         headers = {"User-Agent": "Mozilla/5.0"}
@@ -21,17 +21,34 @@ def duckduckgo_search(query):
         links = []
         for a in soup.select(".result__a[href]"):
             href = a["href"]
+
+            # Extract and decode the actual URL
             match = re.search(r'u=(https?%3A%2F%2F[^&]+)', href)
             if match:
                 decoded_url = urlparse.unquote(match.group(1))
-                links.append(decoded_url)
             else:
-                # fallback to direct href if decoding fails
-                links.append(href)
+                decoded_url = a["href"]
 
-        return links[:3]
+            # Clean up extra encoding artifacts
+            decoded_url = decoded_url.strip().rstrip(">").rstrip("/.")
+
+            # Ensure it's an actual page, not just a domain root
+            if decoded_url.startswith("http") and len(decoded_url.split("/")) > 3:
+                try:
+                    # Optional: Check if page exists (HTTP 200 only)
+                    response = requests.head(decoded_url, allow_redirects=True, timeout=5)
+                    if response.status_code == 200:
+                        links.append(decoded_url)
+                except:
+                    continue  # skip bad links
+
+            if len(links) >= max_results:
+                break
+
+        return links
     except Exception as e:
         return [f"[DuckDuckGo search error: {e}]"]
+
 
 # === [URL filtering] ===
 def extract_urls_from_context(context_text):
