@@ -294,7 +294,7 @@ If you cannot find the answer or a valid source from the provided context, you m
     conversation_history.append({"role": "assistant", "content": content})
 
     valid_urls = extract_urls_from_context(combined_text)
-    filtered_content = filter_response_urls(content, valid_urls)
+    filtered_content = fix_or_replace_bad_urls(content, translated_question)
 
     if "[URL removed" in filtered_content or "no valid source" in filtered_content.lower():
         fallback_links = duckduckgo_search(translated_question)
