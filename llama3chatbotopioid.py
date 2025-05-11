@@ -21,6 +21,21 @@ def filter_response_urls(response_text, valid_urls):
     return response_text
 # === [END ADDITION] ===
 
+# === [ADDED: Fallback Search Function Using DuckDuckGo] ===
+def search_fallback_on_web(query):
+    try:
+        search_url = f"https://html.duckduckgo.com/html/?q=site:nida.nih.gov+{query}"
+        headers = {"User-Agent": "Mozilla/5.0"}
+        response = requests.get(search_url, headers=headers, timeout=10)
+        if response.status_code == 200:
+            match = re.search(r'<a[^>]*class="result__a"[^>]*href="([^"]+)"', response.text)
+            if match:
+                return f"\n\n[Fallback Source] {query}\n{match.group(1)}"
+    except Exception as e:
+        print("DuckDuckGo fallback error:", e)
+    return ""
+# === [END ADDITION] ===
+
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
 
@@ -251,6 +266,13 @@ If a citation is long, wrap it across lines using line breaks or bullet points."
     # === [ADDED: Filter hallucinated URLs] ===
     valid_urls = extract_urls_from_context(combined_text)
     content = filter_response_urls(content, valid_urls)
+    # === [END ADDITION] ===
+
+    # === [ADDED: Fallback if no valid sources] ===
+    if "[URL removed" in content or len(content.strip()) < 200:
+        fallback = search_fallback_on_web(translated_question)
+        if fallback:
+            content += fallback
     # === [END ADDITION] ===
 
     try:
