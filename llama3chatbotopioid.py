@@ -40,15 +40,26 @@ def extract_urls_from_context(context_text):
 # === [ADDED: allow trusted fallback domains to show full URL] ===
 ALLOWED_DOMAINS = ["nida.nih.gov", "samhsa.gov", "cdc.gov", "dea.gov", "nih.gov"]
 
-def filter_response_urls(response_text, valid_urls):
+def fix_or_replace_bad_urls(response_text, query):
     found_urls = re.findall(r'https?://[^\s<>\"]+', response_text)
     for url in found_urls:
-        if url in valid_urls:
-            continue  # URL is in local context
         if any(domain in url for domain in ALLOWED_DOMAINS):
-            continue  # Trusted fallback domain
-        response_text = response_text.replace(url, "[URL removed: not found in source]")
-    return response_text
+            continue
+        fallback_links = duckduckgo_search(query)
+        if fallback_links:
+            response_text = response_text.replace(url, fallback_links[0])
+        else:
+            response_text = response_text.replace(url, "[No valid source found]")
+
+    if "[URL removed" in response_text:
+        fallback_links = duckduckgo_search(query)
+        if fallback_links:
+            response_text = response_text.replace("[URL removed: not found in source]", fallback_links[0])
+        else:
+            response_text = response_text.replace("[URL removed: not found in source]", "[No valid source found]")
+
+    return response_text  # ✅ Moved inside the function
+
 # === [END ADDITION] ===
 ​
 # === [NEW: Replace hallucinated or missing URLs with real DuckDuckGo links] ===
