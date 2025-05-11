@@ -50,6 +50,30 @@ def filter_response_urls(response_text, valid_urls):
         response_text = response_text.replace(url, "[URL removed: not found in source]")
     return response_text
 # === [END ADDITION] ===
+​
+# === [NEW: Replace hallucinated or missing URLs with real DuckDuckGo links] ===
+def fix_or_replace_bad_urls(response_text, query):
+    found_urls = re.findall(r'https?://[^\s<>\"]+', response_text)
+    for url in found_urls:
+        if any(domain in url for domain in ALLOWED_DOMAINS):
+            continue
+        # Replace hallucinated or removed URLs with DuckDuckGo fallback
+        fallback_links = duckduckgo_search(query)
+        if fallback_links:
+            response_text = response_text.replace(url, fallback_links[0])
+        else:
+            response_text = response_text.replace(url, "[No valid source found]")
+
+# Also patch known placeholder strings
+if "[URL removed" in response_text:
+    fallback_links = duckduckgo_search(query)
+    if fallback_links:
+        response_text = response_text.replace("[URL removed: not found in source]", fallback_links[0])
+    else:
+        response_text = response_text.replace("[URL removed: not found in source]", "[No valid source found]")
+
+return response_text
+# === [END ADDITION] ===
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
