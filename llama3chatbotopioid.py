@@ -101,12 +101,26 @@ def is_question_relevant(question):
     return False
 
 def extract_text_from_pdf(pdf_path):
-    text = ""
+    full_text = ""
+    embedded_urls = set()
+
     with pdfplumber.open(pdf_path) as pdf:
         for page in pdf.pages:
-            if page.extract_text():
-                text += page.extract_text() + "\n"
-    return text.strip()
+            page_text = page.extract_text() or ""
+            full_text += page_text + "\n"
+
+            # Extract real embedded hyperlinks
+            if hasattr(page, "annots") and page.annots:
+                for annot in page.annots:
+                    uri = annot.get("uri")
+                    if uri:
+                        embedded_urls.add(uri.strip())
+
+            # Fallback: scan visible text for raw URLs
+            found_urls = re.findall(r'https?://[^\s<>\"]+', page_text)
+            embedded_urls.update(found_urls)
+
+    return full_text.strip(), embedded_urls
 
 def extract_tables_from_pdf(pdf_path):
     table_text = ""
@@ -120,12 +134,15 @@ def extract_tables_from_pdf(pdf_path):
 
 def read_pdfs_in_folder(folder):
     output = ""
+    all_urls = set()
     for filename in os.listdir(folder):
         if filename.endswith(".pdf"):
             path = os.path.join(folder, filename)
-            output += extract_text_from_pdf(path) + "\n\n"
+            text, urls = extract_text_from_pdf(path)
+            output += text + "\n\n"
             output += extract_tables_from_pdf(path) + "\n\n"
-    return output
+            all_urls.update(urls)
+    return output, all_urls
 
 def extract_all_tables_first(folder):
     tables_output = ""
@@ -168,7 +185,7 @@ for filename in excel_files:
         else:
             excel_df = pd.concat([excel_df, df], ignore_index=True)
 
-pdf_texts = read_pdfs_in_folder(pdf_folder)
+pdf_texts, embedded_urls = read_pdfs_in_folder(pdf_folder)
 all_table_text = extract_all_tables_first(pdf_folder)
 
 combined_text = f"{excel_text}\n\n{pdf_texts}\n\n{all_table_text}"[:12000]
@@ -264,7 +281,7 @@ If a citation is long, wrap it across lines using line breaks or bullet points."
     conversation_history.append({"role": "assistant", "content": content})
 
     # === [ADDED: Filter hallucinated URLs] ===
-    valid_urls = extract_urls_from_context(combined_text)
+    valid_urls = embedded_urls
     content = filter_response_urls(content, valid_urls)
     # === [END ADDITION] ===
 
