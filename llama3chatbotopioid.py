@@ -26,12 +26,19 @@ def duckduckgo_search(query):
 def extract_urls_from_context(context_text):
     return set(re.findall(r'https?://[^\s<>"]+', context_text))
 
+# === [ADDED: allow trusted fallback domains to show full URL] ===
+ALLOWED_DOMAINS = ["nida.nih.gov", "samhsa.gov", "cdc.gov", "dea.gov", "nih.gov"]
+
 def filter_response_urls(response_text, valid_urls):
-    found_urls = re.findall(r'https?://[^\s<>"]+', response_text)
+    found_urls = re.findall(r'https?://[^\s<>\"]+', response_text)
     for url in found_urls:
-        if url not in valid_urls:
-            response_text = response_text.replace(url, "[URL removed: not found in source]")
+        if url in valid_urls:
+            continue  # URL is in local context
+        if any(domain in url for domain in ALLOWED_DOMAINS):
+            continue  # Trusted fallback domain
+        response_text = response_text.replace(url, "[URL removed: not found in source]")
     return response_text
+# === [END ADDITION] ===
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
