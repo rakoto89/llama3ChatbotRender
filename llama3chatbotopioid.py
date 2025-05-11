@@ -286,7 +286,8 @@ If a citation is long, wrap it across lines using line breaks or bullet points."
     # === [END ADDITION] ===
 
     # === [ADDED: Fallback if no valid sources] ===
-    if "[URL removed" in content or len(content.strip()) < 200:
+    # New fallback logic — always run if no URLs were found
+if not re.search(r'https?://[^\s<>\"]+', content):
         fallback = search_fallback_on_web(translated_question)
         if fallback:
             content += fallback
