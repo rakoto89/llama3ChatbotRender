@@ -293,10 +293,10 @@ if not re.search(r'https?://[^\s<>\"]+', content):
             content += fallback
     # === [END ADDITION] ===
 
-    try:
-        return translator.translate(content, dest=user_lang).text
-    except:
-        return content
+try:
+    return translator.translate(content, dest=user_lang).text
+except:
+    return content
 
 @app.route("/")
 def index():
