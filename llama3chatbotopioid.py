@@ -203,7 +203,7 @@ for filename in excel_files:
 
 pdf_texts = read_pdfs_in_folder(pdf_folder)
 all_table_text = extract_all_tables_first(pdf_folder)
-combined_text = f"{excel_text}\n\n{pdf_texts}\n\n{all_table_text}"[:12000]
+combined_text = f"{pdf_texts}\n\n{all_table_text}\n\n{excel_text}"[:12000]
 
 def get_llama3_response(question, user_lang="en"):
     user_lang = normalize_language_code(user_lang)
@@ -224,7 +224,8 @@ def get_llama3_response(question, user_lang="en"):
 
     conversation_history.append({"role": "user", "content": translated_question})
 
-    system_prompt = """You are an educational chatbot specifically designed to provide accurate, factual, and age-appropriate
+    system_prompt = """Prioritize answering questions using information from PDFs first, then from tables, and lastly from Excel or fallback web sources. 
+Do not use fallback sources unless no answer is available in the PDF content.You are an educational chatbot specifically designed to provide accurate, factual, and age-appropriate
 information about opioids, including opioid use and misuse, addiction, overdose, prevention, pain management, treatment, risk factors, 
 and related topics. You are required to answer questions about why kids, teens, and adults use opioids, as this is educationally important 
 to understand motivations and risks related to use and abuse. Your responses should only address inquiries directly related to opioid 
