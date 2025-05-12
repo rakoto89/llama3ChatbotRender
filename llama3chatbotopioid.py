@@ -225,15 +225,15 @@ def get_llama3_response(question, user_lang="en"):
 
     if not is_question_relevant(translated_question):
         # === [ADDED: Check Local Context Before LLM] ===
-    local_match = search_local_context(translated_question, combined_text)
-    if local_match:
-        try:
-            return translator.translate(local_match, dest=user_lang).text
-        except:
-            return local_match
+        local_match = search_local_context(translated_question, combined_text)
+        if local_match:
+            try:
+                return translator.translate(local_match, dest=user_lang).text
+            except:
+                return local_match
     # === [END ADDITION] ===
-        try:
-            return translator.translate(
+    try:
+        return translator.translate(
                 "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment.",
                 dest=user_lang
             ).text
