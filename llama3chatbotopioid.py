@@ -8,63 +8,16 @@ from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
 from googletrans import Translator
 import re
-from bs4 import BeautifulSoup  # [ADDED for DuckDuckGo fallback]
 
-# === [DuckDuckGo fallback search] ===
-def duckduckgo_search(query, max_results=3):
-    try:
-        url = f"https://duckduckgo.com/html/?q={urlparse.quote_plus(query)}"
-        headers = {"User-Agent": "Mozilla/5.0"}
-        res = requests.get(url, headers=headers, timeout=10)
-        soup = BeautifulSoup(res.text, "html.parser")
-
-        links = []
-        for a in soup.select(".result__a[href]"):
-            href = a["href"]
-
-            # Extract and decode the actual URL
-            match = re.search(r'u=(https?%3A%2F%2F[^&]+)', href)
-            if match:
-                decoded_url = urlparse.unquote(match.group(1))
-            else:
-                decoded_url = a["href"]
-
-            # Clean up extra encoding artifacts
-            decoded_url = decoded_url.strip().rstrip(">").rstrip("/.")
-
-            # Ensure it's an actual page, not just a domain root
-            if decoded_url.startswith("http") and len(decoded_url.split("/")) > 3:
-                try:
-                    # Optional: Check if page exists (HTTP 200 only)
-                    response = requests.head(decoded_url, allow_redirects=True, timeout=5)
-                    if response.status_code == 200:
-                        links.append(decoded_url)
-                except:
-                    continue  # skip bad links
-
-            if len(links) >= max_results:
-                break
-
-        return links
-    except Exception as e:
-        return [f"[DuckDuckGo search error: {e}]"]
-
-
-# === [URL filtering] ===
+# === [ADDED: URL Extraction and Filtering Functions] ===
 def extract_urls_from_context(context_text):
-    return set(re.findall(r'https?://[^\s<>"]+', context_text))
-
-# === [ADDED: allow trusted fallback domains to show full URL] ===
-ALLOWED_DOMAINS = ["nida.nih.gov", "samhsa.gov", "cdc.gov", "dea.gov", "nih.gov"]
+    return set(re.findall(r'https?://[^\s<>\"]+', context_text))
 
 def filter_response_urls(response_text, valid_urls):
     found_urls = re.findall(r'https?://[^\s<>\"]+', response_text)
     for url in found_urls:
-        if url in valid_urls:
-            continue  # URL is in local context
-        if any(domain in url for domain in ALLOWED_DOMAINS):
-            continue  # Trusted fallback domain
-        response_text = response_text.replace(url, "[URL removed: not found in source]")
+        if url not in valid_urls:
+            response_text = response_text.replace(url, "[URL removed: not found in source]")
     return response_text
 # === [END ADDITION] ===
 
@@ -114,16 +67,6 @@ relevant_topics = [
     "income inequality", "healthcare disparities", "psychological", "psychology", "screen"
 ]
 
-# === [ADDED: Local Context Search Function] ===
-def search_local_context(question, context_text, keywords=relevant_topics):
-    question_lower = question.lower()
-    if any(kw.lower() in question_lower for kw in keywords):
-        for paragraph in context_text.split('\n\n'):
-            if any(kw.lower() in paragraph.lower() for kw in keywords):
-                return paragraph.strip()
-    return None
-# === [END ADDITION] ===
-
 def normalize_language_code(lang):
     zh_map = {'zh': 'zh-CN', 'zh-cn': 'zh-CN', 'zh-tw': 'zh-TW'}
     return zh_map.get(lang.lower(), lang)
@@ -141,7 +84,6 @@ def is_question_relevant(question):
         if any(topic in msg.lower() for topic in relevant_topics):
             return True
     return False
-
 
 def extract_text_from_pdf(pdf_path):
     text = ""
@@ -213,6 +155,7 @@ for filename in excel_files:
 
 pdf_texts = read_pdfs_in_folder(pdf_folder)
 all_table_text = extract_all_tables_first(pdf_folder)
+
 combined_text = f"{excel_text}\n\n{pdf_texts}\n\n{all_table_text}"[:12000]
 
 def get_llama3_response(question, user_lang="en"):
@@ -224,43 +167,35 @@ def get_llama3_response(question, user_lang="en"):
         translated_question = question
 
     if not is_question_relevant(translated_question):
-        # === [ADDED: Check Local Context Before LLM] ===
-        local_match = search_local_context(translated_question, combined_text)
-        if local_match:
-            try:
-                return translator.translate(local_match, dest=user_lang).text
-            except:
-                return local_match
-    # === [END ADDITION] ===
-    try:
-        return translator.translate(
-            "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment.",
-            dest=user_lang
-        ).text
-    except:
-        return "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment."
+        try:
+            return translator.translate(
+                "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment.",
+                dest=user_lang
+            ).text
+        except:
+            return "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment."
 
     conversation_history.append({"role": "user", "content": translated_question})
 
     system_prompt = """You are an educational chatbot specifically designed to provide accurate, factual, and age-appropriate
 information about opioids, including opioid use and misuse, addiction, overdose, prevention, pain management, treatment, risk factors, 
-and related topics. You are required to answer questions about why kids, teens, and adults use opioids, as this is educationally important 
-to understand motivations and risks related to use and abuse. Your responses should only address inquiries directly related to opioid 
-education and opioid awareness. Questions regarding opioid addiction, recovery, support, treatment, and withdrawal related to BSU 
-(Bowie State University, campus) are allowed to be answered. You are strictly prohibited from discussing unrelated subjects such as:
-celebrities, entertainment, politics, singer, actor, actress, movie, pop culture, music, sports, nature, tv show, fashion, history, 
-geography, animal, weather, food, recipe, finance, technology, gaming, tobacco, alcohol, caffeine, nicotine, amphetamine, 
-methylphenidate, cocaine, methamphetamine, benzodiazepines, z-drugs, LSD (acid), THC, CBD, synthetic cannabinoids, SSRIs, 
-antipsychotics, antihistamines, NSAIDs, acetaminophen, or general health. Don't discuss this AT ALL just say you cannot discuss this.
-Even if users ask repeatedly, rephrase, or request outside links or resources (e.g., websites, news platforms, apps, tools, organizations, or events), 
-you are strictly forbidden from suggesting any external resources not directly related to opioid education. You should use context from previous 
-conversations to answer follow-up questions, but your responses must remain rooted solely in the educational data regarding opioids.
-You must answer complexities and consequences of opioid addiction, including its risk factors, challenges, and long-term impacts.
-Always cite sources at the end of your answers. Only cite real sources from the provided context. Do not invent sources. Do not hallucinate sources.
-Do not stop citations early. Complete the entire reference including titles and URLs. Only provide the URL if it is real and comes from the PDF or Excel context.
-If a citation is long, wrap it across lines using line breaks or bullet points. If you cannot find the answer or a valid source from the provided context, 
-you must search for a real and reliable source using DuckDuckGo instead. Prioritize official health or government sources such as nida.nih.gov, samhsa.gov, or cdc.gov. 
-Always return a valid URL from a trusted site, even if it is not in the original documents."""
+and related topics. Your are required to answer questions to why kids, teens, adults do opioids since this is educational its important to undertstand why
+people use opioids as well as abusing them. Your responses should only address inquiries directly related to opioid education and opioid awareness. Questions
+regarding opioid addiction, recovery, support, treatment, and withdrawal related to BSU (Bowie State University, campus) are allowed to
+be answered. When I ask You are strictly prohibited from discussing unrelated subject such as celebrities, entertainment, politics, singer, 
+actor, actress, movie, pop culture, music, sports, nature, celebrity, tv show, fashion, entertainment, politics, history, geography, animal, 
+weather, food, recipe, finance, technology, gaming, tobacco, alcohol, Caffeine, Nicotine, Amphetamine, Methylphenidate, Cocaine, Methamphetamine,
+Benzodiazepines, Z-drugs, LSD (Acid), THC, CBD, synthethic cannabinoids, SSRIs, Antipsychotics, antihistamines, NSAIDs, Acetaminophen, general health. 
+Even if users ask multiple times or in different ways, you must restrict your responses to opioid-related topics and never diverge from this scope. 
+Never answer questions comparing opioids and unrelated subjects such as celebrities, entertainment, politics, or general health. Under no circumstance are you allowed 
+to answer those questions instead respond with "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment" if you get asked these topics. You should use context
+from previous conversations to answer follow-up questions, but your responses must remain rooted solely in the educational data regarding opioids. For example,
+if you ask something like "what are politicians doing to stop opioid addiction?" Don't allow follow-up question like "why is it hard to be a politician". 
+Additionally, you are required to discuss the social determinants of opioid abuse, including socioeconomic and racial disparities, as well as the psychological,
+ethical, and societal implications of opioid addiction and opioid use disorder. You must answer complexities and consequences of opioid addiction, including its
+risk factors, challenges, and long-term impacts. If the question include any of these words you must answer the question no exceptions. Always cite sources at the end of your answers.
+Only cite real from context. Do not invent sources. Do not hallucinate sources. Do not stop citations early. Complete the entire reference including titles and URLs, only provide the URL if its real.
+If a citation is long, wrap it across lines using line breaks or bullet points."""
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
@@ -293,15 +228,10 @@ Always return a valid URL from a trusted site, even if it is not in the original
 
     conversation_history.append({"role": "assistant", "content": content})
 
+    # === [ADDED: Filter hallucinated URLs] ===
     valid_urls = extract_urls_from_context(combined_text)
-    filtered_content = filter_response_urls(content, valid_urls)
-
-    if "[URL removed" in filtered_content or "no valid source" in filtered_content.lower():
-        fallback_links = duckduckgo_search(translated_question)
-        fallback_sources = "\n".join(f"- {link}" for link in fallback_links)
-        filtered_content += f"\n\n[Fallback sources via DuckDuckGo:]\n{fallback_sources}"
-
-    content = filtered_content
+    content = filter_response_urls(content, valid_urls)
+    # === [END ADDITION] ===
 
     try:
         return translator.translate(content, dest=user_lang).text
