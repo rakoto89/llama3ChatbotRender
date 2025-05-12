@@ -234,11 +234,11 @@ def get_llama3_response(question, user_lang="en"):
     # === [END ADDITION] ===
     try:
         return translator.translate(
-                "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment.",
-                dest=user_lang
-            ).text
-        except:
-            return "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment."
+            "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment.",
+            dest=user_lang
+        ).text
+    except:
+        return "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment."
 
     conversation_history.append({"role": "user", "content": translated_question})
 
