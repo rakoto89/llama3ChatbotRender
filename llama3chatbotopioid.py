@@ -114,6 +114,16 @@ relevant_topics = [
     "income inequality", "healthcare disparities", "psychological", "psychology", "screen"
 ]
 
+# === [ADDED: Local Context Search Function] ===
+def search_local_context(question, context_text, keywords=relevant_topics):
+    question_lower = question.lower()
+    if any(kw.lower() in question_lower for kw in keywords):
+        for paragraph in context_text.split('\n\n'):
+            if any(kw.lower() in paragraph.lower() for kw in keywords):
+                return paragraph.strip()
+    return None
+# === [END ADDITION] ===
+
 def normalize_language_code(lang):
     zh_map = {'zh': 'zh-CN', 'zh-cn': 'zh-CN', 'zh-tw': 'zh-TW'}
     return zh_map.get(lang.lower(), lang)
