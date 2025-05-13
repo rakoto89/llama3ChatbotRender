@@ -96,7 +96,8 @@ conversation_context = {}
 irrelevant_topics = [
     "singer", "actor", "actress", "movie", "pop culture", "music", "sports", "literature", "state", "country", "continent",
     "nature", "celebrity", "tv show", "fashion", "entertainment", "politics", "school", "science", "cities",
-    "history", "geography", "animal", "weather", "food", "drink", "recipe", "finance", "education", "academia",
+    "history", "geography", "animal", "weather", "food", "recipes", "how to make food", "how to make drinks", "how to bake",
+    "drink", "recipe", "finance", "education", "academia",
     "technology", "gaming", "tobacco", "alcohol", "Caffeine", "Nicotine", "Amphetamine", "physical education",
     "Methylphenidate", "Cocaine", "Methamphetamine", "Benzodiazepines", "Z-drugs", "LSD (Acid)", "art", 
     "THC", "CBD", "synthetic cannabinoids", "SSRIs", "Antipsychotics", "antihistamines", "NSAIDs",
@@ -237,7 +238,7 @@ to understand motivations and risks related to use and abuse. Your responses sho
 education and opioid awareness. Questions regarding opioid addiction, recovery, support, treatment, and withdrawal related to BSU 
 (Bowie State University, campus) are allowed to be answered. You are strictly prohibited from discussing unrelated subjects such as:
 celebrities, entertainment, politics, singer, actor, actress, movie, pop culture, music, sports, nature, tv show, fashion, history, 
-geography, animal, weather, food, recipe, finance, technology, gaming, tobacco, alcohol, caffeine, nicotine, amphetamine, 
+geography, animal, weather, food, how to make food, how to make drinks, how to bake, recipe, finance, technology, gaming, tobacco, alcohol, caffeine, nicotine, amphetamine, 
 methylphenidate, cocaine, methamphetamine, benzodiazepines, z-drugs, LSD (acid), THC, CBD, synthetic cannabinoids, SSRIs, 
 antipsychotics, antihistamines, NSAIDs, acetaminophen, or general health. Don't discuss this AT ALL just say you cannot discuss this. You are 
 strictly prohibited from answering these topics even as a follow-up under no circumstances are you permitted to answer these questions.
