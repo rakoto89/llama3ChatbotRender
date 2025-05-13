@@ -64,7 +64,12 @@ def filter_response_urls(response_text, valid_urls):
             continue  # URL is in local context
         if any(domain in url for domain in ALLOWED_DOMAINS):
             continue  # Trusted fallback domain
-        response_text = response_text.replace(url, "[URL removed: not found in source]")
+        # Replace the full URL with just the domain name (e.g., "cdc.gov")
+        try:
+            domain = urlparse.urlparse(url).netloc
+            response_text = response_text.replace(url, domain)
+        except:
+            response_text = response_text.replace(url, "trusted site")
     return response_text
 # === [END ADDITION] ===
 
