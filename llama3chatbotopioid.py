@@ -126,18 +126,12 @@ def normalize_language_code(lang):
 
 def is_question_relevant(question):
     question_lower = question.lower().strip()
-    matched_irrelevant = [topic for topic in irrelevant_topics if topic in question_lower]
-    matched_relevant = [topic for topic in relevant_topics if topic in question_lower]
-    if matched_irrelevant and not matched_relevant:
-        return False
-    if matched_relevant:
-        return True
-    recent_user_msgs = [msg["content"] for msg in reversed(conversation_history) if msg["role"] == "user"]
-    for msg in recent_user_msgs[:5]:
-        if any(topic in msg.lower() for topic in relevant_topics):
-            return True
+    if any(topic in question_lower for topic in relevant_topics):
+        return True  # Allow if any relevant topic is present
+    if any(topic in question_lower for topic in irrelevant_topics):
+        return False  # Block only if irrelevant and no relevant topic found
+    # Optionally check recent messages if needed
     return False
-
 
 def extract_text_from_pdf(pdf_path):
     text = ""
