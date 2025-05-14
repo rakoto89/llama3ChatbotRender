@@ -291,16 +291,15 @@ Always return a valid URL from a trusted site, even if it is not in the original
         filtered_content += f"\n\n[Fallback sources via DuckDuckGo:]\n{fallback_sources}"
 
     content = filtered_content
-    # === [FORCE SOURCE IF NONE IS PRESENT] ===
-    if not re.search(r'https?://', content):
-        fallback_links = duckduckgo_search(translated_question)
-        trusted_fallbacks = [link for link in fallback_links if any(domain in link for domain in ALLOWED_DOMAINS)]
-   
-        if trusted_fallbacks:
-            content += f"\n\n[Source: {trusted_fallbacks[0]}]"
-        else:
-            content += "\n\n[Source: nida.nih.gov, samhsa.gov, or cdc.gov]"
-    # === [END SOURCE ENFORCEMENT] ===
+    # === [FORCE REAL ANSWER FROM TRUSTED WEB SOURCE IF NOT FOUND IN CONTEXT] ===
+    found_urls = re.findall(r'https?://[^\s<>\"]+', filtered_content)
+    valid_context_urls = extract_urls_from_context(combined_text)
+
+    if not any(url in valid_context_urls or any(domain in url for domain in ALLOWED_DOMAINS) for url in found_urls):
+        duck_result = duckduckgo_search_with_snippet(translated_question)
+        if duck_result:
+            filtered_content = duck_result
+    # === [END REAL SOURCE CHECK] ===
     try:
         return translator.translate(content, dest=user_lang).text
     except:
