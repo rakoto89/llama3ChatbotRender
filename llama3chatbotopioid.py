@@ -55,7 +55,7 @@ def extract_urls_from_context(context_text):
     return set(re.findall(r'https?://[^\s<>"]+', context_text))
 
 # === [ADDED: allow trusted fallback domains to show full URL] ===
-ALLOWED_DOMAINS = ["nida.nih.gov", "samhsa.gov", "cdc.gov", "dea.gov", "nih.gov", "kff.org", "hopkinsmedicine.org", "mayoclinic.org", "bowiestate.edu"]
+ALLOWED_DOMAINS = ["nida.nih.gov", "samhsa.gov", "cdc.gov", "dea.gov", "nih.gov"]
 
 def filter_response_urls(response_text, valid_urls):
     found_urls = re.findall(r'https?://[^\s<>\"]+', response_text)
@@ -203,11 +203,7 @@ for filename in excel_files:
 
 pdf_texts = read_pdfs_in_folder(pdf_folder)
 all_table_text = extract_all_tables_first(pdf_folder)
-# === [SMART CONTEXT LIMITING TO PRESERVE SOURCES] ===
-pdf_priority = f"{pdf_texts}\n\n{all_table_text}"[:8000]
-excel_priority = excel_text[:4000]
-combined_text = f"{pdf_priority}\n\n{excel_priority}"
-# === [END SMART CONTEXT LIMITING] ===
+combined_text = f"{pdf_texts}\n\n{all_table_text}\n\n{excel_text}"[:12000]
 
 def get_llama3_response(question, user_lang="en"):
     user_lang = normalize_language_code(user_lang)
@@ -249,12 +245,11 @@ Always cite sources at the end of your answers. Only cite real sources from the 
 Do not stop citations early. Complete the entire reference including titles and URLs. Only provide the URL if it is real and comes from the PDF or Excel context.
 If a citation is long, wrap it across lines using line breaks or bullet points. If you cannot find the answer or a valid source from the provided context, 
 you must search for a real and reliable source using DuckDuckGo instead. Prioritize official health or government sources such as nida.nih.gov, samhsa.gov, or cdc.gov. 
-Always return a valid URL from a trusted site, even if it is not in the original documents. You must include a full and verifiable source after every answer.
-Only cite URLs that appear in the provided context. Do not hallucinate. If no source is found, do not guess — trigger a web search instead."""
+Always return a valid URL from a trusted site, even if it is not in the original documents."""
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
-        {"role": "user", "content": translated_question}
+        *conversation_history[-5:]
     ]
 
     headers = {
@@ -286,25 +281,13 @@ Only cite URLs that appear in the provided context. Do not hallucinate. If no so
     valid_urls = extract_urls_from_context(combined_text)
     filtered_content = filter_response_urls(content, valid_urls)
 
-    # Remove vague placeholders like "cdc.gov or NIH"
-    filtered_content = re.sub(r'\[Source:.*?(cdc\.gov|nih\.gov).*?\]', '', filtered_content)
-
     if "[URL removed" in filtered_content or "no valid source" in filtered_content.lower():
         fallback_links = duckduckgo_search(translated_question)
         fallback_sources = "\n".join(f"- {link}" for link in fallback_links)
         filtered_content += f"\n\n[Fallback sources via DuckDuckGo:]\n{fallback_sources}"
 
     content = filtered_content
-    # === [FORCE SOURCE IF NONE IS PRESENT] ===
-    if not re.search(r'https?://', content):
-        fallback_links = duckduckgo_search(translated_question)
-        trusted_fallbacks = [link for link in fallback_links if any(domain in link for domain in ALLOWED_DOMAINS)]
-   
-        if trusted_fallbacks:
-            content += f"\n\n[Source: {trusted_fallbacks[0]}]"
-        else:
-            content += "\n\n[Source: nida.nih.gov, samhsa.gov, or cdc.gov]"
-    # === [END SOURCE ENFORCEMENT] ===
+
     try:
         return translator.translate(content, dest=user_lang).text
     except:
