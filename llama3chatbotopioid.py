@@ -203,7 +203,11 @@ for filename in excel_files:
 
 pdf_texts = read_pdfs_in_folder(pdf_folder)
 all_table_text = extract_all_tables_first(pdf_folder)
-combined_text = f"{pdf_texts}\n\n{all_table_text}\n\n{excel_text}"[:12000]
+# === [SMART CONTEXT LIMITING TO PRESERVE SOURCES] ===
+pdf_priority = f"{pdf_texts}\n\n{all_table_text}"[:8000]
+excel_priority = excel_text[:4000]
+combined_text = f"{pdf_priority}\n\n{excel_priority}"
+# === [END SMART CONTEXT LIMITING] ===
 
 def get_llama3_response(question, user_lang="en"):
     user_lang = normalize_language_code(user_lang)
