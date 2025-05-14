@@ -55,7 +55,7 @@ def extract_urls_from_context(context_text):
     return set(re.findall(r'https?://[^\s<>"]+', context_text))
 
 # === [ADDED: allow trusted fallback domains to show full URL] ===
-ALLOWED_DOMAINS = ["nida.nih.gov", "samhsa.gov", "cdc.gov", "dea.gov", "nih.gov"]
+ALLOWED_DOMAINS = ["nida.nih.gov", "samhsa.gov", "cdc.gov", "dea.gov", "nih.gov", "kff.org", "bowiestate.edu", "hopkinsmedicine.org", "medlineplus.gov", "www.naccho.org", "getsmartaboutdrugs.org"]
 
 def filter_response_urls(response_text, valid_urls):
     found_urls = re.findall(r'https?://[^\s<>\"]+', response_text)
