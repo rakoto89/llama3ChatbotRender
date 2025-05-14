@@ -203,7 +203,7 @@ for filename in excel_files:
 
 pdf_texts = read_pdfs_in_folder(pdf_folder)
 all_table_text = extract_all_tables_first(pdf_folder)
-combined_text = f"{pdf_texts}\n\n{all_table_text}\n\n{excel_text}"[:12000]
+combined_text = f"{pdf_texts}\n\n{all_table_text}\n\n{excel_text}"
 
 def get_llama3_response(question, user_lang="en"):
     user_lang = normalize_language_code(user_lang)
