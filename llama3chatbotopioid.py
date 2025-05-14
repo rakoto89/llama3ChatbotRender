@@ -55,7 +55,7 @@ def extract_urls_from_context(context_text):
     return set(re.findall(r'https?://[^\s<>"]+', context_text))
 
 # === [ADDED: allow trusted fallback domains to show full URL] ===
-ALLOWED_DOMAINS = ["nida.nih.gov", "samhsa.gov", "cdc.gov", "dea.gov", "nih.gov"]
+ALLOWED_DOMAINS = ["nida.nih.gov", "samhsa.gov", "cdc.gov", "dea.gov", "nih.gov", "kff.org", "hopkinsmedicine.org", "mayoclinic.org", "bowiestate.edu"]
 
 def filter_response_urls(response_text, valid_urls):
     found_urls = re.findall(r'https?://[^\s<>\"]+', response_text)
@@ -291,7 +291,16 @@ Always return a valid URL from a trusted site, even if it is not in the original
         filtered_content += f"\n\n[Fallback sources via DuckDuckGo:]\n{fallback_sources}"
 
     content = filtered_content
-
+    # === [FORCE SOURCE IF NONE IS PRESENT] ===
+    if not re.search(r'https?://', content):
+        fallback_links = duckduckgo_search(translated_question)
+        trusted_fallbacks = [link for link in fallback_links if any(domain in link for domain in ALLOWED_DOMAINS)]
+   
+        if trusted_fallbacks:
+            content += f"\n\n[Source: {trusted_fallbacks[0]}]"
+        else:
+            content += "\n\n[Source: nida.nih.gov, samhsa.gov, or cdc.gov]"
+    # === [END SOURCE ENFORCEMENT] ===
     try:
         return translator.translate(content, dest=user_lang).text
     except:
