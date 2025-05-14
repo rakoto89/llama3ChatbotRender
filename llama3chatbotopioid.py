@@ -55,7 +55,7 @@ def extract_urls_from_context(context_text):
     return set(re.findall(r'https?://[^\s<>"]+', context_text))
 
 # === [ADDED: allow trusted fallback domains to show full URL] ===
-ALLOWED_DOMAINS = ["nida.nih.gov", "samhsa.gov", "cdc.gov", "dea.gov", "nih.gov", "kff.org", "hopkinsmedicine.org", "mayoclinic.org", "bowiestate.edu"]
+ALLOWED_DOMAINS = ["nida.nih.gov", "samhsa.gov", "cdc.gov", "dea.gov", "nih.gov"]
 
 def filter_response_urls(response_text, valid_urls):
     found_urls = re.findall(r'https?://[^\s<>\"]+', response_text)
@@ -203,11 +203,7 @@ for filename in excel_files:
 
 pdf_texts = read_pdfs_in_folder(pdf_folder)
 all_table_text = extract_all_tables_first(pdf_folder)
-# === [SMART CONTEXT LIMITING TO PRESERVE SOURCES] ===
-pdf_priority = f"{pdf_texts}\n\n{all_table_text}"[:8000]
-excel_priority = excel_text[:4000]
-combined_text = f"{pdf_priority}\n\n{excel_priority}"
-# === [END SMART CONTEXT LIMITING] ===
+combined_text = f"{pdf_texts}\n\n{all_table_text}\n\n{excel_text}"[:12000]
 
 def get_llama3_response(question, user_lang="en"):
     user_lang = normalize_language_code(user_lang)
@@ -291,15 +287,7 @@ Always return a valid URL from a trusted site, even if it is not in the original
         filtered_content += f"\n\n[Fallback sources via DuckDuckGo:]\n{fallback_sources}"
 
     content = filtered_content
-    # === [FORCE REAL ANSWER FROM TRUSTED WEB SOURCE IF NOT FOUND IN CONTEXT] ===
-    found_urls = re.findall(r'https?://[^\s<>\"]+', filtered_content)
-    valid_context_urls = extract_urls_from_context(combined_text)
 
-    if not any(url in valid_context_urls or any(domain in url for domain in ALLOWED_DOMAINS) for url in found_urls):
-        duck_result = duckduckgo_search_with_snippet(translated_question)
-        if duck_result:
-            filtered_content = duck_result
-    # === [END REAL SOURCE CHECK] ===
     try:
         return translator.translate(content, dest=user_lang).text
     except:
