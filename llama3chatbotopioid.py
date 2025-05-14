@@ -286,6 +286,9 @@ Only cite URLs that appear in the provided context. Do not hallucinate. If no so
     valid_urls = extract_urls_from_context(combined_text)
     filtered_content = filter_response_urls(content, valid_urls)
 
+    # Remove vague placeholders like "cdc.gov or NIH"
+    filtered_content = re.sub(r'\[Source:.*?(cdc\.gov|nih\.gov).*?\]', '', filtered_content)
+
     if "[URL removed" in filtered_content or "no valid source" in filtered_content.lower():
         fallback_links = duckduckgo_search(translated_question)
         fallback_sources = "\n".join(f"- {link}" for link in fallback_links)
