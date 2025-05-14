@@ -249,11 +249,12 @@ Always cite sources at the end of your answers. Only cite real sources from the 
 Do not stop citations early. Complete the entire reference including titles and URLs. Only provide the URL if it is real and comes from the PDF or Excel context.
 If a citation is long, wrap it across lines using line breaks or bullet points. If you cannot find the answer or a valid source from the provided context, 
 you must search for a real and reliable source using DuckDuckGo instead. Prioritize official health or government sources such as nida.nih.gov, samhsa.gov, or cdc.gov. 
-Always return a valid URL from a trusted site, even if it is not in the original documents."""
+Always return a valid URL from a trusted site, even if it is not in the original documents. You must include a full and verifiable source after every answer.
+Only cite URLs that appear in the provided context. Do not hallucinate. If no source is found, do not guess — trigger a web search instead."""
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
-        *conversation_history[-5:]
+        {"role": "user", "content": translated_question}
     ]
 
     headers = {
