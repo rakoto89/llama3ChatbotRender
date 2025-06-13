@@ -169,16 +169,21 @@ def extract_all_tables_first(folder):
                 tables_output += f"=== Tables from {filename} ===\n{tables}\n\n"
     return tables_output
 
+from openpyxl import load_workbook
+
 def read_excel_as_text(excel_path):
     try:
-        excel_data = pd.read_excel(excel_path, header=1, sheet_name=None)
-        output = f"=== Excel File: {os.path.basename(excel_path)} ===\n"
-        for sheet, df in excel_data.items():
-            output += f"\n--- Sheet: {sheet} ---\n"
-            output += df.to_string(index=False) + "\n"
+        workbook = load_workbook(filename=excel_path, data_only=True)
+        output = f"--- Excel File: {os.path.basename(excel_path)} ---\n"
+        for sheet_name in workbook.sheetnames:
+            output += f"\n Sheet: {sheet_name}\n"
+            sheet = workbook[sheet_name]
+            for row in sheet.iter_rows(values_only=True):
+                row_text = " | ".join([str(cell) if cell is not None else "" for cell in row])
+                output += row_text + "\n"
         return output.strip()
     except Exception as e:
-        return f"Error reading Excel: {str(e)}"
+        return f"Error reading Excel file: {str(e)}"
 
 pdf_folder = "pdfs"
 excel_files = [
