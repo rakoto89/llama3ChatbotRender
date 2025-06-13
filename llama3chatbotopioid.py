@@ -7,6 +7,8 @@ from flask_cors import CORS
 from googletrans import Translator
 import re
 from bs4 import BeautifulSoup  # [ADDED for DuckDuckGo fallback]
+from openpyxl import load_workbook  # [FIXED: for reading Excel without pandas]
+
 
 # === [DuckDuckGo fallback search] ===
 def duckduckgo_search(query, max_results=3):
@@ -158,15 +160,22 @@ def read_pdfs_in_folder(folder):
             output += extract_tables_from_pdf(path) + "\n\n"
     return output
 
-def extract_all_tables_first(folder):
-    tables_output = ""
-    for filename in os.listdir(folder):
-        if filename.endswith(".pdf"):
-            path = os.path.join(folder, filename)
-            tables = extract_tables_from_pdf(path)
-            if tables:
-                tables_output += f"=== Tables from {filename} ===\n{tables}\n\n"
-    return tables_output
+def read_excel_as_text(path):
+    workbook = load_workbook(filename=path, data_only=True)
+    text_output = ""
+    for sheet in workbook.worksheets:
+        for row in sheet.iter_rows(min_row=2, values_only=True):  # skip header row
+            row_text = " | ".join(str(cell) if cell is not None else "" for cell in row)
+            text_output += row_text + "\n"
+    return text_output.strip()
+
+excel_text = ""
+
+for filename in excel_files:
+    path = os.path.join(pdf_folder, filename)
+    if os.path.exists(path):
+        excel_text += read_excel_as_text(path) + "\n\n"
+
 
 pdf_folder = "pdfs"
 excel_files = [
