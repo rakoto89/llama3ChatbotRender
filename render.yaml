@@ -1,8 +1,0 @@
-services:
-  - type: web
-    name: llama3ChatbotRender
-    env: cDehbkli9985112sdnyyyeraqdmmopquip112!!
-    buildCommand: pip install -r requirements.txt
-    startCommand: python llama3chatbotopioid.py
-    build:
-      pythonVersion: 3.10.13
