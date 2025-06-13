@@ -1,7 +1,7 @@
 import os
 import requests
 import pdfplumber
-import psycopg2
+import psycopg2-binary
 import urllib.parse as urlparse
 from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
