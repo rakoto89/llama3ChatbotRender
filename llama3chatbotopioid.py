@@ -1,14 +1,14 @@
-import os
+mport os
 import requests
 import pdfplumber
+import psycopg2
 import urllib.parse as urlparse
+import pandas as pd
 from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
 from googletrans import Translator
 import re
 from bs4 import BeautifulSoup  # [ADDED for DuckDuckGo fallback]
-from openpyxl import load_workbook  # [FIXED: for reading Excel without pandas]
-
 
 # === [DuckDuckGo fallback search] ===
 def duckduckgo_search(query, max_results=3):
@@ -160,22 +160,26 @@ def read_pdfs_in_folder(folder):
             output += extract_tables_from_pdf(path) + "\n\n"
     return output
 
-def read_excel_as_text(path):
-    workbook = load_workbook(filename=path, data_only=True)
-    text_output = ""
-    for sheet in workbook.worksheets:
-        for row in sheet.iter_rows(min_row=2, values_only=True):  # skip header row
-            row_text = " | ".join(str(cell) if cell is not None else "" for cell in row)
-            text_output += row_text + "\n"
-    return text_output.strip()
+def extract_all_tables_first(folder):
+    tables_output = ""
+    for filename in os.listdir(folder):
+        if filename.endswith(".pdf"):
+            path = os.path.join(folder, filename)
+            tables = extract_tables_from_pdf(path)
+            if tables:
+                tables_output += f"=== Tables from {filename} ===\n{tables}\n\n"
+    return tables_output
 
-excel_text = ""
-
-for filename in excel_files:
-    path = os.path.join(pdf_folder, filename)
-    if os.path.exists(path):
-        excel_text += read_excel_as_text(path) + "\n\n"
-
+def read_excel_as_text(excel_path):
+    try:
+        excel_data = pd.read_excel(excel_path, header=1, sheet_name=None)
+        output = f"=== Excel File: {os.path.basename(excel_path)} ===\n"
+        for sheet, df in excel_data.items():
+            output += f"\n--- Sheet: {sheet} ---\n"
+            output += df.to_string(index=False) + "\n"
+        return output.strip()
+    except Exception as e:
+        return f"Error reading Excel: {str(e)}"
 
 pdf_folder = "pdfs"
 excel_files = [
@@ -345,3 +349,4 @@ def check_env():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
