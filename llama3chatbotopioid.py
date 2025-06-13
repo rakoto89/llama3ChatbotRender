@@ -7,7 +7,6 @@ from flask_cors import CORS
 from googletrans import Translator
 import re
 from bs4 import BeautifulSoup
-from openpyxl import load_workbook
 import psycopg2
 
 # === [DuckDuckGo fallback search] ===
@@ -61,8 +60,8 @@ def filter_response_urls(response_text, valid_urls):
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
 
-LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "https://api.together.xyz/v1/chat/completions").strip()
-REN_API_KEY = os.environ.get("REN_API_KEY", "").strip()
+LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "")
+REN_API_KEY = os.environ.get("REN_API_KEY", "")
 FEEDBACK_SECRET_KEY = os.environ.get("FEEDBACK_SECRET_KEY", "test-key")
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
@@ -76,45 +75,18 @@ db_config = {
 }
 
 conversation_history = []
-conversation_context = {}
-
-irrelevant_topics = [
-    "singer", "actor", "actress", "movie", "pop culture", "music", "sports", "literature", "state", "country",
-    "nature", "celebrity", "tv show", "fashion", "entertainment", "politics", "school", "science", "cities",
-    "history", "geography", "animal", "weather", "food", "recipes", "how to make food", "how to make drinks",
-    "how to bake", "drink", "recipe", "finance", "education", "academia", "technology", "gaming", "tobacco",
-    "alcohol", "Caffeine", "Nicotine", "Amphetamine", "Methylphenidate", "Cocaine", "Methamphetamine",
-    "Benzodiazepines", "Z-drugs", "LSD (Acid)", "art", "THC", "CBD", "synthetic cannabinoids", "SSRIs",
-    "Antipsychotics", "antihistamines", "NSAIDs", "Acetaminophen"
-]
-
-relevant_topics = [
-    "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin", "chronic pain", "pain",
-    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium", "scientists",
-    "control group", "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help",
-    "assistance", "scientific", "support", "support for opioid addiction", "drug use", "email", "campus",
-    "phone number", "clinician", "evidence", "BSU", "Bowie State University", "opioid use disorder",
-    "opioid self-medication", "self medication", "clinical", "risk factors", "disparity", "racism", "bias",
-    "addict", "marginalized", "challenges", "long-term factors", "short-term factors", "consequences",
-    "disease", "cancer", "treatment-seeking", "stigma", "stigmas", "opioid users", "communities", "number",
-    "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence",
-    "prescription", "medication-assisted treatment", "MAT", "OUD", "opioid epidemic", "teen", "dangers",
-    "genetic", "ethical", "ethics", "environmental factors", "pain management", "doctor", "physician",
-    "adult", "death", "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", "pharmacology",
-    "pharmacological", "brands", "treatment programs", "medication", "young people", "peer pressure",
-    "socioeconomic factors", "DO", "MD", "income inequality", "healthcare disparities", "psychological",
-    "psychology", "screen"
-]
+irrelevant_topics = ["singer", "actor", "movie", "music", "pop culture", "celebrity", "weather", "food", "games"]
+relevant_topics = ["opioids", "addiction", "overdose", "pain", "treatment", "naloxone", "withdrawal", "rehab"]
 
 def normalize_language_code(lang):
     zh_map = {'zh': 'zh-CN', 'zh-cn': 'zh-CN', 'zh-tw': 'zh-TW'}
     return zh_map.get(lang.lower(), lang)
 
 def is_question_relevant(question):
-    question_lower = question.lower().strip()
-    if any(topic in question_lower for topic in relevant_topics):
+    q = question.lower()
+    if any(topic in q for topic in relevant_topics):
         return True
-    if any(topic in question_lower for topic in irrelevant_topics):
+    if any(topic in q for topic in irrelevant_topics):
         return False
     return False
 
@@ -145,30 +117,8 @@ def read_pdfs_in_folder(folder):
             output += extract_tables_from_pdf(path) + "\n\n"
     return output
 
-def read_excel_as_text(path):
-    workbook = load_workbook(filename=path, data_only=True)
-    text_output = ""
-    for sheet in workbook.worksheets:
-        for row in sheet.iter_rows(min_row=2, values_only=True):
-            row_text = " | ".join(str(cell) if cell is not None else "" for cell in row)
-            text_output += row_text + "\n"
-    return text_output.strip()
-
 pdf_folder = "pdfs"
-excel_files = [
-    "KFF_Opioid_Overdose_Deaths_2022.xlsx",
-    "KFF_Opioid_Overdose_Deaths_by_Age_Group_2022.xlsx",
-    "KFF_Opioid_Overdose_Deaths_by_Race_and_Ethnicity_2022.xlsx"
-]
-
-excel_text = ""
-for filename in excel_files:
-    path = os.path.join(pdf_folder, filename)
-    if os.path.exists(path):
-        excel_text += read_excel_as_text(path) + "\n\n"
-
-pdf_texts = read_pdfs_in_folder(pdf_folder)
-combined_text = f"{pdf_texts}\n\n{excel_text}"[:12000]
+combined_text = read_pdfs_in_folder(pdf_folder)[:12000]
 
 def get_llama3_response(question, user_lang="en"):
     user_lang = normalize_language_code(user_lang)
@@ -189,6 +139,7 @@ def get_llama3_response(question, user_lang="en"):
 
     conversation_history.append({"role": "user", "content": translated_question})
 
+    system_prompt = """Only use PDF data to answer questions related to opioids. Never use hallucinated or external info. Do not respond to off-topic questions. Always prioritize government sources like nida.nih.gov or samhsa.gov."""
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
         *conversation_history[-5:]
@@ -208,14 +159,9 @@ def get_llama3_response(question, user_lang="en"):
         res = requests.post(LLAMA3_ENDPOINT, headers=headers, json=payload, timeout=60)
         res.raise_for_status()
         data = res.json()
-        if "choices" in data and data["choices"]:
-            content = data["choices"][0].get("message", {}).get("content", "").strip()
-            if not content:
-                content = "I'm here to help, but the response was unexpectedly empty. Please try again."
-        else:
-            content = "I'm having trouble getting a valid response right now. Please try again or rephrase your question."
+        content = data["choices"][0]["message"]["content"].strip() if data.get("choices") else "No valid response."
     except:
-        content = "Our apologies, a technical error occurred. Please reach out to our system admin."
+        content = "Error getting response from LLaMA."
 
     conversation_history.append({"role": "assistant", "content": content})
 
