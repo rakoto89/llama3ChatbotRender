@@ -1,7 +1,6 @@
 import os
 import requests
 import pdfplumber
-import psycopg2
 import urllib.parse as urlparse
 from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
@@ -168,22 +167,6 @@ def extract_all_tables_first(folder):
             if tables:
                 tables_output += f"=== Tables from {filename} ===\n{tables}\n\n"
     return tables_output
-
-from openpyxl import load_workbook
-
-def read_excel_as_text(excel_path):
-    try:
-        workbook = load_workbook(filename=excel_path, data_only=True)
-        output = f"--- Excel File: {os.path.basename(excel_path)} ---\n"
-        for sheet_name in workbook.sheetnames:
-            output += f"\n Sheet: {sheet_name}\n"
-            sheet = workbook[sheet_name]
-            for row in sheet.iter_rows(values_only=True):
-                row_text = " | ".join([str(cell) if cell is not None else "" for cell in row])
-                output += row_text + "\n"
-        return output.strip()
-    except Exception as e:
-        return f"Error reading Excel file: {str(e)}"
 
 pdf_folder = "pdfs"
 excel_files = [
