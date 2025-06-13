@@ -1,14 +1,14 @@
-mport os
+import os
 import requests
 import pdfplumber
-import psycopg2
 import urllib.parse as urlparse
-import pandas as pd
 from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
 from googletrans import Translator
 import re
-from bs4 import BeautifulSoup  # [ADDED for DuckDuckGo fallback]
+from bs4 import BeautifulSoup
+from openpyxl import load_workbook
+import psycopg2
 
 # === [DuckDuckGo fallback search] ===
 def duckduckgo_search(query, max_results=3):
@@ -17,61 +17,46 @@ def duckduckgo_search(query, max_results=3):
         headers = {"User-Agent": "Mozilla/5.0"}
         res = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(res.text, "html.parser")
-
         links = []
         for a in soup.select(".result__a[href]"):
             href = a["href"]
-
-            # Extract and decode the actual URL
             match = re.search(r'u=(https?%3A%2F%2F[^&]+)', href)
             if match:
                 decoded_url = urlparse.unquote(match.group(1))
             else:
                 decoded_url = a["href"]
-
-            # Clean up extra encoding artifacts
             decoded_url = decoded_url.strip().rstrip(">").rstrip("/.")
-
-            # Ensure it's an actual page, not just a domain root
             if decoded_url.startswith("http") and len(decoded_url.split("/")) > 3:
                 try:
-                    # Optional: Check if page exists (HTTP 200 only)
                     response = requests.head(decoded_url, allow_redirects=True, timeout=5)
                     if response.status_code == 200:
                         links.append(decoded_url)
                 except:
-                    continue  # skip bad links
-
+                    continue
             if len(links) >= max_results:
                 break
-
         return links
     except Exception as e:
         return [f"[DuckDuckGo search error: {e}]"]
 
-
-# === [URL filtering] ===
 def extract_urls_from_context(context_text):
     return set(re.findall(r'https?://[^\s<>"]+', context_text))
 
-# === [ADDED: allow trusted fallback domains to show full URL] ===
 ALLOWED_DOMAINS = ["nida.nih.gov", "samhsa.gov", "cdc.gov", "dea.gov", "nih.gov"]
 
 def filter_response_urls(response_text, valid_urls):
     found_urls = re.findall(r'https?://[^\s<>\"]+', response_text)
     for url in found_urls:
         if url in valid_urls:
-            continue  # URL is in local context
+            continue
         if any(domain in url for domain in ALLOWED_DOMAINS):
-            continue  # Trusted fallback domain
-        # Replace the full URL with just the domain name (e.g., "cdc.gov")
+            continue
         try:
             domain = urlparse.urlparse(url).netloc
             response_text = response_text.replace(url, domain)
         except:
             response_text = response_text.replace(url, "trusted site")
     return response_text
-# === [END ADDITION] ===
 
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
@@ -94,30 +79,31 @@ conversation_history = []
 conversation_context = {}
 
 irrelevant_topics = [
-    "singer", "actor", "actress", "movie", "pop culture", "music", "sports", "literature", "state", "country", "continent",
+    "singer", "actor", "actress", "movie", "pop culture", "music", "sports", "literature", "state", "country",
     "nature", "celebrity", "tv show", "fashion", "entertainment", "politics", "school", "science", "cities",
-    "history", "geography", "animal", "weather", "food", "recipes", "how to make food", "how to make drinks", "how to bake",
-    "drink", "recipe", "finance", "education", "academia",
-    "technology", "gaming", "tobacco", "alcohol", "Caffeine", "Nicotine", "Amphetamine", "physical education",
-    "Methylphenidate", "Cocaine", "Methamphetamine", "Benzodiazepines", "Z-drugs", "LSD (Acid)", "art", 
-    "THC", "CBD", "synthetic cannabinoids", "SSRIs", "Antipsychotics", "antihistamines", "NSAIDs",
-    "Acetaminophen"
+    "history", "geography", "animal", "weather", "food", "recipes", "how to make food", "how to make drinks",
+    "how to bake", "drink", "recipe", "finance", "education", "academia", "technology", "gaming", "tobacco",
+    "alcohol", "Caffeine", "Nicotine", "Amphetamine", "Methylphenidate", "Cocaine", "Methamphetamine",
+    "Benzodiazepines", "Z-drugs", "LSD (Acid)", "art", "THC", "CBD", "synthetic cannabinoids", "SSRIs",
+    "Antipsychotics", "antihistamines", "NSAIDs", "Acetaminophen"
 ]
 
 relevant_topics = [
     "opioids", "addiction", "overdose", "withdrawal", "fentanyl", "heroin", "chronic pain", "pain",
-    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium", "scientists", "control group",
-    "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help", "assistance", "scientific",
-    "support", "support for opioid addiction", "drug use", "email", "campus", "phone number", "clinician", "evidence",
-    "BSU", "Bowie State University", "opioid use disorder", "opioid self-medication", "self medication", "clinical",
-    "risk factors", "disparity", "racism", "bias", "addict", "marginalized","challenges", "long-term factors",
-    "short-term factors", "consequences", "disease", "cancer", "treatment-seeking", "stigma", "stigmas", "opioid users", "communities",
-    "number", "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence", "prescription",
-    "medication-assisted treatment", "MAT", "OUD", "opioid epidemic", "teen", "dangers", "genetic", "ethical", "ethics",
-    "environmental factors", "pain management", "consequences", "prevention", "doctor", "physician",
-    "adult", "death", "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", "pharmacology", "pharmacological",
-    "brands", "treatment programs", "medication", "young people", "peer pressure", "socioeconomic factors", "DO", "MD", 
-    "income inequality", "healthcare disparities", "psychological", "psychology", "screen"
+    "painkillers", "narcotics", "opioid crisis", "naloxone", "rehab", "opiates", "opium", "scientists",
+    "control group", "students", "teens", "adults", "substance abuse", "drugs", "tolerance", "help",
+    "assistance", "scientific", "support", "support for opioid addiction", "drug use", "email", "campus",
+    "phone number", "clinician", "evidence", "BSU", "Bowie State University", "opioid use disorder",
+    "opioid self-medication", "self medication", "clinical", "risk factors", "disparity", "racism", "bias",
+    "addict", "marginalized", "challenges", "long-term factors", "short-term factors", "consequences",
+    "disease", "cancer", "treatment-seeking", "stigma", "stigmas", "opioid users", "communities", "number",
+    "percentage", "symptoms", "signs", "opioid abuse", "opioid misuse", "physical dependence",
+    "prescription", "medication-assisted treatment", "MAT", "OUD", "opioid epidemic", "teen", "dangers",
+    "genetic", "ethical", "ethics", "environmental factors", "pain management", "doctor", "physician",
+    "adult", "death", "semi-synthetic opioids", "neonatal abstinence syndrome", "NAS", "pharmacology",
+    "pharmacological", "brands", "treatment programs", "medication", "young people", "peer pressure",
+    "socioeconomic factors", "DO", "MD", "income inequality", "healthcare disparities", "psychological",
+    "psychology", "screen"
 ]
 
 def normalize_language_code(lang):
@@ -127,10 +113,9 @@ def normalize_language_code(lang):
 def is_question_relevant(question):
     question_lower = question.lower().strip()
     if any(topic in question_lower for topic in relevant_topics):
-        return True  # Allow if any relevant topic is present
+        return True
     if any(topic in question_lower for topic in irrelevant_topics):
-        return False  # Block only if irrelevant and no relevant topic found
-    # Optionally check recent messages if needed
+        return False
     return False
 
 def extract_text_from_pdf(pdf_path):
@@ -160,26 +145,14 @@ def read_pdfs_in_folder(folder):
             output += extract_tables_from_pdf(path) + "\n\n"
     return output
 
-def extract_all_tables_first(folder):
-    tables_output = ""
-    for filename in os.listdir(folder):
-        if filename.endswith(".pdf"):
-            path = os.path.join(folder, filename)
-            tables = extract_tables_from_pdf(path)
-            if tables:
-                tables_output += f"=== Tables from {filename} ===\n{tables}\n\n"
-    return tables_output
-
-def read_excel_as_text(excel_path):
-    try:
-        excel_data = pd.read_excel(excel_path, header=1, sheet_name=None)
-        output = f"=== Excel File: {os.path.basename(excel_path)} ===\n"
-        for sheet, df in excel_data.items():
-            output += f"\n--- Sheet: {sheet} ---\n"
-            output += df.to_string(index=False) + "\n"
-        return output.strip()
-    except Exception as e:
-        return f"Error reading Excel: {str(e)}"
+def read_excel_as_text(path):
+    workbook = load_workbook(filename=path, data_only=True)
+    text_output = ""
+    for sheet in workbook.worksheets:
+        for row in sheet.iter_rows(min_row=2, values_only=True):
+            row_text = " | ".join(str(cell) if cell is not None else "" for cell in row)
+            text_output += row_text + "\n"
+    return text_output.strip()
 
 pdf_folder = "pdfs"
 excel_files = [
@@ -189,21 +162,13 @@ excel_files = [
 ]
 
 excel_text = ""
-excel_df = None
-
 for filename in excel_files:
     path = os.path.join(pdf_folder, filename)
     if os.path.exists(path):
         excel_text += read_excel_as_text(path) + "\n\n"
-        df = pd.read_excel(path, header=1)
-        if excel_df is None:
-            excel_df = df
-        else:
-            excel_df = pd.concat([excel_df, df], ignore_index=True)
 
 pdf_texts = read_pdfs_in_folder(pdf_folder)
-all_table_text = extract_all_tables_first(pdf_folder)
-combined_text = f"{pdf_texts}\n\n{all_table_text}\n\n{excel_text}"[:12000]
+combined_text = f"{pdf_texts}\n\n{excel_text}"[:12000]
 
 def get_llama3_response(question, user_lang="en"):
     user_lang = normalize_language_code(user_lang)
@@ -223,29 +188,6 @@ def get_llama3_response(question, user_lang="en"):
             return "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment."
 
     conversation_history.append({"role": "user", "content": translated_question})
-
-    system_prompt = """Prioritize answering questions using information from PDFs first, then from tables, and lastly from Excel or fallback web sources. 
-Do not use fallback sources unless no answer is available in the PDF content.You are an educational chatbot specifically designed to provide accurate, factual, and age-appropriate
-information about opioids, including opioid use and misuse, addiction, overdose, prevention, pain management, treatment, risk factors, 
-and related topics. You are required to answer questions about why kids, teens, and adults use opioids, as this is educationally important 
-to understand motivations and risks related to use and abuse. Your responses should only address inquiries directly related to opioid 
-education and opioid awareness. Questions regarding opioid addiction, recovery, support, treatment, and withdrawal related to BSU 
-(Bowie State University, campus) are allowed to be answered. You are strictly prohibited from discussing unrelated subjects such as:
-celebrities, entertainment, politics, singer, actor, actress, movie, pop culture, music, sports, nature, tv show, fashion, history, 
-geography, animal, weather, food, how to make food, how to make drinks, how to bake, recipe, finance, technology, gaming, tobacco, alcohol, caffeine, nicotine, amphetamine, 
-methylphenidate, cocaine, methamphetamine, benzodiazepines, z-drugs, LSD (acid), THC, CBD, synthetic cannabinoids, SSRIs, 
-antipsychotics, antihistamines, NSAIDs, acetaminophen, or general health. Don't discuss this AT ALL just say you cannot discuss this. You are 
-strictly prohibited from answering these topics even as a follow-up under no circumstances are you permitted to answer these questions.
-Even if users ask repeatedly, rephrase, or request outside links or resources (e.g., websites, news platforms, apps, tools, organizations, or events), 
-you are strictly forbidden from suggesting any external resources not directly related to opioid education. You should use context from previous 
-conversations to answer follow-up questions, but your responses must remain rooted solely in the educational data regarding opioids.
-These restrictions apply to all user messages, including follow-ups, rephrased questions, or repeated attempts to bypass them.
-You must answer complexities and consequences of opioid addiction, including its risk factors, challenges, and long-term impacts.
-Always cite sources at the end of your answers. Only cite real sources from the provided context. Do not invent sources. Do not hallucinate sources.
-Do not stop citations early. Complete the entire reference including titles and URLs. Only provide the URL if it is real and comes from the PDF or Excel context.
-If a citation is long, wrap it across lines using line breaks or bullet points. If you cannot find the answer or a valid source from the provided context, 
-you must search for a real and reliable source using DuckDuckGo instead. Prioritize official health or government sources such as nida.nih.gov, samhsa.gov, or cdc.gov. 
-Always return a valid URL from a trusted site, even if it is not in the original documents."""
 
     messages = [
         {"role": "system", "content": f"{system_prompt}\n\nContext:\n{combined_text}"},
@@ -267,8 +209,7 @@ Always return a valid URL from a trusted site, even if it is not in the original
         res.raise_for_status()
         data = res.json()
         if "choices" in data and data["choices"]:
-            message = data["choices"][0].get("message", {})
-            content = message.get("content", "").strip()
+            content = data["choices"][0].get("message", {}).get("content", "").strip()
             if not content:
                 content = "I'm here to help, but the response was unexpectedly empty. Please try again."
         else:
@@ -286,12 +227,10 @@ Always return a valid URL from a trusted site, even if it is not in the original
         fallback_sources = "\n".join(f"- {link}" for link in fallback_links)
         filtered_content += f"\n\n[Fallback sources via DuckDuckGo:]\n{fallback_sources}"
 
-    content = filtered_content
-
     try:
-        return translator.translate(content, dest=user_lang).text
+        return translator.translate(filtered_content, dest=user_lang).text
     except:
-        return content
+        return filtered_content
 
 @app.route("/")
 def index():
@@ -349,4 +288,3 @@ def check_env():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
