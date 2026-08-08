@@ -470,10 +470,10 @@ def read_pdfs_in_folder(folder):
 
             # Prevent unnecessary processing
             # after enough context is collected.
-            if len(output) >= 5000:
+            if len(output) >= 2000:
                 break
 
-    return output[:5000]
+    return output[:2000]
 
 
 # ============================================================
