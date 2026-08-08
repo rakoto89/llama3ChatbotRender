@@ -684,7 +684,7 @@ def get_llama3_response(
     payload = {
 
         "model":
-            "meta-llama/Llama-3.1-8B-Instruct",
+            "meta-llama/Llama-3.3-70B-Instruct-Turbo",
 
         "messages":
             messages
