@@ -9,17 +9,67 @@ import re
 from bs4 import BeautifulSoup
 import psycopg2
 
-print("STEP 1: Imports completed", flush=True)
+
+# ============================================================
+# FLASK APPLICATION
+# ============================================================
+
+app = Flask(__name__, static_url_path="/static")
+CORS(app)
 
 
 # ============================================================
-# DuckDuckGo fallback search
+# ENVIRONMENT VARIABLES
+# ============================================================
+
+LLAMA3_ENDPOINT = os.environ.get("LLAMA3_ENDPOINT", "")
+REN_API_KEY = os.environ.get("REN_API_KEY", "")
+FEEDBACK_SECRET_KEY = os.environ.get(
+    "FEEDBACK_SECRET_KEY",
+    "test-key"
+)
+
+DATABASE_URL = os.environ.get("DATABASE_URL", "")
+
+
+# ============================================================
+# DATABASE CONFIGURATION
+# ============================================================
+
+db_config = {}
+
+if DATABASE_URL:
+    try:
+        parsed_db_url = urlparse.urlparse(DATABASE_URL)
+
+        db_config = {
+            "dbname": parsed_db_url.path[1:],
+            "user": parsed_db_url.username,
+            "password": parsed_db_url.password,
+            "host": parsed_db_url.hostname,
+            "port": parsed_db_url.port
+        }
+
+    except Exception as e:
+        app.logger.error(f"Database configuration error: {e}")
+
+
+# ============================================================
+# DUCKDUCKGO FALLBACK SEARCH
 # ============================================================
 
 def duckduckgo_search(query, max_results=3):
+
     try:
-        url = f"https://duckduckgo.com/html/?q={urlparse.quote_plus(query)}"
-        headers = {"User-Agent": "Mozilla/5.0"}
+
+        url = (
+            f"https://duckduckgo.com/html/"
+            f"?q={urlparse.quote_plus(query)}"
+        )
+
+        headers = {
+            "User-Agent": "Mozilla/5.0"
+        }
 
         res = requests.get(
             url,
@@ -27,29 +77,48 @@ def duckduckgo_search(query, max_results=3):
             timeout=10
         )
 
-        soup = BeautifulSoup(res.text, "html.parser")
+        res.raise_for_status()
+
+        soup = BeautifulSoup(
+            res.text,
+            "html.parser"
+        )
+
         links = []
 
         for a in soup.select(".result__a[href]"):
+
             href = a["href"]
 
             match = re.search(
-                r'u=(https?%3A%2F%2F[^&]+)',
+                r"u=(https?%3A%2F%2F[^&]+)",
                 href
             )
 
             if match:
-                decoded_url = urlparse.unquote(match.group(1))
-            else:
-                decoded_url = a["href"]
 
-            decoded_url = decoded_url.strip().rstrip(">").rstrip("/.")
+                decoded_url = urlparse.unquote(
+                    match.group(1)
+                )
+
+            else:
+
+                decoded_url = href
+
+            decoded_url = (
+                decoded_url
+                .strip()
+                .rstrip(">")
+                .rstrip("/.")
+            )
 
             if (
                 decoded_url.startswith("http")
                 and len(decoded_url.split("/")) > 3
             ):
+
                 try:
+
                     response = requests.head(
                         decoded_url,
                         allow_redirects=True,
@@ -59,7 +128,7 @@ def duckduckgo_search(query, max_results=3):
                     if response.status_code == 200:
                         links.append(decoded_url)
 
-                except Exception:
+                except requests.RequestException:
                     continue
 
             if len(links) >= max_results:
@@ -68,14 +137,20 @@ def duckduckgo_search(query, max_results=3):
         return links
 
     except Exception as e:
-        return [f"[DuckDuckGo search error: {e}]"]
+
+        app.logger.error(
+            f"DuckDuckGo search error: {e}"
+        )
+
+        return []
 
 
 # ============================================================
-# Extract URLs from context
+# URL EXTRACTION
 # ============================================================
 
 def extract_urls_from_context(context_text):
+
     return set(
         re.findall(
             r'https?://[^\s<>"]+',
@@ -85,7 +160,7 @@ def extract_urls_from_context(context_text):
 
 
 # ============================================================
-# Allowed domains
+# TRUSTED GOVERNMENT DOMAINS
 # ============================================================
 
 ALLOWED_DOMAINS = [
@@ -98,10 +173,14 @@ ALLOWED_DOMAINS = [
 
 
 # ============================================================
-# Filter response URLs
+# RESPONSE URL FILTER
 # ============================================================
 
-def filter_response_urls(response_text, valid_urls):
+def filter_response_urls(
+    response_text,
+    valid_urls
+):
+
     found_urls = re.findall(
         r'https?://[^\s<>"]+',
         response_text
@@ -119,82 +198,40 @@ def filter_response_urls(response_text, valid_urls):
             continue
 
         try:
-            domain = urlparse.urlparse(url).netloc
 
-            response_text = response_text.replace(
-                url,
-                domain
+            domain = (
+                urlparse
+                .urlparse(url)
+                .netloc
+            )
+
+            response_text = (
+                response_text
+                .replace(
+                    url,
+                    domain
+                )
             )
 
         except Exception:
 
-            response_text = response_text.replace(
-                url,
-                "trusted site"
+            response_text = (
+                response_text
+                .replace(
+                    url,
+                    "trusted site"
+                )
             )
 
     return response_text
 
 
 # ============================================================
-# Flask application
-# ============================================================
-
-app = Flask(
-    __name__,
-    static_url_path="/static"
-)
-
-CORS(app)
-
-print("STEP 2: Flask app created", flush=True)
-
-
-# ============================================================
-# Environment variables
-# ============================================================
-
-LLAMA3_ENDPOINT = os.environ.get(
-    "LLAMA3_ENDPOINT",
-    ""
-)
-
-REN_API_KEY = os.environ.get(
-    "REN_API_KEY",
-    ""
-)
-
-FEEDBACK_SECRET_KEY = os.environ.get(
-    "FEEDBACK_SECRET_KEY",
-    "test-key"
-)
-
-DATABASE_URL = os.environ.get(
-    "DATABASE_URL",
-    ""
-)
-
-
-# ============================================================
-# Database configuration
-# ============================================================
-
-url = urlparse.urlparse(DATABASE_URL)
-
-db_config = {
-    "dbname": url.path[1:],
-    "user": url.username,
-    "password": url.password,
-    "host": url.hostname,
-    "port": url.port
-}
-
-
-# ============================================================
-# Conversation history and topic configuration
+# CONVERSATION SETTINGS
 # ============================================================
 
 conversation_history = []
+
 
 irrelevant_topics = [
     "singer",
@@ -208,7 +245,9 @@ irrelevant_topics = [
     "games"
 ]
 
+
 relevant_topics = [
+    "opioid",
     "opioids",
     "addiction",
     "overdose",
@@ -216,15 +255,26 @@ relevant_topics = [
     "treatment",
     "naloxone",
     "withdrawal",
-    "rehab"
+    "rehab",
+    "fentanyl",
+    "heroin",
+    "oxycodone",
+    "hydrocodone",
+    "morphine",
+    "buprenorphine",
+    "methadone"
 ]
 
 
 # ============================================================
-# Normalize language codes
+# LANGUAGE NORMALIZATION
 # ============================================================
 
 def normalize_language_code(lang):
+
+    if not lang:
+        return "en"
+
     zh_map = {
         "zh": "zh-CN",
         "zh-cn": "zh-CN",
@@ -238,10 +288,14 @@ def normalize_language_code(lang):
 
 
 # ============================================================
-# Check question relevance
+# QUESTION RELEVANCE
 # ============================================================
 
 def is_question_relevant(question):
+
+    if not question:
+        return False
+
     q = question.lower()
 
     if any(
@@ -260,104 +314,206 @@ def is_question_relevant(question):
 
 
 # ============================================================
-# Extract text from PDF
+# PDF TEXT EXTRACTION
 # ============================================================
 
 def extract_text_from_pdf(pdf_path):
+
     text = ""
 
-    with pdfplumber.open(pdf_path) as pdf:
+    try:
 
-        for page in pdf.pages:
+        with pdfplumber.open(pdf_path) as pdf:
 
-            page_text = page.extract_text()
+            for page in pdf.pages:
 
-            if page_text:
-                text += page_text + "\n"
+                try:
+
+                    page_text = (
+                        page.extract_text()
+                    )
+
+                    if page_text:
+                        text += (
+                            page_text + "\n"
+                        )
+
+                except Exception as e:
+
+                    app.logger.warning(
+                        f"Could not extract text "
+                        f"from page in "
+                        f"{pdf_path}: {e}"
+                    )
+
+    except Exception as e:
+
+        app.logger.error(
+            f"Could not open PDF "
+            f"{pdf_path}: {e}"
+        )
 
     return text.strip()
 
 
 # ============================================================
-# Extract tables from PDF
+# PDF TABLE EXTRACTION
 # ============================================================
 
 def extract_tables_from_pdf(pdf_path):
+
     table_text = ""
 
-    with pdfplumber.open(pdf_path) as pdf:
+    try:
 
-        for page in pdf.pages:
+        with pdfplumber.open(pdf_path) as pdf:
 
-            tables = page.extract_tables()
+            for page in pdf.pages:
 
-            for table in tables:
+                try:
 
-                for row in table:
-
-                    table_text += (
-                        " | ".join(
-                            cell or ""
-                            for cell in row
-                        )
-                        + "\n"
+                    tables = (
+                        page.extract_tables()
                     )
+
+                    for table in tables:
+
+                        for row in table:
+
+                            table_text += (
+                                " | ".join(
+                                    cell or ""
+                                    for cell in row
+                                )
+                                + "\n"
+                            )
+
+                except Exception as e:
+
+                    app.logger.warning(
+                        f"Could not extract "
+                        f"table from "
+                        f"{pdf_path}: {e}"
+                    )
+
+    except Exception as e:
+
+        app.logger.error(
+            f"Could not open PDF "
+            f"{pdf_path}: {e}"
+        )
 
     return table_text.strip()
 
 
 # ============================================================
-# Read PDFs in folder
+# READ PDF FOLDER
 # ============================================================
 
 def read_pdfs_in_folder(folder):
+
     output = ""
 
-    for filename in os.listdir(folder):
+    if not os.path.isdir(folder):
 
-        if filename.endswith(".pdf"):
+        app.logger.warning(
+            f"PDF folder '{folder}' "
+            f"does not exist."
+        )
+
+        return output
+
+    try:
+
+        filenames = os.listdir(folder)
+
+    except Exception as e:
+
+        app.logger.error(
+            f"Unable to read PDF folder: {e}"
+        )
+
+        return output
+
+    for filename in filenames:
+
+        if filename.lower().endswith(".pdf"):
 
             path = os.path.join(
                 folder,
                 filename
             )
 
-            output += (
-                extract_text_from_pdf(path)
-                + "\n\n"
+            app.logger.info(
+                f"Loading PDF: {filename}"
             )
 
-            output += (
-                extract_tables_from_pdf(path)
-                + "\n\n"
+            text = extract_text_from_pdf(
+                path
             )
 
-    return output
+            tables = extract_tables_from_pdf(
+                path
+            )
+
+            if text:
+
+                output += (
+                    text + "\n\n"
+                )
+
+            if tables:
+
+                output += (
+                    tables + "\n\n"
+                )
+
+            # Prevent unnecessary processing
+            # after enough context is collected.
+            if len(output) >= 5000:
+                break
+
+    return output[:5000]
 
 
 # ============================================================
-# Load PDF knowledge
+# LAZY PDF LOADING
+#
+# IMPORTANT:
+# PDFs are NOT processed while Gunicorn imports this file.
+# This allows Render/Gunicorn to bind to PORT first.
 # ============================================================
-
-print(
-    "STEP 3: About to process PDFs",
-    flush=True
-)
 
 pdf_folder = "pdfs"
 
-combined_text = read_pdfs_in_folder(
-    pdf_folder
-)[:5000]
+combined_text = None
 
-print(
-    "STEP 4: PDF processing completed",
-    flush=True
-)
+
+def get_combined_text():
+
+    global combined_text
+
+    if combined_text is None:
+
+        app.logger.info(
+            "Loading opioid PDF context..."
+        )
+
+        combined_text = (
+            read_pdfs_in_folder(
+                pdf_folder
+            )
+        )
+
+        app.logger.info(
+            "PDF context loaded."
+        )
+
+    return combined_text
 
 
 # ============================================================
-# Get response from LLaMA
+# LLAMA RESPONSE
 # ============================================================
 
 def get_llama3_response(
@@ -371,14 +527,28 @@ def get_llama3_response(
 
     translator = Translator()
 
+
+    # --------------------------------------------------------
+    # Translate incoming question to English
+    # --------------------------------------------------------
+
     try:
 
-        translated_question = translator.translate(
-            question,
-            dest="en"
-        ).text
+        translated_question = (
+            translator
+            .translate(
+                question,
+                dest="en"
+            )
+            .text
+        )
 
-    except Exception:
+    except Exception as e:
+
+        app.logger.warning(
+            f"Question translation "
+            f"failed: {e}"
+        )
 
         translated_question = question
 
@@ -391,89 +561,136 @@ def get_llama3_response(
         translated_question
     ):
 
+        message = (
+            "Sorry, I can only answer "
+            "questions about opioids, "
+            "addiction, overdose, "
+            "or treatment."
+        )
+
         try:
 
-            return translator.translate(
-                "Sorry, I can only answer questions about opioids, addiction, overdose, or treatment.",
-                dest=user_lang
-            ).text
+            return (
+                translator
+                .translate(
+                    message,
+                    dest=user_lang
+                )
+                .text
+            )
 
         except Exception:
 
-            return (
-                "Sorry, I can only answer questions "
-                "about opioids, addiction, overdose, "
-                "or treatment."
-            )
+            return message
 
 
     # --------------------------------------------------------
-    # Add question to conversation history
+    # Load PDFs only when actually needed
     # --------------------------------------------------------
 
-    conversation_history.append({
-        "role": "user",
-        "content": translated_question
-    })
+    context_text = get_combined_text()
+
+
+    # --------------------------------------------------------
+    # Conversation history
+    # --------------------------------------------------------
+
+    conversation_history.append(
+        {
+            "role": "user",
+            "content":
+                translated_question
+        }
+    )
 
 
     # --------------------------------------------------------
     # System prompt
     # --------------------------------------------------------
 
-    system_prompt = """
-Only use PDF data to answer questions related to opioids.
-Never use hallucinated or external info.
-Do not respond to off-topic questions.
-Always prioritize government sources like nida.nih.gov or samhsa.gov.
-"""
+    system_prompt = (
+        "Only use the provided PDF data "
+        "to answer questions related to "
+        "opioids. "
+        "Never use hallucinated or "
+        "unverified information. "
+        "Do not respond to off-topic "
+        "questions. "
+        "Always prioritize reliable "
+        "government sources such as "
+        "NIDA, SAMHSA, CDC, NIH, and DEA."
+    )
 
-
-    # --------------------------------------------------------
-    # Messages sent to LLaMA
-    # --------------------------------------------------------
 
     messages = [
+
         {
             "role": "system",
+
             "content":
-                f"{system_prompt}\n\n"
-                f"Context:\n{combined_text}"
+                f"{system_prompt}"
+                f"\n\nContext:\n"
+                f"{context_text}"
         },
 
         *conversation_history[-5:]
+
     ]
 
 
     # --------------------------------------------------------
-    # API headers
+    # Verify API configuration
+    # --------------------------------------------------------
+
+    if not LLAMA3_ENDPOINT:
+
+        app.logger.error(
+            "LLAMA3_ENDPOINT is not set."
+        )
+
+        return (
+            "The chatbot AI service "
+            "is not currently configured."
+        )
+
+
+    if not REN_API_KEY:
+
+        app.logger.error(
+            "REN_API_KEY is not set."
+        )
+
+        return (
+            "The chatbot API key "
+            "is not currently configured."
+        )
+
+
+    # --------------------------------------------------------
+    # API request
     # --------------------------------------------------------
 
     headers = {
+
         "Authorization":
             f"Bearer {REN_API_KEY}",
 
         "Content-Type":
             "application/json"
+
     }
 
 
-    # --------------------------------------------------------
-    # API payload
-    # --------------------------------------------------------
-
     payload = {
+
         "model":
             "meta-llama/Llama-3-8b-chat-hf",
 
         "messages":
             messages
+
     }
 
-
-    # --------------------------------------------------------
-    # Call LLaMA endpoint
-    # --------------------------------------------------------
 
     try:
 
@@ -488,6 +705,7 @@ Always prioritize government sources like nida.nih.gov or samhsa.gov.
 
         data = res.json()
 
+
         if data.get("choices"):
 
             content = (
@@ -499,37 +717,64 @@ Always prioritize government sources like nida.nih.gov or samhsa.gov.
 
         else:
 
-            content = "No valid response."
+            content = (
+                "No valid response "
+                "was returned."
+            )
 
 
-    except Exception:
+    except requests.RequestException as e:
+
+        app.logger.error(
+            f"LLaMA request error: {e}"
+        )
 
         content = (
-            "Error getting response from LLaMA."
+            "Error getting response "
+            "from LLaMA."
+        )
+
+
+    except Exception as e:
+
+        app.logger.error(
+            f"LLaMA response error: {e}"
+        )
+
+        content = (
+            "Error processing response "
+            "from LLaMA."
         )
 
 
     # --------------------------------------------------------
-    # Add response to conversation history
+    # Save assistant response
     # --------------------------------------------------------
 
-    conversation_history.append({
-        "role": "assistant",
-        "content": content
-    })
+    conversation_history.append(
+        {
+            "role": "assistant",
+            "content": content
+        }
+    )
 
 
     # --------------------------------------------------------
     # Validate URLs
     # --------------------------------------------------------
 
-    valid_urls = extract_urls_from_context(
-        combined_text
+    valid_urls = (
+        extract_urls_from_context(
+            context_text
+        )
     )
 
-    filtered_content = filter_response_urls(
-        content,
-        valid_urls
+
+    filtered_content = (
+        filter_response_urls(
+            content,
+            valid_urls
+        )
     )
 
 
@@ -544,40 +789,64 @@ Always prioritize government sources like nida.nih.gov or samhsa.gov.
         in filtered_content.lower()
     ):
 
-        fallback_links = duckduckgo_search(
-            translated_question
+        fallback_links = (
+            duckduckgo_search(
+                translated_question
+            )
         )
 
-        fallback_sources = "\n".join(
-            f"- {link}"
-            for link in fallback_links
-        )
+        if fallback_links:
 
-        filtered_content += (
-            "\n\n"
-            "[Fallback sources via DuckDuckGo:]\n"
-            f"{fallback_sources}"
-        )
+            fallback_sources = "\n".join(
+                f"- {link}"
+                for link
+                in fallback_links
+            )
+
+            filtered_content += (
+                "\n\n"
+                "[Fallback sources via "
+                "DuckDuckGo:]\n"
+                f"{fallback_sources}"
+            )
 
 
     # --------------------------------------------------------
     # Translate response
     # --------------------------------------------------------
 
+    if user_lang.lower() in [
+        "en",
+        "en-us",
+        "en-gb"
+    ]:
+
+        return filtered_content
+
+
     try:
 
-        return translator.translate(
-            filtered_content,
-            dest=user_lang
-        ).text
+        return (
+            translator
+            .translate(
+                filtered_content,
+                dest=user_lang
+            )
+            .text
+        )
 
-    except Exception:
+    except Exception as e:
+
+        app.logger.warning(
+            f"Response translation "
+            f"failed: {e}"
+        )
 
         return filtered_content
 
 
 # ============================================================
-# Home page
+# HOME PAGE
 # ============================================================
 
 @app.route("/")
@@ -589,7 +858,23 @@ def index():
 
 
 # ============================================================
-# Ask endpoint
+# HEALTH CHECK
+#
+# Render can call this without triggering PDF loading.
+# ============================================================
+
+@app.route("/health")
+def health():
+
+    return jsonify(
+        {
+            "status": "ok"
+        }
+    ), 200
+
+
+# ============================================================
+# ASK CHATBOT
 # ============================================================
 
 @app.route(
@@ -598,42 +883,57 @@ def index():
 )
 def ask():
 
-    data = request.get_json()
+    data = (
+        request.get_json(
+            silent=True
+        )
+        or {}
+    )
+
 
     question = data.get(
         "question",
         ""
     )
 
-    lang = normalize_language_code(
-        data.get(
-            "language",
-            "en"
+
+    lang = (
+        normalize_language_code(
+            data.get(
+                "language",
+                "en"
+            )
         )
     )
 
 
     if not question:
 
-        return jsonify({
-            "error":
-                "No question provided"
-        }), 400
+        return jsonify(
+            {
+                "error":
+                    "No question provided"
+            }
+        ), 400
 
 
-    answer = get_llama3_response(
-        question,
-        lang
+    answer = (
+        get_llama3_response(
+            question,
+            lang
+        )
     )
 
 
-    return jsonify({
-        "answer": answer
-    })
+    return jsonify(
+        {
+            "answer": answer
+        }
+    )
 
 
 # ============================================================
-# Translation endpoint
+# TRANSLATION ENDPOINT
 # ============================================================
 
 @app.route(
@@ -642,44 +942,77 @@ def ask():
 )
 def translate():
 
-    data = request.json
+    data = (
+        request.get_json(
+            silent=True
+        )
+        or {}
+    )
+
 
     text = data.get(
         "text",
         ""
     )
 
-    lang = normalize_language_code(
-        data.get(
-            "target_lang",
-            "en"
+
+    lang = (
+        normalize_language_code(
+            data.get(
+                "target_lang",
+                "en"
+            )
         )
     )
 
 
+    if not text:
+
+        return jsonify(
+            {
+                "error":
+                    "No text provided"
+            }
+        ), 400
+
+
     try:
 
-        translation = Translator().translate(
-            text,
-            dest=lang
+        translation = (
+            Translator()
+            .translate(
+                text,
+                dest=lang
+            )
         )
 
-        return jsonify({
-            "translated_text":
-                translation.text
-        })
+
+        return jsonify(
+            {
+                "translated_text":
+                    translation.text
+            }
+        )
 
 
     except Exception as e:
 
-        return jsonify({
-            "error":
-                f"Translation error: {str(e)}"
-        }), 500
+        app.logger.error(
+            f"Translation error: {e}"
+        )
+
+
+        return jsonify(
+            {
+                "error":
+                    f"Translation error: "
+                    f"{str(e)}"
+            }
+        ), 500
 
 
 # ============================================================
-# Feedback endpoint
+# FEEDBACK ENDPOINT
 # ============================================================
 
 @app.route(
@@ -690,15 +1023,36 @@ def feedback():
 
     if request.method == "POST":
 
-        rating = request.form.get(
-            "rate"
+        rating = (
+            request.form.get(
+                "rate"
+            )
         )
 
-        feedback_text = request.form.get(
-            "feedback"
+
+        feedback_text = (
+            request.form.get(
+                "feedback"
+            )
         )
 
-        user_id = request.remote_addr
+
+        user_id = (
+            request.remote_addr
+        )
+
+
+        if not DATABASE_URL:
+
+            app.logger.error(
+                "DATABASE_URL "
+                "is not configured."
+            )
+
+            return render_template(
+                "feedback.html",
+                success=False
+            )
 
 
         try:
@@ -707,20 +1061,28 @@ def feedback():
                 **db_config
             )
 
+
             cur = conn.cursor()
 
 
             cur.execute(
+
                 """
                 INSERT INTO feedback
-                (user_id, rating, comments)
+                (
+                    user_id,
+                    rating,
+                    comments
+                )
                 VALUES (%s, %s, %s);
                 """,
+
                 (
                     user_id,
                     int(rating),
                     feedback_text
                 )
+
             )
 
 
@@ -743,6 +1105,7 @@ def feedback():
                 f"DB Error: {e}"
             )
 
+
             return render_template(
                 "feedback.html",
                 success=False
@@ -756,44 +1119,36 @@ def feedback():
 
 
 # ============================================================
-# Environment diagnostic endpoint
+# ENVIRONMENT CHECK
 # ============================================================
 
 @app.route("/env")
 def check_env():
 
-    return jsonify({
+    return jsonify(
+        {
 
-        "LLAMA3_ENDPOINT":
-            LLAMA3_ENDPOINT,
+            "LLAMA3_ENDPOINT_SET":
+                bool(LLAMA3_ENDPOINT),
 
-        "REN_API_KEY_SET":
-            bool(REN_API_KEY),
+            "REN_API_KEY_SET":
+                bool(REN_API_KEY),
 
-        "DATABASE_URL_SET":
-            bool(DATABASE_URL)
+            "DATABASE_URL_SET":
+                bool(DATABASE_URL),
 
-    })
+            "PDF_CONTEXT_LOADED":
+                combined_text
+                is not None
 
-
-# ============================================================
-# Startup diagnostic
-# ============================================================
-
-print(
-    "STEP 5: Module initialization completed",
-    flush=True
-)
+        }
+    )
 
 
 # ============================================================
-# Flask startup
+# LOCAL DEVELOPMENT SERVER
 #
-# When running locally:
-#     python llama3chatbotopioid.py
-#
-# When running on Render:
-#     Gunicorn imports the Flask "app" object above.
+# Render will normally use Gunicorn instead.
 # ============================================================
 
 if __name__ == "__main__":
@@ -801,9 +1156,10 @@ if __name__ == "__main__":
     port = int(
         os.environ.get(
             "PORT",
-            5000
+            10000
         )
     )
+
 
     app.run(
         host="0.0.0.0",
