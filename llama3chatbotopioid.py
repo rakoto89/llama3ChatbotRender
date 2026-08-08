@@ -684,7 +684,7 @@ def get_llama3_response(
     payload = {
 
         "model":
-            "meta-llama/Llama-3-8b-chat-hf",
+            "meta-llama/llama-3.1-8b-instruct:free",
 
         "messages":
             messages
