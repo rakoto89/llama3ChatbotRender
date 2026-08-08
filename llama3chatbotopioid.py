@@ -118,7 +118,7 @@ def read_pdfs_in_folder(folder):
     return output
 
 pdf_folder = "pdfs"
-combined_text = read_pdfs_in_folder(pdf_folder)[:12000]
+combined_text = read_pdfs_in_folder(pdf_folder)[:5000]
 
 def get_llama3_response(question, user_lang="en"):
     user_lang = normalize_language_code(user_lang)
